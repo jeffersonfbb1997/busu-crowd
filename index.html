@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>BusU-Crowd - Localizador Universitário</title>
+    
+    <!-- CSS: Bootstrap e Leaflet (Mapa) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    
+<style>
+    body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: sans-serif; }
+    #map { height: 100vh; width: 100vw; z-index: 1; }
+    
+    .btn-colaborar {
+        position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+        z-index: 1000; box-shadow: 0px 4px 15px rgba(0,0,0,0.4);
+        border-radius: 30px; padding: 15px 30px; font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    /* Estilo do Marcador do Ônibus */
+    .bus-marker {
+        background-color: #e74c3c; /* Vermelho vibrante */
+        border: 3px solid white;
+        border-radius: 50% 50% 50% 0; /* Formato de gota/pin */
+        transform: rotate(-45deg);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 16px; width: 40px !important; height: 40px !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    }
+    .bus-marker span {
+        transform: rotate(45deg); /* Desfaz a rotação para o emoji ficar reto */
+    }
+
+    /* Efeito visual de "está ativo" */
+    .pulse {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+        animation: pulsing 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
+        border-radius: 50%;
+    }
+    @keyframes pulsing {
+        to { box-shadow: 0 0 0 15px rgba(231, 76, 60, 0); }
+    }
+</style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <button class="btn btn-primary btn-colaborar" data-bs-toggle="modal" data-bs-target="#modalLinhas">
+        📍 Quero Colaborar (Estou no Ônibus)
+    </button>
+
+    <!-- Modal Seleção de Linha -->
+    <div class="modal fade" id="modalLinhas" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Em qual linha você está?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <select class="form-select form-select-lg mb-3" id="linhaSelecionada">
+                        <option value="" selected disabled>Selecione a Linha...</option>
+                        <option value="Linha_01">Linha 01 - Campus / Terminal</option>
+                        <option value="Linha_02">Linha 02 - Circular</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success w-100" id="btnIniciarColaboracao">OK, Começar Transmissão!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts Externos -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- LOGICA DO APP (FIREBASE + GPS) -->
+   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyB7qohXZb_DYFplLOtt5YiqbahwhNYGPck",
+        authDomain: "busu-crowd.firebaseapp.com",
+        projectId: "busu-crowd",
+        storageBucket: "busu-crowd.firebasestorage.app",
+        messagingSenderId: "48985646106",
+        appId: "1:48985646106:web:1c7b80091855ad01609da3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const map = L.map('map').setView([-14.7981, -39.0347], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    const marcadoresOnibus = {};
+
+    let idUsuario = "aluno_" + Math.floor(Math.random() * 10000);
+    let watchID = null; // Guardará o rastreador do GPS
+    let linhaAtiva = null;
+
+    const btnColaborar = document.querySelector('.btn-colaborar');
+
+    // FUNÇÃO PARA PARAR TRANSMISSÃO
+    function pararTransmissao() {
+        if (watchID) {
+            navigator.geolocation.clearWatch(watchID);
+            watchID = null;
+        }
+        if (linhaAtiva) {
+            const caminho = ref(db, `onibus/${linhaAtiva}/${idUsuario}`);
+            remove(caminho); // Remove do Firebase imediatamente
+        }
+        btnColaborar.innerHTML = "📍 Quero Colaborar (Estou no Ônibus)";
+        btnColaborar.classList.replace('btn-danger', 'btn-primary');
+        linhaAtiva = null;
+        alert("Transmissão encerrada.");
+    }
+
+    document.getElementById('btnIniciarColaboracao').addEventListener('click', () => {
+        const linha = document.getElementById('linhaSelecionada').value;
+        if(!linha) return alert("Selecione uma linha!");
+
+        bootstrap.Modal.getInstance(document.getElementById('modalLinhas')).hide();
+        
+        // Se já estiver transmitindo, para antes de começar nova
+        if (watchID) pararTransmissao();
+
+        linhaAtiva = linha;
+
+        if ("geolocation" in navigator) {
+            btnColaborar.innerHTML = "🛑 Parar Transmissão";
+            btnColaborar.classList.replace('btn-primary', 'btn-danger');
+
+            watchID = navigator.geolocation.watchPosition((pos) => {
+                const { latitude, longitude } = pos.coords;
+                const caminho = ref(db, `onibus/${linha}/${idUsuario}`);
+                
+                set(caminho, {
+                    lat: latitude,
+                    lng: longitude,
+                    timestamp: Date.now()
+                });
+
+                onDisconnect(caminho).remove();
+            }, (err) => {
+                alert("Erro no GPS. Verifique se a localização está ativa.");
+                pararTransmissao();
+            }, { enableHighAccuracy: true });
+        }
+    });
+
+    // Lógica do botão principal (Se estiver transmitindo, ele vira botão de PARAR)
+    btnColaborar.addEventListener('click', (e) => {
+        if (watchID) {
+            e.stopPropagation(); // Impede de abrir o modal
+            pararTransmissao();
+        }
+    });
+
+    // ATUALIZAR MAPA (COM BALÃO DE IDENTIFICAÇÃO)
+    const busRef = ref(db, 'onibus');
+    onValue(busRef, (snapshot) => {
+        const dados = snapshot.val();
+        
+        // Limpar ônibus que sumiram do Firebase
+        for (let id in marcadoresOnibus) {
+            if (!dados || !dados[id]) {
+                map.removeLayer(marcadoresOnibus[id]);
+                delete marcadoresOnibus[id];
+            }
+        }
+
+        if(!dados) return;
+
+        for (let linhaID in dados) {
+            let somaLat = 0, somaLng = 0, totalAlunos = 0;
+            
+            for (let alunoID in dados[linhaID]) {
+                const info = dados[linhaID][alunoID];
+                if (Date.now() - info.timestamp < 40000) { // 40 segundos de tolerância
+                    somaLat += info.lat;
+                    somaLng += info.lng;
+                    totalAlunos++;
+                }
+            }
+
+            if (totalAlunos > 0) {
+                const latMedia = somaLat / totalAlunos;
+                const lngMedia = somaLng / totalAlunos;
+                const identificacao = linhaID.replace("_", " ");
+
+                if (marcadoresOnibus[linhaID]) {
+                    marcadoresOnibus[linhaID].setLatLng([latMedia, lngMedia]);
+                    // Atualiza o conteúdo do balão (popup)
+                    marcadoresOnibus[linhaID].getPopup().setContent(`<b>${identificacao}</b><br>Alunos colaborando: ${totalAlunos}`);
+                } else {
+                    const icon = L.divIcon({
+                        className: 'bus-marker pulse', 
+                        html: '<span>🚌</span>',
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 40] // Garante que a ponta do pin fique no lugar certo
+                    });
+                    
+                    // CRIA O MARCADOR COM O BALÃO (POPUP)
+                    const novoMarcador = L.marker([latMedia, lngMedia], {icon: icon}).addTo(map);
+                    novoMarcador.bindPopup(`<b>${identificacao}</b><br>Alunos colaborando: ${totalAlunos}`);
+                    
+                    marcadoresOnibus[linhaID] = novoMarcador;
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>
