@@ -12,11 +12,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        :root { --blue: #1a73e8; --sidebar-w: 310px; --z-ui: 4000; --green: #34a853; --gray: #70757a; --red: #ea4335; }
+        :root { --blue: #1a73e8; --sidebar-w: 300px; --z-ui: 4000; --green: #34a853; --gray: #70757a; --red: #ea4335; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Inter', sans-serif; overflow: hidden; background: #e5e3df; }
         #map { position: absolute; inset: 0; z-index: 1; }
 
-        /* Sidebar Google Style */
+        /* Sidebar Style */
         #sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w); background: white; z-index: 5000; transition: transform 0.3s ease; display: flex; flex-direction: column; transform: translateX(-100%); box-shadow: 5px 0 15px rgba(0,0,0,0.1); }
         #sidebar.active { transform: translateX(0); }
         #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 4500; backdrop-filter: blur(2px); }
@@ -24,48 +24,48 @@
         .sidebar-view { display: none; flex-direction: column; height: 100%; width: 100%; padding: 20px; overflow-y: auto; }
         .sidebar-view.active { display: flex; }
 
-        /* Navegação Sidebar */
-        .nav-item-custom { display: flex; align-items: center; padding: 12px; border-radius: 12px; cursor: pointer; transition: 0.2s; border: none; background: none; width: 100%; text-align: left; color: #3c4043; font-weight: 500; font-size: 14px; margin-bottom: 2px; }
-        .nav-item-custom:hover { background: #f1f3f4; color: var(--blue); }
-        .nav-item-custom i { font-size: 18px; margin-right: 15px; }
-        .standby-badge { font-size: 9px; background: #f1f3f4; color: #70757a; padding: 2px 6px; border-radius: 4px; margin-left: auto; font-weight: 700; }
+        /* Estilo LED Green */
+        .active-label { font-size: 9px; color: var(--green); font-weight: 800; letter-spacing: 1px; text-transform: uppercase; display: flex; align-items: center; }
+        .active-label::before { content: ''; width: 5px; height: 5px; background: var(--green); border-radius: 50%; margin-right: 6px; box-shadow: 0 0 6px var(--green); animation: blink 1.2s infinite; }
+        @keyframes blink { 50% { opacity: 0.3; } }
 
-        /* Estilo Letreiro Ativo (Green LED) */
-        .active-label { font-size: 10px; color: var(--green); font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; display: flex; align-items: center; }
-        .active-label::before { content: ''; width: 6px; height: 6px; background: var(--green); border-radius: 50%; margin-right: 8px; box-shadow: 0 0 8px var(--green); animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.4; } }
-
-        /* Menu Trigger */
-        .menu-trigger { position: absolute; top: 15px; left: 15px; z-index: var(--z-ui); width: 48px; height: 48px; border-radius: 50%; background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #5f6368; cursor: pointer; }
+        /* UI Flutuante */
+        .menu-trigger { position: absolute; top: 15px; left: 15px; z-index: var(--z-ui); width: 44px; height: 44px; border-radius: 50%; background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 22px; color: #5f6368; cursor: pointer; }
 
         /* Card Superior (Linhas Ativas) */
-        #lines-drawer { position: absolute; top: 75px; left: 15px; z-index: var(--z-ui); width: 240px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: 0.3s; max-height: 40vh; overflow: hidden; border: 1px solid white; }
-        #lines-drawer.collapsed { width: 48px; height: 48px; border-radius: 50%; }
+        #lines-drawer { position: absolute; top: 70px; left: 15px; z-index: var(--z-ui); width: 220px; background: rgba(255,255,255,0.96); backdrop-filter: blur(10px); border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: 0.3s; max-height: 40vh; overflow: hidden; border: 1px solid white; }
+        #lines-drawer.collapsed { width: 44px; height: 44px; border-radius: 50%; }
         #lines-drawer.collapsed .active-label, #lines-drawer.collapsed #floating-active-list { display: none; }
 
-        /* Card Inferior (Status) */
-        .bottom-ui { position: absolute; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; z-index: var(--z-ui); pointer-events: none; }
-        .info-card { width: 92%; max-width: 360px; background: white; border-radius: 24px; padding: 18px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); pointer-events: auto; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
-        .info-card.minimized { height: 50px; padding-top: 15px; }
-        .info-card.minimized #status-display, .info-card.minimized #global-counter { opacity: 0; pointer-events: none; }
+        /* Card Inferior Slim */
+        .bottom-ui { position: absolute; bottom: 15px; left: 0; width: 100%; display: flex; justify-content: center; z-index: var(--z-ui); pointer-events: none; }
+        .info-card { width: 92%; max-width: 340px; background: white; border-radius: 20px; padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); pointer-events: auto; transition: all 0.4s ease; overflow: hidden; }
+        .info-card.minimized { height: 42px; padding-top: 13px; }
+        .info-card.minimized #status-display, .info-card.minimized #global-counter { display: none; }
 
-        /* Itens de Ônibus Slim */
-        .bus-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; cursor: pointer; border-radius: 12px; }
-        .bus-name { font-weight: 700; color: #202124; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
-        .bus-eta { font-size: 12px; color: var(--green); font-weight: 800; background: #e6f4ea; padding: 2px 8px; border-radius: 6px; }
-        .bus-dist { font-size: 10px; color: #70757a; font-weight: 600; }
+        /* Hierarquia de Texto nos Cards */
+        .bus-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; cursor: pointer; }
+        .bus-title { font-weight: 700; color: #202124; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .bus-subtitle { font-size: 10px; color: var(--gray); font-weight: 500; margin-top: -2px; }
+        .bus-eta { font-size: 11px; color: var(--green); font-weight: 800; background: #e6f4ea; padding: 1px 6px; border-radius: 4px; }
+        .bus-dist { font-size: 9px; color: var(--gray); font-weight: 600; margin-top: 2px; }
 
-        /* Botões Laterais Direitos */
-        .side-btns { position: absolute; right: 15px; bottom: 180px; z-index: var(--z-ui); display: flex; flex-direction: column; gap: 12px; }
-        .btn-circle { width: 54px; height: 54px; border-radius: 50%; background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #5f6368; cursor: pointer; }
+        /* Pontos Pulsantes da Sidebar */
+        .line-dot-pulse { width: 6px; height: 6px; border-radius: 50%; margin-right: 10px; position: relative; flex-shrink: 0; }
+        .line-dot-pulse.active::after { content: ''; position: absolute; inset: -3px; border: 1px solid currentColor; border-radius: 50%; animation: ring-pulse 1.5s infinite; }
+        @keyframes ring-pulse { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.8); opacity: 0; } }
+
+        /* Botões Direita */
+        .side-btns { position: absolute; right: 15px; bottom: 160px; z-index: var(--z-ui); display: flex; flex-direction: column; gap: 10px; }
+        .btn-circle { width: 50px; height: 50px; border-radius: 50%; background: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.12); display: flex; align-items: center; justify-content: center; font-size: 22px; color: #5f6368; cursor: pointer; }
         .btn-circle.active { background: var(--red) !important; color: white !important; animation: pulse-red 1.5s infinite; }
 
-        /* Pins */
-        .bus-pin { width: 44px; height: 44px; border: 2.5px solid white; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-        .bus-pin span { transform: rotate(45deg); font-size: 16px; font-weight: 800; }
-        .user-marker-icon { background: var(--blue); width: 16px; height: 16px; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 10px var(--blue); }
-
-        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.6); } 70% { box-shadow: 0 0 0 15px rgba(234, 67, 53, 0); } 100% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0); } }
+        .bus-pin { width: 42px; height: 42px; border: 2.5px solid white; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .bus-pin span { transform: rotate(45deg); font-size: 15px; font-weight: 800; }
+        .user-marker-icon { background: var(--blue); width: 14px; height: 14px; border: 2.5px solid white; border-radius: 50%; box-shadow: 0 0 8px var(--blue); }
+        
+        .nav-item-custom { display: flex; align-items: center; padding: 10px; border-radius: 10px; cursor: pointer; border: none; background: none; width: 100%; text-align: left; font-size: 13px; font-weight: 500; }
+        .nav-item-custom:hover { background: #f8f9fa; }
     </style>
 </head>
 <body>
@@ -76,64 +76,64 @@
         <!-- VISTA USUÁRIO -->
         <div id="view-main" class="sidebar-view active">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="fw-bold text-primary m-0">BusU-Crowd</h4>
+                <h5 class="fw-bold text-primary m-0">BusU-Crowd</h5>
                 <i class="bi bi-x-lg cursor-pointer" onclick="window.toggleSidebar()"></i>
             </div>
             <div id="auth-area" class="mb-4"></div>
             <nav>
-                <button class="nav-item-custom" onclick="window.toggleSidebar()"><i class="bi bi-map text-primary"></i> Mapa em Tempo Real</button>
-                <button class="nav-item-custom"><i class="bi bi-star text-warning"></i> Paradas Favoritas <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom" onclick="window.switchView('planning')"><i class="bi bi-signpost-split text-success"></i> Planejar Rota</button>
-                <button class="nav-item-custom"><i class="bi bi-award text-danger"></i> Minhas Contribuições <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-trophy text-info"></i> Ranking <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-gear text-secondary"></i> Configurações <span class="standby-badge">Standby</span></button>
+                <button class="nav-item-custom" onclick="window.toggleSidebar()"><i class="bi bi-map text-primary me-3 fs-5"></i> Mapa em Tempo Real</button>
+                <button class="nav-item-custom"><i class="bi bi-star text-warning me-3 fs-5"></i> Paradas Favoritas <span class="standby-badge">Standby</span></button>
+                <button class="nav-item-custom" onclick="window.switchView('planning')"><i class="bi bi-signpost-split text-success me-3 fs-5"></i> Planejar Rota</button>
+                <button class="nav-item-custom"><i class="bi bi-award text-danger me-3 fs-5"></i> Contribuições <span class="standby-badge">Standby</span></button>
+                <button class="nav-item-custom"><i class="bi bi-trophy text-info me-3 fs-5"></i> Ranking <span class="standby-badge">Standby</span></button>
+                <button class="nav-item-custom"><i class="bi bi-gear text-secondary me-3 fs-5"></i> Configurações <span class="standby-badge">Standby</span></button>
             </nav>
             <div id="admin-entry" style="display:none" class="mt-auto">
-                <hr><button class="btn btn-dark w-100 py-2 fw-bold" onclick="window.switchView('admin-dashboard')"><i class="bi bi-speedometer2 me-2"></i> Painel Administrativo</button>
+                <hr><button class="btn btn-dark w-100 py-2 fw-bold text-uppercase" style="font-size:11px" onclick="window.switchView('admin-dashboard')">⚙️ Painel Administrativo</button>
             </div>
         </div>
 
-        <!-- VISTAS ADMIN -->
+        <!-- DASHBOARD ADMIN -->
         <div id="view-admin-dashboard" class="sidebar-view">
-            <div class="d-flex align-items-center mb-4"><i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('main')"></i><h5 class="fw-bold m-0">Painel Administrativo</h5></div>
+            <div class="d-flex align-items-center mb-4"><i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('main')"></i><h6 class="fw-bold m-0">Administração</h6></div>
             <div class="row g-2 mb-3">
-                <div class="col-6"><div class="card bg-light p-3 text-center border-0 rounded-4"><div class="h4 fw-bold text-primary mb-0" id="stat-users">0</div><small class="text-muted">Ativos</small></div></div>
-                <div class="col-6"><div class="card bg-light p-3 text-center border-0 rounded-4"><div class="h4 fw-bold text-primary mb-0" id="stat-lines">0</div><small class="text-muted">Linhas</small></div></div>
+                <div class="col-6"><div class="card bg-light p-2 text-center border-0 rounded-3"><div class="h5 fw-bold text-primary mb-0" id="stat-users">0</div><small style="font-size:9px" class="text-muted text-uppercase">Ativos</small></div></div>
+                <div class="col-6"><div class="card bg-light p-2 text-center border-0 rounded-3"><div class="h5 fw-bold text-primary mb-0" id="stat-lines">0</div><small style="font-size:9px" class="text-muted text-uppercase">Linhas</small></div></div>
             </div>
             <nav>
-                <button class="nav-item-custom" onclick="window.switchView('admin-lines')"><i class="bi bi-signpost-2 text-primary"></i> Linhas</button>
-                <button class="nav-item-custom"><i class="bi bi-geo-alt"></i> Paradas <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-building"></i> Terminais <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-clock"></i> Horários <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-people"></i> Usuários <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-check-circle"></i> Validação <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-graph-up"></i> Análises <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-bell"></i> Alertas <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-journal-text"></i> Logs <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-gear"></i> Configurações <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-download"></i> Importação <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-bus-front"></i> Monitoramento <span class="standby-badge">Standby</span></button>
+                <button class="nav-item-custom" onclick="window.switchView('admin-lines')"><i class="bi bi-signpost-2 text-primary me-2"></i> Gestão de Linhas</button>
+                <!-- Standby Items -->
+                <div class="ps-2 py-2 text-muted" style="font-size:11px; opacity:0.6">
+                    <div><i class="bi bi-geo-alt me-2"></i> Paradas (Standby)</div>
+                    <div><i class="bi bi-building me-2"></i> Terminais (Standby)</div>
+                    <div><i class="bi bi-clock me-2"></i> Horários (Standby)</div>
+                    <div><i class="bi bi-people me-2"></i> Usuários (Standby)</div>
+                    <div><i class="bi bi-graph-up me-2"></i> Análises (Standby)</div>
+                    <div><i class="bi bi-bell me-2"></i> Alertas (Standby)</div>
+                    <div><i class="bi bi-journal-text me-2"></i> Logs (Standby)</div>
+                </div>
             </nav>
         </div>
 
+        <!-- GESTÃO CRUD -->
         <div id="view-admin-lines" class="sidebar-view">
-            <div class="d-flex align-items-center mb-4"><i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('admin-dashboard')"></i><h5 class="fw-bold m-0">Gestão</h5></div>
-            <div class="card card-body border-0 bg-light mb-3 shadow-sm">
-                <input type="text" id="admID" class="form-control mb-2 border-0" placeholder="ID (L01)">
-                <input type="text" id="admNome" class="form-control mb-2 border-0" placeholder="Nome Exibição">
-                <input type="text" id="admParada" class="form-control mb-2 border-0" placeholder="Próxima Parada">
+            <div class="d-flex align-items-center mb-4"><i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('admin-dashboard')"></i><h6 class="fw-bold m-0">CRUD Linhas</h6></div>
+            <div class="card card-body border-0 bg-light mb-3 shadow-sm p-3">
+                <input type="text" id="admID" class="form-control form-control-sm mb-2" placeholder="ID (ex: 203)">
+                <input type="text" id="admNome" class="form-control form-control-sm mb-2" placeholder="Nome da Linha">
+                <input type="text" id="admVia" class="form-control form-control-sm mb-2" placeholder="Subtítulo / Via Principal">
                 <div class="d-flex gap-2 mb-3">
                     <input type="color" id="admCor" class="form-control form-control-color border-0 flex-grow-1" value="#1a73e8">
-                    <input type="text" id="admIcone" class="form-control w-50 border-0" placeholder="🚌">
+                    <input type="text" id="admIcone" class="form-control form-control-sm w-50" placeholder="🚌">
                 </div>
-                <button class="btn btn-primary w-100 fw-bold" onclick="window.saveLine()">SALVAR</button>
+                <button class="btn btn-primary btn-sm w-100 fw-bold" onclick="window.saveLine()">SALVAR ALTERAÇÕES</button>
             </div>
             <div id="admin-lines-list-crud" class="list-group"></div>
         </div>
 
-        <!-- VISTA PLANEJAR ROTA -->
+        <!-- PLANEJAR ROTA -->
         <div id="view-planning" class="sidebar-view">
-            <div class="d-flex align-items-center mb-4"><i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('main')"></i><h5 class="fw-bold m-0">Planejar Rota</h5></div>
+            <div class="d-flex align-items-center mb-4"><i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('main')"></i><h6 class="fw-bold m-0">Linhas do Sistema</h6></div>
             <div id="planning-all-lines" class="list-group list-group-flush"></div>
         </div>
     </aside>
@@ -144,27 +144,25 @@
     <div id="lines-drawer" class="p-3 shadow">
         <div class="d-flex justify-content-between align-items-center mb-3" onclick="window.toggleDrawer()" style="cursor:pointer">
             <span class="active-label">LINHAS ATIVAS</span>
-            <i class="bi bi-chevron-up text-muted" id="drawer-icon"></i>
+            <i class="bi bi-chevron-up text-muted" style="font-size:12px" id="drawer-icon"></i>
         </div>
-        <div id="floating-active-list" class="overflow-auto" style="max-height: 30vh;"></div>
+        <div id="floating-active-list"></div>
     </div>
 
     <div class="side-btns">
         <button class="btn-circle shadow" onclick="window.geoCenter()"><i class="bi bi-crosshair"></i></button>
         <button id="action-btn" class="btn-circle shadow" style="display:none" onclick="window.onActionClick()"><i id="action-icon" class="bi bi-broadcast"></i></button>
-        <button class="btn-circle shadow" onclick="alert('Vi um ônibus: Reporte rápido em breve!')"><i class="bi bi-eye"></i></button>
+        <button class="btn-circle shadow" onclick="alert('Funcionalidade disponível em breve!')"><i class="bi bi-eye"></i></button>
     </div>
 
     <div class="bottom-ui">
         <div class="info-card shadow-lg" id="bottom-info-card">
-            <div class="d-flex justify-content-between align-items-center" onclick="window.toggleBottomCard()" style="cursor:pointer; height: 20px;">
+            <div class="d-flex justify-content-between align-items-center" onclick="window.toggleBottomCard()" style="cursor:pointer; height: 18px;">
                 <span class="active-label">STATUS EM TEMPO REAL • 5KM</span>
-                <i class="bi bi-chevron-down text-muted" id="bottom-card-icon"></i>
+                <i class="bi bi-chevron-down text-muted" style="font-size:12px" id="bottom-card-icon"></i>
             </div>
-            <div id="status-display" class="mt-3">
-                <p class="small text-muted m-0" style="font-size:12px;">Buscando frota ativa...</p>
-            </div>
-            <div id="global-counter" class="mt-3 pt-2 border-top text-center" style="display:none; font-size:10px; font-weight:800; color:var(--blue)">
+            <div id="status-display" class="mt-3"></div>
+            <div id="global-counter" class="mt-2 pt-2 border-top text-center" style="display:none; font-size:9px; font-weight:800; color:var(--blue); letter-spacing:0.5px;">
                 <span id="total-active-text"></span>
             </div>
         </div>
@@ -173,9 +171,9 @@
     <div id="map"></div>
 
     <div class="modal fade" id="modalLine" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered px-4"><div class="modal-content border-0 shadow-lg" style="border-radius:24px"><div class="modal-body p-4 text-center">
-        <h5 class="fw-bold mb-3 text-dark">Transmitir GPS</h5>
-        <select id="line-select" class="form-select form-select-lg mb-4 rounded-4 border-0 bg-light"></select>
-        <button class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow" onclick="window.startTrack()">COMEÇAR AGORA</button>
+        <h6 class="fw-bold mb-3 text-dark">Em qual ônibus você está?</h6>
+        <select id="line-select" class="form-select form-select-lg mb-4 rounded-4 border-0 bg-light" style="font-size:14px"></select>
+        <button class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow" onclick="window.startTrack()">INICIAR AGORA</button>
     </div></div></div></div>
 
     <!-- Scripts -->
@@ -215,6 +213,8 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         };
 
+        const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+
         window.toggleSidebar = () => {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('sidebar-overlay').classList.toggle('active');
@@ -222,8 +222,7 @@
 
         window.switchView = (v) => {
             document.querySelectorAll('.sidebar-view').forEach(view => view.classList.remove('active'));
-            const target = document.getElementById('view-' + v);
-            if(target) target.classList.add('active');
+            document.getElementById('view-' + v).classList.add('active');
         };
 
         window.toggleDrawer = () => {
@@ -246,7 +245,7 @@
                 map.flyTo([lat, lng], 17);
                 if (userMarker) { userMarker.setLatLng([lat, lng]); } 
                 else {
-                    userMarker = L.marker([lat, lng], { icon: L.divIcon({ className: 'user-marker-icon' }), zIndexOffset: 2000 }).addTo(map);
+                    userMarker = L.marker([lat, lng], { icon: L.divIcon({ className: 'user-marker-icon' }), zIndexOffset: 2500 }).addTo(map);
                 }
             }, null, {enableHighAccuracy:true});
         };
@@ -291,10 +290,11 @@
         window.saveLine = () => {
             const id = document.getElementById('admID').value;
             if(!id) return alert("ID obrigatório");
+            const corFinal = document.getElementById('admCor').value;
             set(ref(db, 'config/linhas/' + id), {
                 nome: document.getElementById('admNome').value,
-                proximaParada: document.getElementById('admParada').value,
-                cor: document.getElementById('admCor').value,
+                via: document.getElementById('admVia').value || "Via Principal",
+                cor: corFinal === "#1a73e8" ? randomColor() : corFinal,
                 icone: document.getElementById('admIcone').value || "🚌",
                 latTerminal: -14.7981, lngTerminal: -39.0347
             }).then(() => alert("Linha Salva!"));
@@ -306,13 +306,13 @@
             user = u;
             const authDiv = document.getElementById('auth-area');
             if(u) {
-                authDiv.innerHTML = `<div class="d-flex align-items-center p-3 bg-light rounded-4 shadow-sm mb-3"><img src="${u.photoURL}" width="40" class="rounded-circle me-3"> <div class="flex-grow-1 fw-bold small text-truncate text-start">${u.displayName}</div> <i class="bi bi-box-arrow-right text-muted fs-4 ms-2 cursor-pointer" onclick="window.fazerLogout()"></i></div>`;
+                authDiv.innerHTML = `<div class="d-flex align-items-center p-2 bg-light rounded-3 shadow-sm mb-3"><img src="${u.photoURL}" width="34" class="rounded-circle me-2"> <div class="flex-grow-1 fw-bold small text-truncate text-start">${u.displayName}</div> <i class="bi bi-box-arrow-right text-muted fs-5 ms-2 cursor-pointer" onclick="window.fazerLogout()"></i></div>`;
                 document.getElementById('action-btn').style.display = 'flex';
                 if(u.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase()) document.getElementById('admin-entry').style.display = 'block';
                 const saved = localStorage.getItem('busu_active_line');
                 if(saved && !watchID) iniciarGPS(saved);
             } else {
-                authDiv.innerHTML = `<button class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow" onclick="window.fazerLogin()"><i class="bi bi-google me-2"></i> Entrar com Google</button>`;
+                authDiv.innerHTML = `<button class="btn btn-primary w-100 py-2 fw-bold rounded-pill" style="font-size:12px" onclick="window.fazerLogin()"><i class="bi bi-google me-2"></i> Entrar com Google</button>`;
                 document.getElementById('action-btn').style.display = 'none';
             }
         });
@@ -325,8 +325,8 @@
             for(let id in data) {
                 const c = data[id]; configLinhas[id] = c; tLines++;
                 select.innerHTML += `<option value="${id}">${c.nome}</option>`;
-                admin.innerHTML += `<div class="list-group-item d-flex justify-content-between p-2 small border-bottom">${c.nome} <i class="bi bi-trash text-danger cursor-pointer" onclick="window.deleteLine('${id}')"></i></div>`;
-                planning.innerHTML += `<button class="nav-item-custom border-bottom" onclick="window.fazeZoom('${id}')"><i class="bi bi-bus-front" style="color:${c.cor}"></i> ${c.nome}</button>`;
+                admin.innerHTML += `<div class="list-group-item d-flex justify-content-between py-2 small border-bottom">${c.nome} <i class="bi bi-trash text-danger cursor-pointer" onclick="window.deleteLine('${id}')"></i></div>`;
+                planning.innerHTML += `<div class="nav-item-custom border-bottom" onclick="window.fazeZoom('${id}')"><div><div class="fw-bold">${id} - ${c.nome}</div><div class="text-muted" style="font-size:10px">${c.via}</div></div></div>`;
             }
             document.getElementById('stat-lines').innerText = tLines;
         });
@@ -351,7 +351,7 @@
                 if(ct > 0) {
                     const mLat = lt/ct, mLng = lg/ct;
                     if(!markers[id]) {
-                        markers[id] = L.marker([mLat, mLng], { icon: L.divIcon({ className:'custom-pin', html:`<div class="bus-pin pulse" style="background:${c.cor}"><span>${id.substring(0,3)}</span></div>`, iconSize:[44,44], iconAnchor:[22,44] }) }).addTo(map).bindPopup(`<b>${c.nome}</b>`);
+                        markers[id] = L.marker([mLat, mLng], { icon: L.divIcon({ className:'custom-pin', html:`<div class="bus-pin pulse" style="background:${c.cor}"><span>${id.substring(0,3)}</span></div>`, iconSize:[42,42], iconAnchor:[21,42] }) }).addTo(map).bindPopup(`<b>${c.nome}</b><br><small>${c.via}</small>`);
                     }
                     markers[id].setLatLng([mLat, mLng]);
                     
@@ -360,14 +360,14 @@
                     const speedKmh = (avgSpeed/ct) * 3.6;
                     let eta = (speedKmh > 5 && d) ? Math.round((d / speedKmh) * 60) : "--";
 
-                    drawerHtml += `<div class="d-flex align-items-center mb-3" onclick="window.fazeZoom('${id}')" style="cursor:pointer"><div style="background:${c.cor};width:8px;height:8px;border-radius:50%;margin-right:12px;box-shadow:0 0 6px ${c.cor}"></div><span class="fw-bold text-dark" style="font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${id} - ${c.nome}</span></div>`;
+                    drawerHtml += `<div class="d-flex align-items-center mb-2" onclick="window.fazeZoom('${id}')" style="cursor:pointer; color: ${c.cor};"><div class="line-dot-pulse active"></div><div style="flex-grow:1"><div class="bus-title" style="color: #202124;">${id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div></div>`;
                     if (!uLat || d <= 5) {
-                        statusHtml += `<div class="bus-item" onclick="window.fazeZoom('${id}')"><div class="bus-info-main"><div><div class="bus-name">${c.icone} ${id} - ${c.nome}</div><div class="bus-dist">${distT} • ${c.proximaParada || 'Em rota'}</div></div></div><div class="bus-eta">${eta !== "--" ? eta + ' min' : 'Próximo'}</div></div>`;
+                        statusHtml += `<div class="bus-item" onclick="window.fazeZoom('${id}')"><div><div class="bus-title">${c.icone} ${id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div><div class="bus-dist">${distT}</div></div><div class="bus-eta">${eta !== "--" ? eta + ' min' : 'Próximo'}</div></div>`;
                     }
                 } else if(markers[id]) { map.removeLayer(markers[id]); delete markers[id]; }
             }
-            document.getElementById('floating-active-list').innerHTML = drawerHtml || '<p class="m-0 text-muted" style="font-size:10px">Nenhuma linha ativa.</p>';
-            document.getElementById('status-display').innerHTML = statusHtml || '<p class="small text-muted m-0" style="font-size:12px;">Aguardando sinal...</p>';
+            document.getElementById('floating-active-list').innerHTML = drawerHtml || '<p class="m-0 text-muted" style="font-size:9px">Nenhuma linha operando.</p>';
+            document.getElementById('status-display').innerHTML = statusHtml || '<p class="small text-muted m-0" style="font-size:11px;">Buscando frota ativa...</p>';
             const cntDiv = document.getElementById('global-counter');
             if(totalGeral > 0) { cntDiv.style.display = 'block'; document.getElementById('total-active-text').innerText = `${totalGeral} COLABORADORES ATIVOS`; } else { cntDiv.style.display = 'none'; }
         });
