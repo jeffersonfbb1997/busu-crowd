@@ -9,13 +9,12 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root { --blue: #1a73e8; --sidebar-w: 310px; --z-sidebar: 4000; --green: #28a745; --gray: #7f8c8d; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Inter', sans-serif; overflow: hidden; background: #e5e3df; }
 
-        /* Mapa */
         #map { position: absolute; inset: 0; z-index: 1; }
 
         /* Sidebar Google Maps */
@@ -23,7 +22,7 @@
             position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w); 
             background: white; z-index: var(--z-sidebar); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex; flex-direction: column; transform: translateX(-100%);
-            box-shadow: 5px 0 15px rgba(0,0,0,0.15);
+            box-shadow: 5px 0 15px rgba(0,0,0,0.1);
         }
         #sidebar.active { transform: translateX(0); }
         #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 3500; backdrop-filter: blur(2px); }
@@ -35,25 +34,32 @@
         /* UI Centralizada */
         .top-ui { position: absolute; top: 15px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000; pointer-events: none; }
         .search-bar { 
-            width: 90%; max-width: 420px; background: white; border-radius: 24px; padding: 8px 16px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; align-items: center; pointer-events: auto;
+            width: 90%; max-width: 420px; background: white; border-radius: 28px; padding: 8px 16px; 
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1); display: flex; align-items: center; pointer-events: auto;
         }
         .search-bar input { border: none; outline: none; flex-grow: 1; margin: 0 10px; font-size: 15px; }
 
+        /* Card Slim Profissional */
         .bottom-ui { position: absolute; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000; pointer-events: none; }
         .info-card { 
-            width: 90%; max-width: 380px; background: white; border-radius: 16px; padding: 18px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2); pointer-events: auto;
+            width: 92%; max-width: 360px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); 
+            border-radius: 24px; padding: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); pointer-events: auto;
+            border: 1px solid rgba(255,255,255,0.3);
         }
+
+        .bus-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; margin-bottom: 2px; }
+        .bus-info-main { display: flex; align-items: center; gap: 12px; }
+        .bus-name { font-weight: 700; color: #202124; font-size: 14px; }
+        .bus-eta { font-size: 13px; color: var(--green); font-weight: 700; }
+        .bus-dist { font-size: 11px; color: #70757a; font-weight: 500; }
 
         /* Botões Laterais */
         .side-btns { position: absolute; right: 15px; bottom: 180px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; }
         .btn-circle { 
             width: 52px; height: 52px; border-radius: 50%; background: white; border: none; 
             box-shadow: 0 3px 10px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; 
-            font-size: 24px; color: #5f6368; transition: all 0.2s; cursor: pointer !important;
+            font-size: 24px; color: #5f6368; transition: all 0.2s; cursor: pointer;
         }
-        .btn-circle:hover { background: #f8f9fa; transform: scale(1.05); color: var(--blue); }
         .btn-circle.active { background: #d93025 !important; color: white !important; animation: pulse-red 1.5s infinite; }
 
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0.6); } 70% { box-shadow: 0 0 0 15px rgba(217, 48, 37, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0); } }
@@ -68,11 +74,9 @@
         .user-marker::before { content: ''; position: absolute; width: 40px; height: 40px; border: 2px solid var(--blue); border-radius: 50%; animation: user-glow 2s infinite; left: -14px; top: -14px; }
         @keyframes user-glow { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
 
-        /* Sidebar Status Dots */
         .status-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 12px; background-color: var(--gray); transition: all 0.4s ease; }
         .dot-active { background-color: var(--green) !important; box-shadow: 0 0 8px var(--green); }
         .list-group-item { cursor: pointer; border: none; padding: 10px; border-radius: 8px; transition: all 0.2s; }
-        .list-group-item:hover { background: #f1f3f4; }
     </style>
 </head>
 <body>
@@ -80,7 +84,6 @@
     <div id="sidebar-overlay" onclick="window.toggleSidebar()"></div>
 
     <aside id="sidebar">
-        <!-- VISTA 1: MENU -->
         <div id="view-main" class="sidebar-view active">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="fw-bold text-primary m-0">BusU-Crowd</h4>
@@ -99,16 +102,15 @@
             </div>
         </div>
 
-        <!-- VISTA 2: ADMIN -->
         <div id="view-admin" class="sidebar-view">
             <div class="d-flex align-items-center mb-4">
                 <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('main')"></i>
-                <h5 class="fw-bold m-0">Gerenciar Linhas</h5>
+                <h5 class="fw-bold m-0 text-dark">Painel de Controle</h5>
             </div>
             <div class="card card-body border-0 bg-light mb-3 shadow-sm rounded-4">
                 <input type="text" id="admID" class="form-control mb-2" placeholder="ID (ex: L01)">
                 <input type="text" id="admNome" class="form-control mb-2" placeholder="Nome da Linha">
-                <input type="text" id="admParada" class="form-control mb-2" placeholder="Próxima Parada (Opcional)">
+                <input type="text" id="admParada" class="form-control mb-2" placeholder="Próxima Parada">
                 <div class="d-flex gap-2 mb-3">
                     <input type="color" id="admCor" class="form-control form-control-color flex-grow-1" style="height:45px" value="#1a73e8">
                     <input type="text" id="admIcone" class="form-control w-50" placeholder="Emoji 🚌">
@@ -133,11 +135,15 @@
             </button>
         </div>
         <div class="bottom-ui">
-            <div class="info-card shadow">
-                <h6 class="fw-bold small text-muted text-uppercase mb-2">Status em Tempo Real <small class="text-lowercase" style="font-weight: normal; font-size: 0.65rem;">(Raio de 5km)</small></h6>
-                <div id="status-display"><p class="small text-muted m-0">Logue para ver ônibus ativos.</p></div>
-                <div id="global-counter" class="mt-3 pt-2 border-top text-center" style="display:none">
-                    <span class="badge bg-primary rounded-pill px-3 py-2" id="total-active-text"></span>
+            <div class="info-card shadow-lg">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span style="font-size: 10px; color: #70757a; font-weight: 800; letter-spacing: 0.5px;">EM TEMPO REAL • 5KM</span>
+                    <div id="global-counter" style="display:none">
+                        <span id="total-active-text" style="font-size: 10px; font-weight: 700; color: var(--blue);"></span>
+                    </div>
+                </div>
+                <div id="status-display">
+                    <p class="small text-muted m-0" style="font-size:12px;">Aguardando dados...</p>
                 </div>
             </div>
         </div>
@@ -185,7 +191,6 @@
         let user = null, watchID = null, currentLine = null, userMarker = null;
         const markers = {}, configLinhas = {};
 
-        // Funções Auxiliares
         const calcDist = (la1, lo1, la2, lo2) => {
             const R = 6371;
             const dLat = (la2-la1)*Math.PI/180; const dLon = (lo2-lo1)*Math.PI/180;
@@ -235,7 +240,13 @@
             watchID = navigator.geolocation.watchPosition(p => {
                 if(!user) return;
                 const path = `onibus/${line}/${user.uid}`;
-                set(ref(db, path), { lat: p.coords.latitude, lng: p.coords.longitude, timestamp: Date.now() });
+                set(ref(db, path), { 
+                    lat: p.coords.latitude, 
+                    lng: p.coords.longitude, 
+                    speed: p.coords.speed || 0,
+                    heading: p.coords.heading || 0,
+                    timestamp: Date.now() 
+                });
                 onDisconnect(ref(db, path)).remove();
                 document.getElementById('action-btn').classList.add('active');
                 document.getElementById('action-icon').className = 'bi bi-stop-circle-fill';
@@ -243,12 +254,14 @@
         }
 
         window.stopTrack = () => {
-            navigator.geolocation.clearWatch(watchID);
-            remove(ref(db, `onibus/${currentLine}/${user.uid}`));
-            watchID = null;
-            localStorage.removeItem('busu_active_line');
-            document.getElementById('action-btn').classList.remove('active');
-            document.getElementById('action-icon').className = 'bi bi-broadcast';
+            if(watchID) {
+                navigator.geolocation.clearWatch(watchID);
+                remove(ref(db, `onibus/${currentLine}/${user.uid}`));
+                watchID = null;
+                localStorage.removeItem('busu_active_line');
+                document.getElementById('action-btn').classList.remove('active');
+                document.getElementById('action-icon').className = 'bi bi-broadcast';
+            }
         };
 
         window.saveLine = () => {
@@ -288,7 +301,7 @@
                 const c = data[id]; configLinhas[id] = c;
                 sidebar.innerHTML += `<div class="list-group-item d-flex align-items-center"><div id="side-dot-${id}" class="status-dot"></div><span id="side-txt-${id}" class="text-muted small">${c.nome}</span></div>`;
                 select.innerHTML += `<option value="${id}">${c.nome}</option>`;
-                admin.innerHTML += `<div class="list-group-item d-flex justify-content-between p-2 small border-bottom">${c.nome} <i class="bi bi-trash text-danger cursor-pointer" onclick="window.deleteLine('${id}')"></i></div>`;
+                admin.innerHTML += `<div class="list-group-item d-flex justify-content-between py-2 small border-bottom">${c.nome} <i class="bi bi-trash text-danger cursor-pointer" onclick="window.deleteLine('${id}')"></i></div>`;
                 if(!markers[id]) {
                     const icon = L.divIcon({ className:'custom-pin', html:`<div class="bus-pin" id="pin-${id}"><span>${c.icone}</span></div>`, iconSize:[42,42], iconAnchor:[21,42] });
                     markers[id] = L.marker([c.latTerminal, c.lngTerminal], {icon:icon}).addTo(map).bindPopup(c.nome);
@@ -304,17 +317,21 @@
 
             for(let id in configLinhas) {
                 const c = configLinhas[id], marker = markers[id];
-                let lt=0, lg=0, ct=0;
+                let lt=0, lg=0, ct=0, avgSpeed=0;
                 if(gps[id]) {
                     for(let uid in gps[id]) {
                         const info = gps[id][uid];
-                        if(now - info.timestamp < 45000) { lt+=info.lat; lg+=info.lng; ct++; }
+                        if(now - info.timestamp < 45000) { 
+                            lt+=info.lat; lg+=info.lng; ct++; 
+                            avgSpeed += (info.speed || 0);
+                        }
                     }
                 }
                 totalGeral += ct;
                 const pin = document.getElementById(`pin-${id}`), dot = document.getElementById(`side-dot-${id}`), txt = document.getElementById(`side-txt-${id}`);
                 if(ct > 0) {
                     const mLat = lt/ct, mLng = lg/ct;
+                    const finalSpeedKmh = (avgSpeed/ct) * 3.6;
                     marker.setLatLng([mLat, mLng]);
                     if(pin) { pin.style.background = c.cor; pin.classList.add('pulse'); }
                     if(dot) dot.classList.add('dot-active');
@@ -322,9 +339,21 @@
                     
                     const d = uLat ? calcDist(uLat, uLng, mLat, mLng) : null;
                     if (!uLat || d <= 5) {
-                        const distT = d ? `(${d.toFixed(1)} km)` : "";
-                        const paradaT = c.proximaParada ? `<br><small class="text-primary fw-bold"><i class="bi bi-geo-alt"></i> Próxima: ${c.proximaParada}</small>` : "";
-                        statusHtml += `<div class="mb-3 border-bottom pb-2"><div class="d-flex justify-content-between align-items-center fw-bold small"><span>${c.icone} ${c.nome}</span><span class="text-success">${distT}</span></div>${paradaT}</div>`;
+                        const distT = d ? `${d.toFixed(1)} km` : "Calculando...";
+                        let eta = (finalSpeedKmh > 5 && d) ? Math.round((d / finalSpeedKmh) * 60) : "--";
+                        let etaTexto = eta !== "--" ? `${eta} min` : "Chegando";
+
+                        statusHtml += `
+                            <div class="bus-item">
+                                <div class="bus-info-main">
+                                    <span style="font-size: 18px;">${c.icone}</span>
+                                    <div>
+                                        <div class="bus-name">${c.nome}</div>
+                                        <div class="bus-dist">${distT} • ${c.proximaParada || 'Em trajeto'}</div>
+                                    </div>
+                                </div>
+                                <div class="bus-eta">${etaTexto}</div>
+                            </div>`;
                     }
                 } else {
                     marker.setLatLng([c.latTerminal, c.lngTerminal]);
@@ -333,11 +362,11 @@
                     if(txt) { txt.classList.add('text-muted'); txt.classList.remove('fw-bold', 'text-dark'); }
                 }
             }
-            document.getElementById('status-display').innerHTML = statusHtml || '<p class="small text-muted m-0">Nenhum ônibus próximo no momento.</p>';
+            document.getElementById('status-display').innerHTML = statusHtml || '<p class="small text-muted m-0" style="font-size:12px;">Nenhum ônibus próximo no momento.</p>';
             const cntDiv = document.getElementById('global-counter');
             if(totalGeral > 0) {
-                cntDiv.style.display = 'block';
-                document.getElementById('total-active-text').innerHTML = `<i class="bi bi-people-fill me-2"></i> ${totalGeral} alunos colaborando agora`;
+                cntDiv.style.display = 'flex';
+                document.getElementById('total-active-text').innerHTML = `${totalGeral} colaboradores`;
             } else { cntDiv.style.display = 'none'; }
         });
     </script>
