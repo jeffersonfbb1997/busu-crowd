@@ -13,34 +13,33 @@
 
     <style>
 
-        /* Marcador de Localização do Usuário (O Boneco) */
+/* Marcador de Localização do Usuário (O Boneco) */
 .user-marker {
-    width: 20px;
-    height: 20px;
-    background: #4285F4; /* Azul Google */
+    background: #4285F4;
+    width: 18px !important;
+    height: 18px !important;
     border: 3px solid white;
     border-radius: 50%;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    box-shadow: 0 0 15px rgba(66, 133, 244, 0.8);
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Efeito de Ondas Azuis (Pulsação) */
-.user-marker::after {
-    content: "";
+/* Efeito de pulsação azul ao redor do boneco */
+.user-marker::before {
+    content: '';
     position: absolute;
-    width: 100%;
-    height: 100%;
+    width: 40px;
+    height: 40px;
+    border: 2px solid #4285F4;
     border-radius: 50%;
-    background: rgba(66, 133, 244, 0.4);
-    animation: user-pulse 2s infinite;
-    z-index: -1;
+    animation: user-glow 2s infinite;
 }
 
-@keyframes user-pulse {
-    0% { transform: scale(1); opacity: 1; }
-    100% { transform: scale(3); opacity: 0; }
+@keyframes user-glow {
+    0% { transform: scale(0.5); opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
 }
 
 /* Ícone do Boneco dentro do círculo */
@@ -241,33 +240,45 @@
 
        let userMarker = null; // Variável global para o marcador do aluno
 
-    window.geoCenter = () => {
-    if (!navigator.geolocation) return alert("GPS não suportado");
+        window.geoCenter = () => {
+            
+    // Feedback visual para o usuário saber que o app está buscando
+    const btnIcon = document.querySelector('.bi-crosshair');
+    if(btnIcon) btnIcon.classList.add('bi-spin'); // Opcional: faz o ícone girar
+
+    const options = {
+        enableHighAccuracy: true, // Força o uso do GPS real do celular
+        timeout: 10000,           // Espera até 10 segundos pelo sinal
+        maximumAge: 0             // Não aceita localização antiga (em cache)
+    };
 
     navigator.geolocation.getCurrentPosition(p => {
-        const lat = p.coords.latitude;
-        const lng = p.coords.longitude;
+        const { latitude, longitude } = p.coords;
+        
+        map.flyTo([latitude, longitude], 17);
 
-        // Move o mapa para a sua posição
-        map.flyTo([lat, lng], 17);
-
-        // Se o boneco já existe, apenas move ele. Se não, cria um novo.
+        // Criar ou Mover o Boneco
         if (userMarker) {
-            userMarker.setLatLng([lat, lng]);
+            userMarker.setLatLng([latitude, longitude]);
         } else {
             const userIcon = L.divIcon({
                 className: 'user-marker',
-                html: '<i class="bi bi-person-fill"></i>',
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
+                html: '<i class="bi bi-person-fill" style="color:white; font-size:10px;"></i>',
+                iconSize: [18, 18],
+                iconAnchor: [9, 9]
             });
+            // O segredo está no zIndexOffset: 2000 (coloca o boneco acima de tudo)
+            userMarker = L.marker([latitude, longitude], { 
+                icon: userIcon, 
+                zIndexOffset: 2000 
+            }).addTo(map);
             
-            userMarker = L.marker([lat, lng], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
-            userMarker.bindPopup("<b>Você está aqui</b>");
+            userMarker.bindPopup("<b>Você está aqui</b>").openPopup();
         }
     }, (err) => {
-        alert("Erro ao obter sua localização. Verifique se o GPS está ativo.");
-    }, { enableHighAccuracy: true });
+        if(err.code === 1) alert("Por favor, autorize o acesso ao GPS nas configurações do seu navegador.");
+        else alert("Não foi possível obter sua localização exata. Tente novamente em um local aberto.");
+    }, options);
 };
 
         window.startTrack = () => {
