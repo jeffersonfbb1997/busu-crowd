@@ -12,6 +12,43 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
+
+        /* Marcador de Localização do Usuário (O Boneco) */
+.user-marker {
+    width: 20px;
+    height: 20px;
+    background: #4285F4; /* Azul Google */
+    border: 3px solid white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Efeito de Ondas Azuis (Pulsação) */
+.user-marker::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(66, 133, 244, 0.4);
+    animation: user-pulse 2s infinite;
+    z-index: -1;
+}
+
+@keyframes user-pulse {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(3); opacity: 0; }
+}
+
+/* Ícone do Boneco dentro do círculo */
+.user-marker i {
+    font-size: 10px;
+    color: white;
+}
+        
         :root { --blue: #1a73e8; --sidebar-w: 320px; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Inter', sans-serif; overflow: hidden; background: #e5e3df; }
 
@@ -71,6 +108,7 @@
     </style>
 </head>
 <body>
+
 
     <div id="sidebar-overlay" onclick="window.toggleSidebar()"></div>
 
@@ -201,17 +239,36 @@
             document.getElementById('view-' + view).classList.add('active');
         };
 
-        window.geoCenter = () => {
-            navigator.geolocation.getCurrentPosition(p => map.flyTo([p.coords.latitude, p.coords.longitude], 17), null, {enableHighAccuracy:true});
-        };
+       let userMarker = null; // Variável global para o marcador do aluno
 
-        window.fazerLogin = () => signInWithPopup(auth, provider);
-        window.fazerLogout = () => signOut(auth).then(() => location.reload());
+    window.geoCenter = () => {
+    if (!navigator.geolocation) return alert("GPS não suportado");
 
-        window.onActionClick = () => {
-            if(watchID) { window.stopTrack(); }
-            else { new bootstrap.Modal(document.getElementById('modalLine')).show(); }
-        };
+    navigator.geolocation.getCurrentPosition(p => {
+        const lat = p.coords.latitude;
+        const lng = p.coords.longitude;
+
+        // Move o mapa para a sua posição
+        map.flyTo([lat, lng], 17);
+
+        // Se o boneco já existe, apenas move ele. Se não, cria um novo.
+        if (userMarker) {
+            userMarker.setLatLng([lat, lng]);
+        } else {
+            const userIcon = L.divIcon({
+                className: 'user-marker',
+                html: '<i class="bi bi-person-fill"></i>',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+            
+            userMarker = L.marker([lat, lng], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
+            userMarker.bindPopup("<b>Você está aqui</b>");
+        }
+    }, (err) => {
+        alert("Erro ao obter sua localização. Verifique se o GPS está ativo.");
+    }, { enableHighAccuracy: true });
+};
 
         window.startTrack = () => {
             const line = document.getElementById('line-select').value;
