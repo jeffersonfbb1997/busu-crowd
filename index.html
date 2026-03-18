@@ -12,12 +12,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        :root { --blue: #1a73e8; --sidebar-w: 310px; --z-sidebar: 4000; --green: #28a745; --gray: #7f8c8d; }
+        :root { --blue: #1a73e8; --sidebar-w: 320px; --z-sidebar: 4000; --green: #28a745; --gray: #7f8c8d; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Inter', sans-serif; overflow: hidden; background: #e5e3df; }
 
         #map { position: absolute; inset: 0; z-index: 1; }
 
-        /* Sidebar Google Maps */
+        /* Sidebar Google Maps Style */
         #sidebar { 
             position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w); 
             background: white; z-index: var(--z-sidebar); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -28,55 +28,45 @@
         #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 3500; backdrop-filter: blur(2px); }
         #sidebar-overlay.active { display: block; }
 
-        .sidebar-view { display: none; flex-direction: column; height: 100%; width: 100%; padding: 20px; overflow-y: auto; }
+        .sidebar-view { display: none; flex-direction: column; height: 100%; width: 100%; padding: 15px; overflow-y: auto; }
         .sidebar-view.active { display: flex; }
 
-        /* UI Centralizada */
+        /* Dashboard Cards Admin */
+        .adm-card { background: #f8f9fa; border-radius: 12px; padding: 12px; border: 1px solid #eee; margin-bottom: 10px; }
+        .adm-metric { font-size: 22px; font-weight: 700; color: var(--blue); }
+        .adm-label { font-size: 11px; color: #70757a; font-weight: 600; text-uppercase: uppercase; }
+
+        .btn-adm-item { display: flex; align-items: center; padding: 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s; margin-bottom: 4px; border: none; background: none; width: 100%; color: #3c4043; font-size: 14px; }
+        .btn-adm-item:hover { background: #f1f3f4; color: var(--blue); }
+        .btn-adm-item i { margin-right: 15px; font-size: 18px; }
+        .standby-tag { font-size: 9px; background: #e8f0fe; color: var(--blue); padding: 2px 6px; border-radius: 4px; margin-left: auto; font-weight: 700; }
+
+        /* UI Flutuante */
         .top-ui { position: absolute; top: 15px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000; pointer-events: none; }
-        .search-bar { 
-            width: 90%; max-width: 420px; background: white; border-radius: 28px; padding: 8px 16px; 
-            box-shadow: 0 2px 12px rgba(0,0,0,0.1); display: flex; align-items: center; pointer-events: auto;
-        }
+        .search-bar { width: 90%; max-width: 420px; background: white; border-radius: 28px; padding: 8px 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); display: flex; align-items: center; pointer-events: auto; }
         .search-bar input { border: none; outline: none; flex-grow: 1; margin: 0 10px; font-size: 15px; }
 
-        /* Card Slim Profissional */
         .bottom-ui { position: absolute; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000; pointer-events: none; }
-        .info-card { 
-            width: 92%; max-width: 360px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); 
-            border-radius: 24px; padding: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); pointer-events: auto;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
+        .info-card { width: 92%; max-width: 360px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 24px; padding: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); pointer-events: auto; border: 1px solid rgba(255,255,255,0.3); }
 
-        .bus-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; margin-bottom: 2px; }
-        .bus-info-main { display: flex; align-items: center; gap: 12px; }
+        .bus-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
         .bus-name { font-weight: 700; color: #202124; font-size: 14px; }
         .bus-eta { font-size: 13px; color: var(--green); font-weight: 700; }
-        .bus-dist { font-size: 11px; color: #70757a; font-weight: 500; }
+        .bus-dist { font-size: 11px; color: #70757a; }
 
-        /* Botões Laterais */
         .side-btns { position: absolute; right: 15px; bottom: 180px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; }
-        .btn-circle { 
-            width: 52px; height: 52px; border-radius: 50%; background: white; border: none; 
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; 
-            font-size: 24px; color: #5f6368; transition: all 0.2s; cursor: pointer;
-        }
+        .btn-circle { width: 52px; height: 52px; border-radius: 50%; background: white; border: none; box-shadow: 0 3px 10px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #5f6368; cursor: pointer; transition: all 0.2s; }
         .btn-circle.active { background: #d93025 !important; color: white !important; animation: pulse-red 1.5s infinite; }
-
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0.6); } 70% { box-shadow: 0 0 0 15px rgba(217, 48, 37, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0); } }
 
-        /* Marcadores */
-        .bus-pin { width: 42px; height: 42px; background: var(--gray); border: 2px solid white; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: background 0.5s ease; }
+        .bus-pin { width: 42px; height: 42px; background: var(--gray); border: 2px solid white; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
         .bus-pin span { transform: rotate(45deg); font-size: 20px; }
         .bus-pin.pulse { animation: bus-glow 1.5s infinite; }
         @keyframes bus-glow { 0% { filter: brightness(1); } 50% { filter: brightness(1.25); } 100% { filter: brightness(1); } }
 
         .user-marker { background: var(--blue); width: 18px !important; height: 18px !important; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 15px rgba(66, 133, 244, 0.8); }
-        .user-marker::before { content: ''; position: absolute; width: 40px; height: 40px; border: 2px solid var(--blue); border-radius: 50%; animation: user-glow 2s infinite; left: -14px; top: -14px; }
-        @keyframes user-glow { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
-
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 12px; background-color: var(--gray); transition: all 0.4s ease; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 12px; background-color: var(--gray); }
         .dot-active { background-color: var(--green) !important; box-shadow: 0 0 8px var(--green); }
-        .list-group-item { cursor: pointer; border: none; padding: 10px; border-radius: 8px; transition: all 0.2s; }
     </style>
 </head>
 <body>
@@ -84,40 +74,66 @@
     <div id="sidebar-overlay" onclick="window.toggleSidebar()"></div>
 
     <aside id="sidebar">
+        <!-- VISTA 1: MENU USUÁRIO -->
         <div id="view-main" class="sidebar-view active">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="fw-bold text-primary m-0">BusU-Crowd</h4>
                 <i class="bi bi-x-lg cursor-pointer fs-5" onclick="window.toggleSidebar()"></i>
             </div>
             <div id="auth-area" class="mb-4 text-center"></div>
-            <div class="flex-grow-1 overflow-auto">
+            <div class="flex-grow-1">
                 <h6 class="text-muted small fw-bold text-uppercase mb-3">Linhas Disponíveis</h6>
                 <div id="sidebar-line-list" class="list-group"></div>
             </div>
-            <div id="admin-section" style="display:none">
+            <div id="admin-entry" style="display:none">
                 <hr>
-                <button class="btn btn-dark w-100 py-2 fw-bold" onclick="window.switchView('admin')">
-                    <i class="bi bi-sliders me-2"></i> Configurações
+                <button class="btn btn-dark w-100 py-2 fw-bold" onclick="window.switchView('admin-dashboard')">
+                    <i class="bi bi-speedometer2 me-2"></i> Painel Administrador
                 </button>
             </div>
         </div>
 
-        <div id="view-admin" class="sidebar-view">
+        <!-- VISTA 2: DASHBOARD ADMIN GERAL -->
+        <div id="view-admin-dashboard" class="sidebar-view">
             <div class="d-flex align-items-center mb-4">
                 <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('main')"></i>
-                <h5 class="fw-bold m-0 text-dark">Painel de Controle</h5>
+                <h5 class="fw-bold m-0">Admin Dashboard</h5>
+            </div>
+            
+            <div class="row g-2 mb-4">
+                <div class="col-6"><div class="adm-card text-center"><div class="adm-metric" id="stat-users">0</div><div class="adm-label">Ativos Agora</div></div></div>
+                <div class="col-6"><div class="adm-card text-center"><div class="adm-metric" id="stat-lines">0</div><div class="adm-label">Linhas</div></div></div>
+            </div>
+
+            <div class="nav-admin-list">
+                <button class="btn-adm-item" onclick="window.switchView('admin-lines')"><i class="bi bi-signpost-2 text-primary"></i> Gestão de Linhas</button>
+                <button class="btn-adm-item"><i class="bi bi-geo-alt text-secondary"></i> Paradas <span class="standby-tag">Standby</span></button>
+                <button class="btn-adm-item"><i class="bi bi-building text-secondary"></i> Terminais <span class="standby-tag">Standby</span></button>
+                <button class="btn-adm-item"><i class="bi bi-clock text-secondary"></i> Horários <span class="standby-tag">Standby</span></button>
+                <button class="btn-adm-item"><i class="bi bi-people text-secondary"></i> Gestão de Usuários <span class="standby-tag">Standby</span></button>
+                <button class="btn-adm-item"><i class="bi bi-graph-up text-secondary"></i> Análises IA <span class="standby-tag">Standby</span></button>
+                <button class="btn-adm-item"><i class="bi bi-bell text-secondary"></i> Sistema de Alertas <span class="standby-tag">Standby</span></button>
+                <button class="btn-adm-item"><i class="bi bi-journal-text text-secondary"></i> Logs do Sistema <span class="standby-tag">Standby</span></button>
+            </div>
+        </div>
+
+        <!-- VISTA 3: GESTÃO DE LINHAS (CRUD) -->
+        <div id="view-admin-lines" class="sidebar-view">
+            <div class="d-flex align-items-center mb-4">
+                <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('admin-dashboard')"></i>
+                <h5 class="fw-bold m-0">Gestão de Linhas</h5>
             </div>
             <div class="card card-body border-0 bg-light mb-3 shadow-sm rounded-4">
-                <input type="text" id="admID" class="form-control mb-2" placeholder="ID (ex: L01)">
-                <input type="text" id="admNome" class="form-control mb-2" placeholder="Nome da Linha">
-                <input type="text" id="admParada" class="form-control mb-2" placeholder="Próxima Parada">
+                <input type="text" id="admID" class="form-control mb-2 border-0" placeholder="ID Linha (ex: L01)">
+                <input type="text" id="admNome" class="form-control mb-2 border-0" placeholder="Nome Exibição">
+                <input type="text" id="admParada" class="form-control mb-2 border-0" placeholder="Próxima Parada">
                 <div class="d-flex gap-2 mb-3">
-                    <input type="color" id="admCor" class="form-control form-control-color flex-grow-1" style="height:45px" value="#1a73e8">
-                    <input type="text" id="admIcone" class="form-control w-50" placeholder="Emoji 🚌">
+                    <input type="color" id="admCor" class="form-control form-control-color flex-grow-1 border-0" style="height:45px" value="#1a73e8">
+                    <input type="text" id="admIcone" class="form-control w-50 border-0" placeholder="🚌">
                 </div>
                 <button class="btn btn-primary w-100 fw-bold py-2" onclick="window.saveLine()">SALVAR LINHA</button>
             </div>
-            <div id="admin-lines-edit" class="list-group list-group-flush"></div>
+            <div id="admin-lines-list-crud" class="list-group list-group-flush"></div>
         </div>
     </aside>
 
@@ -137,28 +153,20 @@
         <div class="bottom-ui">
             <div class="info-card shadow-lg">
                 <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span style="font-size: 10px; color: #70757a; font-weight: 800; letter-spacing: 0.5px;">EM TEMPO REAL • 5KM</span>
-                    <div id="global-counter" style="display:none">
-                        <span id="total-active-text" style="font-size: 10px; font-weight: 700; color: var(--blue);"></span>
-                    </div>
+                    <span style="font-size: 10px; color: #70757a; font-weight: 800; letter-spacing: 0.5px;">STATUS EM TEMPO REAL • 5KM</span>
+                    <div id="global-counter" style="display:none"><span id="total-active-text" style="font-size: 10px; font-weight: 700; color: var(--blue);"></span></div>
                 </div>
-                <div id="status-display">
-                    <p class="small text-muted m-0" style="font-size:12px;">Aguardando dados...</p>
-                </div>
+                <div id="status-display"><p class="small text-muted m-0" style="font-size:12px;">Aguardando sinais...</p></div>
             </div>
         </div>
     </main>
 
     <div class="modal fade" id="modalLine" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered px-4">
-            <div class="modal-content border-0 shadow-lg" style="border-radius:24px">
-                <div class="modal-body p-4 text-center">
-                    <h5 class="fw-bold mb-3">Qual linha você está?</h5>
-                    <select id="line-select" class="form-select form-select-lg mb-4 rounded-4"></select>
-                    <button class="btn btn-primary w-100 py-3 fw-bold rounded-pill" onclick="window.startTrack()">COMEÇAR TRANSMISSÃO</button>
-                </div>
-            </div>
-        </div>
+        <div class="modal-dialog modal-dialog-centered px-4"><div class="modal-content border-0 shadow-lg" style="border-radius:24px"><div class="modal-body p-4 text-center">
+            <h5 class="fw-bold mb-3">Qual linha você está?</h5>
+            <select id="line-select" class="form-select form-select-lg mb-4 rounded-4"></select>
+            <button class="btn btn-primary w-100 py-3 fw-bold rounded-pill" onclick="window.startTrack()">COMEÇAR TRANSMISSÃO</button>
+        </div></div></div>
     </div>
 
     <!-- Scripts -->
@@ -199,8 +207,10 @@
         };
 
         window.toggleSidebar = () => {
-            const isActive = document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('sidebar-overlay').classList.toggle('active');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const isActive = sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
             if(!isActive) window.switchView('main');
         };
 
@@ -240,13 +250,7 @@
             watchID = navigator.geolocation.watchPosition(p => {
                 if(!user) return;
                 const path = `onibus/${line}/${user.uid}`;
-                set(ref(db, path), { 
-                    lat: p.coords.latitude, 
-                    lng: p.coords.longitude, 
-                    speed: p.coords.speed || 0,
-                    heading: p.coords.heading || 0,
-                    timestamp: Date.now() 
-                });
+                set(ref(db, path), { lat: p.coords.latitude, lng: p.coords.longitude, speed: p.coords.speed || 0, timestamp: Date.now() });
                 onDisconnect(ref(db, path)).remove();
                 document.getElementById('action-btn').classList.add('active');
                 document.getElementById('action-icon').className = 'bi bi-stop-circle-fill';
@@ -273,7 +277,7 @@
                 cor: document.getElementById('admCor').value,
                 icone: document.getElementById('admIcone').value || "🚌",
                 latTerminal: -14.7981, lngTerminal: -39.0347
-            }).then(() => alert("Salvo!"));
+            }).then(() => alert("Linha Salva!"));
         };
 
         window.deleteLine = (id) => { if(confirm("Excluir?")) remove(ref(db, 'config/linhas/' + id)); };
@@ -284,29 +288,31 @@
             if(u) {
                 authDiv.innerHTML = `<div class="d-flex align-items-center p-2 bg-light rounded-3 mb-3"><img src="${u.photoURL}" width="34" class="rounded-circle me-2"> <div class="flex-grow-1 fw-bold small text-truncate text-start">${u.displayName}</div> <i class="bi bi-box-arrow-right text-muted fs-4 ms-2 cursor-pointer" onclick="window.fazerLogout()"></i></div>`;
                 document.getElementById('action-btn').style.display = 'flex';
-                if(u.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase()) document.getElementById('admin-section').style.display = 'block';
+                if(u.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase()) document.getElementById('admin-entry').style.display = 'block';
                 const saved = localStorage.getItem('busu_active_line');
                 if(saved && !watchID) iniciarGPS(saved);
             } else {
-                authDiv.innerHTML = `<button class="btn btn-primary w-100 py-2 fw-bold rounded-pill" onclick="window.fazerLogin()"><i class="bi bi-google me-2"></i> Entrar com Google</button>`;
+                authDiv.innerHTML = `<button class="btn btn-primary w-100 py-2 fw-bold rounded-pill shadow-sm" onclick="window.fazerLogin()"><i class="bi bi-google me-2"></i> Entrar com Google</button>`;
                 document.getElementById('action-btn').style.display = 'none';
             }
         });
 
         onValue(ref(db, 'config/linhas'), snap => {
             const data = snap.val() || {};
-            const sidebar = document.getElementById('sidebar-line-list'), select = document.getElementById('line-select'), admin = document.getElementById('admin-lines-edit');
+            const sidebar = document.getElementById('sidebar-line-list'), select = document.getElementById('line-select'), admin = document.getElementById('admin-lines-list-crud');
+            let totalLines = 0;
             sidebar.innerHTML = ''; select.innerHTML = ''; admin.innerHTML = '';
             for(let id in data) {
-                const c = data[id]; configLinhas[id] = c;
+                const c = data[id]; configLinhas[id] = c; totalLines++;
                 sidebar.innerHTML += `<div class="list-group-item d-flex align-items-center"><div id="side-dot-${id}" class="status-dot"></div><span id="side-txt-${id}" class="text-muted small">${c.nome}</span></div>`;
                 select.innerHTML += `<option value="${id}">${c.nome}</option>`;
-                admin.innerHTML += `<div class="list-group-item d-flex justify-content-between py-2 small border-bottom">${c.nome} <i class="bi bi-trash text-danger cursor-pointer" onclick="window.deleteLine('${id}')"></i></div>`;
+                admin.innerHTML += `<div class="list-group-item d-flex justify-content-between p-2 small border-bottom">${c.nome} <i class="bi bi-trash text-danger cursor-pointer" onclick="window.deleteLine('${id}')"></i></div>`;
                 if(!markers[id]) {
                     const icon = L.divIcon({ className:'custom-pin', html:`<div class="bus-pin" id="pin-${id}"><span>${c.icone}</span></div>`, iconSize:[42,42], iconAnchor:[21,42] });
                     markers[id] = L.marker([c.latTerminal, c.lngTerminal], {icon:icon}).addTo(map).bindPopup(c.nome);
                 }
             }
+            document.getElementById('stat-lines').innerText = totalLines;
         });
 
         onValue(ref(db, 'onibus'), snap => {
@@ -321,17 +327,13 @@
                 if(gps[id]) {
                     for(let uid in gps[id]) {
                         const info = gps[id][uid];
-                        if(now - info.timestamp < 45000) { 
-                            lt+=info.lat; lg+=info.lng; ct++; 
-                            avgSpeed += (info.speed || 0);
-                        }
+                        if(now - info.timestamp < 45000) { lt+=info.lat; lg+=info.lng; ct++; avgSpeed += (info.speed || 0); }
                     }
                 }
                 totalGeral += ct;
                 const pin = document.getElementById(`pin-${id}`), dot = document.getElementById(`side-dot-${id}`), txt = document.getElementById(`side-txt-${id}`);
                 if(ct > 0) {
                     const mLat = lt/ct, mLng = lg/ct;
-                    const finalSpeedKmh = (avgSpeed/ct) * 3.6;
                     marker.setLatLng([mLat, mLng]);
                     if(pin) { pin.style.background = c.cor; pin.classList.add('pulse'); }
                     if(dot) dot.classList.add('dot-active');
@@ -340,20 +342,12 @@
                     const d = uLat ? calcDist(uLat, uLng, mLat, mLng) : null;
                     if (!uLat || d <= 5) {
                         const distT = d ? `${d.toFixed(1)} km` : "Calculando...";
-                        let eta = (finalSpeedKmh > 5 && d) ? Math.round((d / finalSpeedKmh) * 60) : "--";
-                        let etaTexto = eta !== "--" ? `${eta} min` : "Chegando";
-
-                        statusHtml += `
-                            <div class="bus-item">
-                                <div class="bus-info-main">
-                                    <span style="font-size: 18px;">${c.icone}</span>
-                                    <div>
-                                        <div class="bus-name">${c.nome}</div>
-                                        <div class="bus-dist">${distT} • ${c.proximaParada || 'Em trajeto'}</div>
-                                    </div>
-                                </div>
-                                <div class="bus-eta">${etaTexto}</div>
-                            </div>`;
+                        const speedKmh = (avgSpeed/ct) * 3.6;
+                        let eta = (speedKmh > 5 && d) ? Math.round((d / speedKmh) * 60) : "--";
+                        let etaTexto = eta !== "--" ? `${eta} min` : "Parado";
+                        statusHtml += `<div class="bus-item">
+                            <div class="bus-info-main"><span style="font-size:18px;">${c.icone}</span><div><div class="bus-name">${c.nome}</div><div class="bus-dist">${distT} • ${c.proximaParada || 'Em trajeto'}</div></div></div>
+                            <div class="bus-eta">${etaTexto}</div></div>`;
                     }
                 } else {
                     marker.setLatLng([c.latTerminal, c.lngTerminal]);
@@ -363,10 +357,11 @@
                 }
             }
             document.getElementById('status-display').innerHTML = statusHtml || '<p class="small text-muted m-0" style="font-size:12px;">Nenhum ônibus próximo no momento.</p>';
+            document.getElementById('stat-users').innerText = totalGeral;
             const cntDiv = document.getElementById('global-counter');
             if(totalGeral > 0) {
-                cntDiv.style.display = 'flex';
-                document.getElementById('total-active-text').innerHTML = `${totalGeral} colaboradores`;
+                cntDiv.style.display = 'block';
+                document.getElementById('total-active-text').innerText = `${totalGeral} colaboradores`;
             } else { cntDiv.style.display = 'none'; }
         });
     </script>
