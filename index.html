@@ -12,13 +12,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
-        :root { --blue: #1a73e8; --sidebar-w: 310px; --z-sidebar: 3500; }
+        :root { --blue: #1a73e8; --sidebar-w: 310px; --z-sidebar: 3500; --green-active: #28a745; --gray-inactive: #7f8c8d; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Inter', sans-serif; overflow: hidden; background: #e5e3df; }
 
         /* Mapa */
         #map { position: absolute; inset: 0; z-index: 1; }
 
-        /* Sidebar Estilo Google Maps */
+        /* Sidebar */
         #sidebar { 
             position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w); 
             background: white; z-index: var(--z-sidebar); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -32,7 +32,7 @@
         .sidebar-view { display: none; flex-direction: column; height: 100%; width: 100%; padding: 20px; overflow-y: auto; }
         .sidebar-view.active { display: flex; }
 
-        /* Interface Flutuante Centralizada */
+        /* Interface Flutuante */
         .top-ui { position: absolute; top: 15px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000; pointer-events: none; }
         .search-bar { 
             width: 90%; max-width: 420px; background: white; border-radius: 24px; padding: 8px 16px; 
@@ -59,21 +59,21 @@
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0.6); } 70% { box-shadow: 0 0 0 15px rgba(217, 48, 37, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0); } }
 
         /* Marcadores de Ônibus */
-        .bus-pin { width: 42px; height: 42px; background: #7f8c8d; border: 2px solid white; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: background 0.5s ease; }
+        .bus-pin { width: 42px; height: 42px; background: var(--gray-inactive); border: 2px solid white; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: background 0.5s ease; }
         .bus-pin span { transform: rotate(45deg); font-size: 20px; }
         .bus-pin.pulse { animation: bus-glow 1.5s infinite; }
-        @keyframes bus-glow { 0% { filter: brightness(1); } 50% { filter: brightness(1.3); } 100% { filter: brightness(1); } }
+        @keyframes bus-glow { 0% { filter: brightness(1); box-shadow: 0 0 0 0 rgba(0,0,0,0.3); } 50% { filter: brightness(1.2); box-shadow: 0 0 20px rgba(0,0,0,0.2); } 100% { filter: brightness(1); } }
 
-        /* Boneco do Usuário */
+        /* Boneco */
         .user-marker { background: var(--blue); width: 18px !important; height: 18px !important; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 15px rgba(66, 133, 244, 0.8); }
         .user-marker::before { content: ''; position: absolute; width: 40px; height: 40px; border: 2px solid var(--blue); border-radius: 50%; animation: user-glow 2s infinite; left: -14px; top: -14px; }
         @keyframes user-glow { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
 
-        /* Estilos da Sidebar Vivo */
+        /* Sidebar Status */
         .list-group-item { cursor: pointer; transition: all 0.2s; border: none; padding: 12px 10px; border-radius: 8px; }
-        .list-group-item:hover { background-color: #f1f3f4 !important; padding-left: 18px !important; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 12px; background-color: #7f8c8d; transition: background 0.5s ease; }
-        .line-text { transition: all 0.3s ease; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; margin-right: 12px; background-color: var(--gray-inactive); transition: background 0.4s ease, box-shadow 0.4s ease; }
+        .dot-active { background-color: var(--green-active) !important; box-shadow: 0 0 8px var(--green-active); }
+        .line-text { transition: all 0.3s ease; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -91,7 +91,7 @@
             <div id="auth-area" class="mb-4 text-center"></div>
 
             <div class="flex-grow-1 overflow-auto">
-                <h6 class="text-muted small fw-bold text-uppercase mb-3">Linhas Disponíveis</h6>
+                <h6 class="text-muted small fw-bold text-uppercase mb-3">Linhas Cadastradas</h6>
                 <div id="sidebar-line-list" class="list-group"></div>
             </div>
 
@@ -109,7 +109,6 @@
                 <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('main')"></i>
                 <h5 class="fw-bold m-0 text-dark">Gerenciar Linhas</h5>
             </div>
-
             <div class="card card-body border-0 bg-light mb-3 shadow-sm rounded-4">
                 <input type="text" id="admID" class="form-control mb-2" placeholder="ID (ex: L01)">
                 <input type="text" id="admNome" class="form-control mb-2" placeholder="Nome da Linha">
@@ -119,8 +118,6 @@
                 </div>
                 <button class="btn btn-primary w-100 fw-bold py-2 shadow-sm" onclick="window.saveLine()">SALVAR LINHA</button>
             </div>
-
-            <h6 class="text-muted small fw-bold text-uppercase mb-2">Editar/Excluir</h6>
             <div id="admin-lines-edit" class="list-group list-group-flush"></div>
         </div>
     </aside>
@@ -130,21 +127,18 @@
             <div class="search-bar shadow">
                 <i class="bi bi-list fs-3 cursor-pointer" onclick="window.toggleSidebar()"></i>
                 <input type="text" placeholder="Para onde você vai?">
-                <i class="bi bi-search text-muted"></i>
             </div>
         </div>
-
         <div class="side-btns">
-            <button class="btn-circle shadow" title="Minha Localização" onclick="window.geoCenter()"><i class="bi bi-crosshair"></i></button>
-            <button id="action-btn" class="btn-circle shadow" style="display:none" onclick="window.onActionClick()" title="Transmitir GPS">
+            <button class="btn-circle shadow" onclick="window.geoCenter()"><i class="bi bi-crosshair"></i></button>
+            <button id="action-btn" class="btn-circle shadow" style="display:none" onclick="window.onActionClick()">
                 <i id="action-icon" class="bi bi-broadcast"></i>
             </button>
         </div>
-
         <div class="bottom-ui">
             <div class="info-card shadow">
                 <h6 class="fw-bold small text-muted text-uppercase mb-2">Status em Tempo Real</h6>
-                <div id="status-display"><p class="small text-muted m-0">Logue para ver ônibus ativos.</p></div>
+                <div id="status-display"><p class="small text-muted m-0">Aguardando sinais...</p></div>
             </div>
         </div>
     </main>
@@ -195,7 +189,7 @@
         const markers = {};
         const configLinhas = {};
 
-        // --- FUNÇÕES GLOBAIS ---
+        // --- GLOBAIS ---
         window.toggleSidebar = () => {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
@@ -206,11 +200,11 @@
 
         window.switchView = (view) => {
             document.querySelectorAll('.sidebar-view').forEach(v => v.classList.remove('active'));
-            const targetView = document.getElementById('view-' + view);
-            if(targetView) targetView.classList.add('active');
+            const target = document.getElementById('view-' + view);
+            if(target) target.classList.add('active');
         };
 
-        window.fazerLogin = () => signInWithPopup(auth, provider).catch(e => alert("Login erro: " + e.message));
+        window.fazerLogin = () => signInWithPopup(auth, provider);
         window.fazerLogout = () => { if(confirm("Deseja sair?")) signOut(auth).then(() => { localStorage.removeItem('busu_active_line'); location.reload(); }); };
 
         window.geoCenter = () => {
@@ -246,7 +240,6 @@
                 const path = `onibus/${line}/${user.uid}`;
                 set(ref(db, path), { lat: p.coords.latitude, lng: p.coords.longitude, timestamp: Date.now() });
                 onDisconnect(ref(db, path)).remove();
-                
                 document.getElementById('action-btn').classList.add('active');
                 document.getElementById('action-icon').className = 'bi bi-stop-circle-fill';
             }, null, {enableHighAccuracy:true});
@@ -271,29 +264,21 @@
                 cor: document.getElementById('admCor').value,
                 icone: document.getElementById('admIcone').value || "🚌",
                 latTerminal: -14.7981, lngTerminal: -39.0347
-            }).then(() => alert("Linha Salva!"));
+            }).then(() => alert("Salvo!"));
         };
 
         window.deleteLine = (id) => { if(confirm("Excluir?")) remove(ref(db, 'config/linhas/' + id)); };
 
-        // --- SYNC ---
+        // --- AUTH ---
         onAuthStateChanged(auth, u => {
             user = u;
             const authDiv = document.getElementById('auth-area');
             const actionBtn = document.getElementById('action-btn');
             const adminBtn = document.getElementById('admin-only-btn');
-
             if(u) {
-                authDiv.innerHTML = `
-                    <div class="d-flex align-items-center p-2 bg-light rounded-3 shadow-sm mb-3">
-                        <img src="${u.photoURL}" width="34" class="rounded-circle me-2 border"> 
-                        <div class="flex-grow-1 text-start fw-bold small text-truncate">${u.displayName}</div> 
-                        <i class="bi bi-box-arrow-right text-muted fs-4 ms-2 cursor-pointer" onclick="window.fazerLogout()"></i>
-                    </div>`;
+                authDiv.innerHTML = `<div class="d-flex align-items-center p-2 bg-light rounded-3 shadow-sm mb-3"><img src="${u.photoURL}" width="34" class="rounded-circle me-2"> <div class="flex-grow-1 text-start fw-bold small text-truncate">${u.displayName}</div> <i class="bi bi-box-arrow-right text-muted cursor-pointer fs-4" onclick="window.fazerLogout()"></i></div>`;
                 if(actionBtn) actionBtn.style.display = 'flex';
-                if(u.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim()) {
-                    if(adminBtn) adminBtn.style.display = 'block';
-                }
+                if(u.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim()) if(adminBtn) adminBtn.style.display = 'block';
                 const saved = localStorage.getItem('busu_active_line');
                 if(saved && !watchID) iniciarGPS(saved);
             } else {
@@ -303,28 +288,19 @@
             }
         });
 
+        // --- DATA SYNC ---
         onValue(ref(db, 'config/linhas'), snap => {
             const data = snap.val() || {};
             const sidebar = document.getElementById('sidebar-line-list');
             const select = document.getElementById('line-select');
             const admin = document.getElementById('admin-lines-edit');
-            if(sidebar) sidebar.innerHTML = ''; 
-            if(select) select.innerHTML = ''; 
-            if(admin) admin.innerHTML = '';
-
+            sidebar.innerHTML = ''; select.innerHTML = ''; admin.innerHTML = '';
             for(let id in data) {
                 const c = data[id];
                 configLinhas[id] = c;
-                if(sidebar) {
-                    sidebar.innerHTML += `
-                        <div class="list-group-item d-flex align-items-center">
-                            <div id="side-dot-${id}" class="status-dot"></div>
-                            <span id="side-txt-${id}" class="line-text text-muted">${c.nome}</span>
-                        </div>`;
-                }
-                if(select) select.innerHTML += `<option value="${id}">${c.nome}</option>`;
-                if(admin) admin.innerHTML += `<div class="list-group-item d-flex justify-content-between p-2 small border-bottom">${c.nome} <i class="bi bi-trash text-danger cursor-pointer" onclick="window.deleteLine('${id}')"></i></div>`;
-                
+                sidebar.innerHTML += `<div class="list-group-item d-flex align-items-center"><div id="side-dot-${id}" class="status-dot"></div><span id="side-txt-${id}" class="line-text text-muted">${c.nome}</span></div>`;
+                select.innerHTML += `<option value="${id}">${c.nome}</option>`;
+                admin.innerHTML += `<div class="list-group-item d-flex justify-content-between py-2 small border-bottom">${c.nome} <i class="bi bi-trash text-danger cursor-pointer" onclick="window.deleteLine('${id}')"></i></div>`;
                 if(!markers[id]) {
                     const icon = L.divIcon({ className:'custom-pin', html:`<div class="bus-pin" id="pin-${id}"><span>${c.icone}</span></div>`, iconSize:[42,42], iconAnchor:[21,42] });
                     markers[id] = L.marker([c.latTerminal, c.lngTerminal], {icon:icon}).addTo(map).bindPopup(c.nome);
@@ -336,38 +312,33 @@
             const gps = snap.val() || {};
             const now = Date.now();
             let statusHtml = "";
-
             for(let id in configLinhas) {
                 const c = configLinhas[id];
                 const marker = markers[id];
                 let lat=0, lng=0, count=0;
-
                 if(gps[id]) {
                     for(let uid in gps[id]) {
                         const info = gps[id][uid];
                         if(now - info.timestamp < 45000) { lat+=info.lat; lng+=info.lng; count++; }
                     }
                 }
-
                 const pin = document.getElementById(`pin-${id}`);
                 const dot = document.getElementById(`side-dot-${id}`);
                 const txt = document.getElementById(`side-txt-${id}`);
-
                 if(count > 0) {
                     marker.setLatLng([lat/count, lng/count]);
                     if(pin) { pin.style.background = c.cor; pin.classList.add('pulse'); }
-                    if(dot) dot.style.backgroundColor = c.cor;
+                    if(dot) dot.classList.add('dot-active');
                     if(txt) { txt.classList.remove('text-muted'); txt.classList.add('fw-bold', 'text-dark'); }
                     statusHtml += `<div class="d-flex justify-content-between mb-1 small fw-bold"><span>${c.icone} ${c.nome}</span> <span class="text-success text-uppercase" style="font-size:10px">Ativo (${count})</span></div>`;
                 } else {
                     marker.setLatLng([c.latTerminal, c.lngTerminal]);
                     if(pin) { pin.style.background = "#7f8c8d"; pin.classList.remove('pulse'); }
-                    if(dot) dot.style.backgroundColor = "#7f8c8d";
+                    if(dot) dot.classList.remove('dot-active');
                     if(txt) { txt.classList.add('text-muted'); txt.classList.remove('fw-bold', 'text-dark'); }
                 }
             }
-            const display = document.getElementById('status-display');
-            if(display) display.innerHTML = statusHtml || '<p class="small text-muted m-0">Nenhum ônibus em movimento.</p>';
+            document.getElementById('status-display').innerHTML = statusHtml || '<p class="small text-muted m-0">Nenhum ônibus em movimento.</p>';
         });
     </script>
 </body>
