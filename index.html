@@ -74,6 +74,12 @@
         .user-marker-icon { background: var(--blue); width: 14px; height: 14px; border: 2.5px solid white; border-radius: 50%; box-shadow: 0 0 10px var(--blue); }
         .adm-card { background: #f8f9fa; padding: 10px; border-radius: 12px; }
         .adm-metric { font-size: 18px; font-weight: 800; color: var(--blue); display: block; }
+
+        /* UI ADICIONAL GESTÃO ROTA */
+        .route-mode-badge { font-size: 10px; padding: 6px 10px; border-radius: 20px; cursor: pointer; border: 1px solid #ddd; background: white; transition: 0.2s; font-weight: 600; }
+        .route-mode-badge.active { background: var(--blue); color: white; border-color: var(--blue); }
+        .adm-route-item:hover { background: #e8f0fe; cursor: pointer; }
+        
     </style>
 </head>
 <body>
@@ -106,7 +112,7 @@
             </div>
         </div>
 
-        <!-- DASHBOARD ADMIN -->
+<!-- DASHBOARD ADMIN (ATUALIZADO) -->
         <div id="view-admin-dashboard" class="sidebar-view">
             <div class="section-header">
                 <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('main')"></i>
@@ -119,9 +125,12 @@
             <nav>
                 <button class="nav-item-custom" onclick="window.switchView('admin-dashboard')"><i class="bi bi-speedometer2 text-primary"></i> Dashboard Geral</button>
                 <button class="nav-item-custom" onclick="window.switchView('admin-lines')"><i class="bi bi-signpost-2 text-primary"></i> Gestão de Linhas</button>
-                <button class="nav-item-custom"><i class="bi bi-map"></i> Gestão de Rotas <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-geo"></i> Gestão de Paradas <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-building"></i> Gestão de Terminais <span class="standby-badge">Standby</span></button>
+                
+                <!-- FUNÇÕES INTEGRADAS NO EDITOR DE TRAJETO -->
+                <button class="nav-item-custom" onclick="window.openRouteManager()"><i class="bi bi-map text-success"></i> Gestão de Rotas</button>
+                <button class="nav-item-custom" onclick="window.openRouteManager(); window.setRouteMode('stops');"><i class="bi bi-geo text-success"></i> Gestão de Paradas</button>
+                <button class="nav-item-custom" onclick="window.openRouteManager(); window.setRouteMode('terminal');"><i class="bi bi-building text-success"></i> Gestão de Terminais</button>
+                
                 <button class="nav-item-custom"><i class="bi bi-broadcast"></i> Monitoramento Tempo Real <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-people"></i> Usuários e Reputação <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-chat-dots"></i> Reports Comunidade <span class="standby-badge">Standby</span></button>
@@ -245,6 +254,12 @@
         let user = null, watchID = null, currentLineKey = null, userMarker = null;
         let adminSelectedCompany = 'atlantico';
         const markers = {}, configLinhas = {};
+
+        // ESTADO DO EDITOR DE ROTAS (NOVAS VARIÁVEIS)
+        let routeDraft = { lineKey: null, path: [], stops: [], terminals: [] };
+        let routeMode = 'path'; 
+        let draftPolyline = L.polyline([], {color: '#1a73e8', weight: 4}).addTo(map);
+        let draftMarkers = L.layerGroup().addTo(map);
 
         // Login Func
         window.fazerLogin = () => signInWithPopup(auth, provider);
@@ -378,16 +393,28 @@
             }
         });
 
-        onValue(ref(db, 'config/linhas'), snap => {
+onValue(ref(db, 'config/linhas'), snap => {
             const data = snap.val() || {};
-            const grid = document.getElementById('line-selection-grid'), admList = document.getElementById('admin-lines-list-crud'), plan = document.getElementById('planning-all-lines');
-            grid.innerHTML = ''; admList.innerHTML = ''; plan.innerHTML = '';
-            let t = 0;
+            const grid = document.getElementById('line-selection-grid'), admList = document.getElementById('admin-lines-list-crud');
+            const routeAdminList = document.getElementById('route-admin-list'); // NOVO
+            
+            grid.innerHTML = ''; admList.innerHTML = ''; routeAdminList.innerHTML = '';
+            
             for(let key in data) {
-                const c = data[key]; configLinhas[key] = c; t++;
+                const c = data[key]; configLinhas[key] = c;
                 const comp = COMPANIES[c.company || 'atlantico'];
-                grid.innerHTML += `<button class="list-group-item list-group-item-action d-flex align-items-center py-2" onclick="window.startTrack('${key}')"><img src="${comp.favicon}" class="bus-logo-mini"><div><div class="fw-bold small">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div></button>`;
                 
+                // Popula a lista original (Transmitir/Grid)
+                grid.innerHTML += `<button class="list-group-item list-group-item-action d-flex align-items-center py-2" onclick="window.startTrack('${key}')"><img src="${comp.favicon}" class="bus-logo-mini"><div><div class="fw-bold small">${c.id} - ${c.nome}</div></div></button>`;
+                
+                // Popula a lista CRUD original
+                admList.innerHTML += `<div class="list-group-item bus-item border-bottom px-0" onclick="window.loadLineForEdit('${key}')">...</div>`; // (Mantenha seu HTML de CRUD original aqui)
+                
+                // NOVO: Alimenta a lista da Gestão de Rotas
+                routeAdminList.innerHTML += `<div class="list-group-item adm-route-item p-2 small border-bottom" onclick="window.selectLineForRoute('${key}')"><img src="${comp.favicon}" width="12" class="me-2"><b>${c.id}</b> - ${c.via}</div>`;
+            }
+        });
+        
                 // Admin List Styled as Map Cards
                 admList.innerHTML += `
                     <div class="list-group-item bus-item border-bottom px-0" onclick="window.loadLineForEdit('${key}')">
@@ -448,6 +475,61 @@
         });
 
         window.onload = () => setTimeout(() => window.geoCenter(), 2000);
+
+        window.openRouteManager = () => {
+            window.switchView('admin-routes');
+            map.on('click', onMapClickForRoute);
+            map.getContainer().style.cursor = 'crosshair';
+        };
+        
+        window.closeRouteManager = () => {
+            map.off('click', onMapClickForRoute);
+            map.getContainer().style.cursor = '';
+            window.clearCurrentDraft();
+        };
+
+        window.setRouteMode = (m) => {
+            routeMode = m;
+            document.querySelectorAll('.route-mode-badge').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-mode-${m}`).classList.add('active');
+        };
+
+        function onMapClickForRoute(e) {
+            const { lat, lng } = e.latlng;
+            if (!routeDraft.lineKey) return alert("Selecione uma linha na lista primeiro!");
+
+            if (routeMode === 'path') {
+                routeDraft.path.push([lat, lng]);
+                draftPolyline.setLatLngs(routeDraft.path);
+            } else if (routeMode === 'stops') {
+                routeDraft.stops.push({ lat, lng, id: Date.now() });
+                L.circleMarker([lat, lng], { radius: 5, color: '#202124', fillColor: 'white', fillOpacity: 1 }).addTo(draftMarkers);
+            } else if (routeMode === 'terminal') {
+                routeDraft.terminals.push({ lat, lng, type: 'start' });
+                L.marker([lat, lng], { icon: L.divIcon({ html: '🏁', className: 'fs-5', iconAnchor: [10, 10] }) }).addTo(draftMarkers);
+            }
+        }
+
+        window.selectLineForRoute = (key) => {
+            window.clearCurrentDraft();
+            routeDraft.lineKey = key;
+            const c = configLinhas[key];
+            draftPolyline.setStyle({ color: c.cor });
+            alert("Editando: " + c.id);
+            // Opcional: Carregar rota existente do banco aqui se houver
+        };
+
+        window.saveRouteData = () => {
+            if (!routeDraft.lineKey) return alert("Selecione uma linha");
+            set(ref(db, `config/geometria/${routeDraft.lineKey}`), routeDraft)
+                .then(() => alert("Geometria salva com sucesso!"));
+        };
+
+        window.clearCurrentDraft = () => {
+            routeDraft.path = []; routeDraft.stops = []; routeDraft.terminals = [];
+            draftPolyline.setLatLngs([]);
+            draftMarkers.clearLayers();
+        };
     </script>
 </body>
 </html>
