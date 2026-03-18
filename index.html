@@ -130,13 +130,13 @@
                 <div id="line-list-sidebar" class="list-group list-group-flush"></div>
             </div>
 
-            <div id="admin-only-btn" style="display:none">
-                <hr>
-                <button class="btn btn-dark w-100 py-2 fw-bold" onclick="window.switchView('admin')">
-                    <i class="bi bi-sliders me-2"></i> Configurações
-                </button>
-            </div>
-        </div>
+           <div id="admin-only-btn" style="display:none">
+        <hr>
+        <button class="btn btn-dark w-100 py-2 fw-bold" onclick="window.switchView('admin')">
+            <i class="bi bi-sliders me-2"></i> Configurações
+        </button>
+              </div>
+          </div>
 
         <!-- VISTA 2: PAINEL ADMIN INTEGRADO -->
         <div id="view-admin" class="sidebar-view">
@@ -323,106 +323,54 @@ window.stopTrack = () => {
         watchID = null;
         
         // LIMPAR MEMÓRIA: "Não estou mais transmitindo"
-        localStorage.removeItem('busu_active_line');
-        
-        document.getElementById('action-btn').classList.remove('active');
-        document.getElementById('action-icon').className = 'bi bi-broadcast';
-        alert("Transmissão encerrada.");
-    }
-};
-
-    // Função isolada para ligar o GPS e mandar pro Firebase
-    function iniciarGps(line) {
-    if (watchID) navigator.geolocation.clearWatch(watchID);
-
-    watchID = navigator.geolocation.watchPosition(p => {
-        if (!user) return; // Segurança caso o login ainda não tenha carregado
-        
-        const path = `onibus/${line}/${user.uid}`;
-        set(ref(db, path), { 
-            lat: p.coords.latitude, 
-            lng: p.coords.longitude, 
-            timestamp: Date.now() 
-        });
-        
-        onDisconnect(ref(db, path)).remove();
-        
-        // Atualiza o visual do botão para "Stop"
-        document.getElementById('action-btn').classList.add('active');
-        document.getElementById('action-icon').className = 'bi bi-stop-circle-fill';
-    }, null, { enableHighAccuracy: true });
-}
-
-    // Funções Admin
-    window.saveLine = () => {
-        const id = document.getElementById('admID').value;
-        if(!id) return alert("Insira um ID para a linha.");
-        const dados = {
-            nome: document.getElementById('admNome').value,
-            cor: document.getElementById('admCor').value,
-            icone: document.getElementById('admIcone').value || "🚌",
-            latTerminal: -14.7981, lngTerminal: -39.0347 // Coordenada base
-        };
-        set(ref(db, 'config/linhas/' + id), dados).then(() => {
-            alert("Linha salva com sucesso!");
-        });
-    };
-
-    window.deleteLine = (id) => {
-        if(confirm("Deseja apagar permanentemente a linha " + id + "?")) {
-            remove(ref(db, 'config/linhas/' + id));
-        }
-    };
-
-    // --- 5. OBSERVADORES DE DADOS (SYNC) ---
-
-   // --- OBSERVADOR DE LOGIN (VERSÃO BLINDADA) ---
 onAuthStateChanged(auth, (u) => {
     user = u;
+    
+    // Captura os elementos do seu HTML
     const authDiv = document.getElementById('auth-area');
-    const actionBtn = document.getElementById('action-btn');
-    const adminBtn = document.getElementById('admin-section');
+    const actionBtn = document.getElementById('action-btn'); // O botão redondo de transmitir
+    const adminBtnContainer = document.getElementById('admin-only-btn'); // O container do seu botão preto
 
     if (u) {
-        // Se o usuário estiver LOGADO: Mostrar foto, nome e botão de sair
-        authDiv.innerHTML = `
-            <div class="d-flex align-items-center p-2 bg-light rounded-3 shadow-sm mb-3">
-                <img src="${u.photoURL}" width="34" class="rounded-circle me-2 border"> 
-                <div class="flex-grow-1 text-start fw-bold small text-truncate">${u.displayName}</div> 
-                <i class="bi bi-box-arrow-right text-muted fs-4 ms-2 cursor-pointer" title="Sair" onclick="window.fazerLogout()"></i>
-            </div>`;
-        
-        actionBtn.style.display = 'flex'; // Mostra botão de transmitir GPS
+        // Se logado, mostra o perfil
+        if (authDiv) {
+            authDiv.innerHTML = `
+                <div class="d-flex align-items-center p-2 bg-light rounded-3 shadow-sm mb-3">
+                    <img src="${u.photoURL}" width="34" class="rounded-circle me-2 border"> 
+                    <div class="flex-grow-1 text-start fw-bold small text-truncate">${u.displayName}</div> 
+                    <i class="bi bi-box-arrow-right text-muted fs-4 ms-2 cursor-pointer" onclick="window.fazerLogout()"></i>
+                </div>`;
+        }
 
-        // --- VALIDAÇÃO DE ADMIN (ROBUSTA) ---
-        // Convertemos ambos para minúsculo e removemos espaços extras
+        // Mostra o botão de transmitir GPS
+        if (actionBtn) actionBtn.style.display = 'flex';
+
+        // --- LÓGICA DO ADMIN ---
         const emailLogado = u.email.toLowerCase().trim();
         const emailAdminPermitido = ADMIN_EMAIL.toLowerCase().trim();
 
         if (emailLogado === emailAdminPermitido) {
-            console.log("✅ Admin reconhecido com sucesso!");
-            adminBtn.style.display = 'block';
+            console.log("✅ Admin reconhecido!");
+            if (adminBtnContainer) adminBtnContainer.style.display = 'block';
         } else {
-            console.warn("⚠️ Acesso admin negado para: " + emailLogado);
-            adminBtn.style.display = 'none';
+            if (adminBtnContainer) adminBtnContainer.style.display = 'none';
         }
 
-        // Recupera a transmissão se a página foi atualizada
+        // Recupera sinal se houver
         const saved = localStorage.getItem('busu_active_line');
-        if (saved && !watchID) {
-            console.log("Retomando sinal da linha: " + saved);
-            iniciarGPS(saved);
-        }
+        if (saved && !watchID) iniciarGPS(saved);
+
     } else {
-        // Se o usuário estiver DESLOGADO: Mostrar botão de "Entrar com Google"
-        authDiv.innerHTML = `
-            <button class="btn btn-primary w-100 py-2 fw-bold rounded-pill shadow-sm" onclick="window.fazerLogin()">
-                <i class="bi bi-google me-2"></i> Entrar com Google
-            </button>`;
-        
-        actionBtn.style.display = 'none'; 
-        adminBtn.style.display = 'none';  
-        localStorage.removeItem('busu_active_line'); 
+        // Se deslogado, mostra botão de login
+        if (authDiv) {
+            authDiv.innerHTML = `
+                <button class="btn btn-primary w-100 py-2 fw-bold rounded-pill shadow-sm" onclick="window.fazerLogin()">
+                    <i class="bi bi-google me-2"></i> Entrar com Google
+                </button>`;
+        }
+        if (actionBtn) actionBtn.style.display = 'none';
+        if (adminBtnContainer) adminBtnContainer.style.display = 'none';
+        localStorage.removeItem('busu_active_line');
     }
 });
         
