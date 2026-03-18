@@ -5,217 +5,348 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>BusU-Crowd - Localizador Universitário</title>
     
-    <!-- CSS: Bootstrap e Leaflet (Mapa) -->
+    <!-- Bibliotecas Externas -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    
-<style>
-    body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: sans-serif; }
-    #map { height: 100vh; width: 100vw; z-index: 1; }
-    
-    .btn-colaborar {
-        position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-        z-index: 1000; box-shadow: 0px 4px 15px rgba(0,0,0,0.4);
-        border-radius: 30px; padding: 15px 30px; font-weight: bold;
-        transition: all 0.3s ease;
-    }
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-    /* Estilo do Marcador do Ônibus */
-    .bus-marker {
-        background-color: #e74c3c; /* Vermelho vibrante */
-        border: 3px solid white;
-        border-radius: 50% 50% 50% 0; /* Formato de gota/pin */
-        transform: rotate(-45deg);
-        display: flex; align-items: center; justify-content: center;
-        color: white; font-size: 16px; width: 40px !important; height: 40px !important;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-    }
-    .bus-marker span {
-        transform: rotate(45deg); /* Desfaz a rotação para o emoji ficar reto */
-    }
+    <style>
+        :root {
+            --primary-blue: #4285F4;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --sidebar-width: 350px;
+        }
 
-    /* Efeito visual de "está ativo" */
-    .pulse {
-        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
-        animation: pulsing 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
-        border-radius: 50%;
-    }
-    @keyframes pulsing {
-        to { box-shadow: 0 0 0 15px rgba(231, 76, 60, 0); }
-    }
-</style>
+        body, html { 
+            margin: 0; padding: 0; height: 100%; width: 100%; 
+            font-family: 'Inter', sans-serif; background: #f0f2f5; overflow: hidden;
+        }
+
+        /* --- LAYOUT RESPONSIVO --- */
+        #app-container { display: flex; height: 100vh; width: 100vw; }
+
+        #map { flex-grow: 1; height: 100%; z-index: 1; }
+
+        /* Sidebar Desktop */
+        #sidebar-admin {
+            width: var(--sidebar-width);
+            background: white;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            z-index: 1002;
+            transition: all 0.3s;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 991px) {
+            #sidebar-admin { display: none; position: fixed; height: 100%; width: 100%; }
+            .mobile-hide { display: none !important; }
+        }
+
+        /* --- UI COMPONENTES (GOOGLE MAPS STYLE) --- */
+        .search-box {
+            position: absolute; top: 20px; left: 20px; z-index: 1000;
+            width: 360px; max-width: calc(100% - 40px);
+            background: white; border-radius: 24px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            padding: 8px 16px; display: flex; align-items: center;
+        }
+
+        .search-box input { border: none; outline: none; flex-grow: 1; padding: 5px 10px; }
+
+        .info-card-bottom {
+            position: absolute; bottom: 90px; left: 20px; right: 20px;
+            background: var(--glass-bg); backdrop-filter: blur(10px);
+            border-radius: 16px; z-index: 1000; padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        @media (min-width: 992px) {
+            .info-card-bottom { width: 350px; left: auto; right: 20px; bottom: 20px; }
+        }
+
+        .bottom-nav {
+            position: absolute; bottom: 0; width: 100%; height: 70px;
+            background: white; display: flex; justify-content: space-around;
+            align-items: center; z-index: 1001; border-top: 1px solid #eee;
+        }
+
+        /* --- MARCADORES --- */
+        .bus-marker {
+            background-color: #7f8c8d;
+            border: 2px solid white;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex; align-items: center; justify-content: center;
+            color: white; width: 40px !important; height: 40px !important;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.5s ease;
+        }
+        .bus-marker span { transform: rotate(45deg); font-size: 18px; }
+        .bus-marker.ativo { opacity: 1; filter: none; }
+        
+        .pulse { animation: pulsing 1.5s infinite; }
+        @keyframes pulsing {
+            0% { box-shadow: 0 0 0 0 rgba(0,0,0, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0,0,0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0,0,0, 0); }
+        }
+    </style>
 </head>
 <body>
 
-    <div id="map"></div>
+    <!-- Alerta Geral -->
+    <div id="bannerAlerta" class="alert alert-warning text-center fw-bold small" style="display:none; position:fixed; top:0; width:100%; z-index:2000; margin:0; border-radius:0;"></div>
 
-    <button class="btn btn-primary btn-colaborar" data-bs-toggle="modal" data-bs-target="#modalLinhas">
-        📍 Quero Colaborar (Estou no Ônibus)
-    </button>
+    <div id="app-container">
+        <!-- SIDEBAR (Admin / Info) -->
+        <aside id="sidebar-admin" class="p-3">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold m-0 text-primary">BusU Admin</h4>
+                <button class="btn btn-light btn-sm d-lg-none" onclick="toggleAdmin()"><i class="bi bi-x-lg"></i></button>
+            </div>
+            
+            <div class="mb-4">
+                <h6 class="text-muted small fw-bold text-uppercase">Linhas Ativas</h6>
+                <div id="listaLinhasSidebar" class="list-group list-group-flush">
+                    <!-- Dinâmico -->
+                </div>
+            </div>
 
-    <!-- Modal Seleção de Linha -->
+            <button class="btn btn-dark w-100 mt-auto" onclick="abrirConfigAdmin()">⚙️ Configurar Linhas</button>
+        </aside>
+
+        <!-- MAPA -->
+        <main id="map">
+            <!-- Barra de Busca -->
+            <div class="search-box">
+                <i class="bi bi-list fs-4 me-2 cursor-pointer" onclick="toggleAdmin()"></i>
+                <input type="text" placeholder="Para onde você vai?">
+                <i class="bi bi-search text-muted"></i>
+            </div>
+
+            <!-- Botões Flutuantes -->
+            <div style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn btn-white shadow-sm rounded-circle p-2" onclick="centralizarGps()" style="background:white; width:45px; height:45px;"><i class="bi bi-crosshair"></i></button>
+                <button id="btnPrincipal" class="btn btn-primary shadow-lg rounded-circle p-2" data-bs-toggle="modal" data-bs-target="#modalLinhas" style="width:55px; height:55px;"><i class="bi bi-broadcast fs-4"></i></button>
+            </div>
+
+            <!-- Card Inferior -->
+            <div class="info-card-bottom" id="infoCard">
+                <h6 class="fw-bold mb-2 small text-muted">PRÓXIMOS ÔNIBUS</h6>
+                <div id="listaProximos">
+                    <p class="small text-muted m-0">Nenhum ônibus em movimento no momento.</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Menu Inferior Mobile -->
+        <nav class="bottom-nav d-lg-none">
+            <div class="nav-item text-primary"><i class="bi bi-map-fill fs-4"></i></div>
+            <div class="nav-item text-muted"><i class="bi bi-heart fs-4"></i></div>
+            <div class="nav-item text-muted" onclick="toggleAdmin()"><i class="bi bi-gear-fill fs-4"></i></div>
+        </nav>
+    </div>
+
+    <!-- MODAL: SELEÇÃO DE LINHA (COLABORAR) -->
     <div class="modal fade" id="modalLinhas" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content border-0 shadow">
                 <div class="modal-header">
-                    <h5 class="modal-title">Em qual linha você está?</h5>
+                    <h5 class="modal-title fw-bold">Transmitir Localização</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <select class="form-select form-select-lg mb-3" id="linhaSelecionada">
-                        <option value="" selected disabled>Selecione a Linha...</option>
-                        <option value="Linha_01">Linha 01 - Campus / Terminal</option>
-                        <option value="Linha_02">Linha 02 - Circular</option>
-                    </select>
+                    <p class="small text-muted">Selecione a linha que você está agora para ajudar outros alunos.</p>
+                    <select class="form-select form-select-lg" id="linhaSelecionada"></select>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-success w-100" id="btnIniciarColaboracao">OK, Começar Transmissão!</button>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-success w-100 py-3 fw-bold" id="btnIniciarColaboracao">COMEÇAR AGORA</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts Externos -->
+    <!-- MODAL: ADMIN (CONFIGURAÇÃO) -->
+    <div class="modal fade" id="modalConfigAdmin" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-fullscreen-sm-down">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">Gestão de Linhas</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3 mb-4 p-3 bg-light rounded">
+                        <div class="col-md-3"><input type="text" id="admID" class="form-control" placeholder="ID (ex: L01)"></div>
+                        <div class="col-md-5"><input type="text" id="admNome" class="form-control" placeholder="Nome Completo"></div>
+                        <div class="col-md-2"><input type="color" id="admCor" class="form-control form-control-color w-100" value="#4285F4"></div>
+                        <div class="col-md-2"><input type="text" id="admIcone" class="form-control" placeholder="🚌"></div>
+                        <div class="col-md-5"><input type="number" id="admLat" class="form-control" placeholder="Lat Terminal" step="any"></div>
+                        <div class="col-md-5"><input type="number" id="admLng" class="form-control" placeholder="Lng Terminal" step="any"></div>
+                        <div class="col-md-2"><button class="btn btn-info w-100" onclick="pegarLocalizacaoAdmin()">📍</button></div>
+                        <div class="col-12"><button class="btn btn-primary w-100" onclick="salvarLinha()">SALVAR LINHA</button></div>
+                    </div>
+                    <h6>Linhas Cadastradas:</h6>
+                    <div id="listaAdminEdicao" class="list-group"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- LOGICA DO APP (FIREBASE + GPS) -->
-   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-    import { getDatabase, ref, set, onValue, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyB7qohXZb_DYFplLOtt5YiqbahwhNYGPck",
-        authDomain: "busu-crowd.firebaseapp.com",
-        projectId: "busu-crowd",
-        storageBucket: "busu-crowd.firebasestorage.app",
-        messagingSenderId: "48985646106",
-        appId: "1:48985646106:web:1c7b80091855ad01609da3"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7qohXZb_DYFplLOtt5YiqbahwhNYGPck",
+            authDomain: "busu-crowd.firebaseapp.com",
+            projectId: "busu-crowd",
+            storageBucket: "busu-crowd.firebasestorage.app",
+            messagingSenderId: "48985646106",
+            appId: "1:48985646106:web:1c7b80091855ad01609da3"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    const map = L.map('map').setView([-14.7981, -39.0347], 15);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    const marcadoresOnibus = {};
+        // --- MAPA ---
+        const map = L.map('map', { zoomControl: false }).setView([-14.7981, -39.0347], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    let idUsuario = "aluno_" + Math.floor(Math.random() * 10000);
-    let watchID = null; // Guardará o rastreador do GPS
-    let linhaAtiva = null;
+        let CONFIG_LINHAS = {};
+        const marcadoresOnibus = {};
+        let idUsuario = "aluno_" + Math.floor(Math.random() * 10000);
+        let watchID = null;
+        let linhaAtiva = null;
 
-    const btnColaborar = document.querySelector('.btn-colaborar');
+        // --- ADMIN LOGIC ---
+        window.toggleAdmin = () => {
+            const sidebar = document.getElementById('sidebar-admin');
+            sidebar.style.display = sidebar.style.display === 'flex' ? 'none' : 'flex';
+        };
 
-    // FUNÇÃO PARA PARAR TRANSMISSÃO
-    function pararTransmissao() {
-        if (watchID) {
-            navigator.geolocation.clearWatch(watchID);
-            watchID = null;
-        }
-        if (linhaAtiva) {
-            const caminho = ref(db, `onibus/${linhaAtiva}/${idUsuario}`);
-            remove(caminho); // Remove do Firebase imediatamente
-        }
-        btnColaborar.innerHTML = "📍 Quero Colaborar (Estou no Ônibus)";
-        btnColaborar.classList.replace('btn-danger', 'btn-primary');
-        linhaAtiva = null;
-        alert("Transmissão encerrada.");
-    }
+        window.abrirConfigAdmin = () => {
+            if(prompt("Senha Admin:") === "1234") {
+                new bootstrap.Modal(document.getElementById('modalConfigAdmin')).show();
+            }
+        };
 
-    document.getElementById('btnIniciarColaboracao').addEventListener('click', () => {
-        const linha = document.getElementById('linhaSelecionada').value;
-        if(!linha) return alert("Selecione uma linha!");
+        window.salvarLinha = () => {
+            const id = document.getElementById('admID').value;
+            if(!id) return;
+            const dados = {
+                nome: document.getElementById('admNome').value,
+                cor: document.getElementById('admCor').value,
+                icone: document.getElementById('admIcone').value || "🚌",
+                latTerminal: parseFloat(document.getElementById('admLat').value),
+                lngTerminal: parseFloat(document.getElementById('admLng').value)
+            };
+            set(ref(db, 'config/linhas/' + id), dados);
+        };
 
-        bootstrap.Modal.getInstance(document.getElementById('modalLinhas')).hide();
-        
-        // Se já estiver transmitindo, para antes de começar nova
-        if (watchID) pararTransmissao();
+        window.excluirLinha = (id) => {
+            if(confirm("Excluir?")) remove(ref(db, 'config/linhas/' + id));
+        };
 
-        linhaAtiva = linha;
+        // --- SYNC CONFIGURAÇÕES ---
+        onValue(ref(db, 'config/linhas'), (snapshot) => {
+            CONFIG_LINHAS = snapshot.val() || {};
+            const select = document.getElementById('linhaSelecionada');
+            const listaEdicao = document.getElementById('listaAdminEdicao');
+            select.innerHTML = '';
+            listaEdicao.innerHTML = '';
 
-        if ("geolocation" in navigator) {
-            btnColaborar.innerHTML = "🛑 Parar Transmissão";
-            btnColaborar.classList.replace('btn-primary', 'btn-danger');
-
-            watchID = navigator.geolocation.watchPosition((pos) => {
-                const { latitude, longitude } = pos.coords;
-                const caminho = ref(db, `onibus/${linha}/${idUsuario}`);
+            for (let id in CONFIG_LINHAS) {
+                const config = CONFIG_LINHAS[id];
+                // Update Select
+                select.innerHTML += `<option value="${id}">${config.nome}</option>`;
+                // Update Admin List
+                listaEdicao.innerHTML += `<div class="list-group-item d-flex justify-content-between">${id} - ${config.nome} <button class="btn btn-sm btn-danger" onclick="excluirLinha('${id}')">Remover</button></div>`;
                 
-                set(caminho, {
-                    lat: latitude,
-                    lng: longitude,
-                    timestamp: Date.now()
-                });
-
-                onDisconnect(caminho).remove();
-            }, (err) => {
-                alert("Erro no GPS. Verifique se a localização está ativa.");
-                pararTransmissao();
-            }, { enableHighAccuracy: true });
-        }
-    });
-
-    // Lógica do botão principal (Se estiver transmitindo, ele vira botão de PARAR)
-    btnColaborar.addEventListener('click', (e) => {
-        if (watchID) {
-            e.stopPropagation(); // Impede de abrir o modal
-            pararTransmissao();
-        }
-    });
-
-    // ATUALIZAR MAPA (COM BALÃO DE IDENTIFICAÇÃO)
-    const busRef = ref(db, 'onibus');
-    onValue(busRef, (snapshot) => {
-        const dados = snapshot.val();
-        
-        // Limpar ônibus que sumiram do Firebase
-        for (let id in marcadoresOnibus) {
-            if (!dados || !dados[id]) {
-                map.removeLayer(marcadoresOnibus[id]);
-                delete marcadoresOnibus[id];
-            }
-        }
-
-        if(!dados) return;
-
-        for (let linhaID in dados) {
-            let somaLat = 0, somaLng = 0, totalAlunos = 0;
-            
-            for (let alunoID in dados[linhaID]) {
-                const info = dados[linhaID][alunoID];
-                if (Date.now() - info.timestamp < 40000) { // 40 segundos de tolerância
-                    somaLat += info.lat;
-                    somaLng += info.lng;
-                    totalAlunos++;
-                }
-            }
-
-            if (totalAlunos > 0) {
-                const latMedia = somaLat / totalAlunos;
-                const lngMedia = somaLng / totalAlunos;
-                const identificacao = linhaID.replace("_", " ");
-
-                if (marcadoresOnibus[linhaID]) {
-                    marcadoresOnibus[linhaID].setLatLng([latMedia, lngMedia]);
-                    // Atualiza o conteúdo do balão (popup)
-                    marcadoresOnibus[linhaID].getPopup().setContent(`<b>${identificacao}</b><br>Alunos colaborando: ${totalAlunos}`);
-                } else {
+                // Inicializar Marcadores Fixos
+                if (!marcadoresOnibus[id]) {
                     const icon = L.divIcon({
-                        className: 'bus-marker pulse', 
-                        html: '<span>🚌</span>',
-                        iconSize: [40, 40],
-                        iconAnchor: [20, 40] // Garante que a ponta do pin fique no lugar certo
+                        className: 'bus-marker',
+                        html: `<span>${config.icone}</span>`,
+                        iconSize: [40, 40], iconAnchor: [20, 40]
                     });
-                    
-                    // CRIA O MARCADOR COM O BALÃO (POPUP)
-                    const novoMarcador = L.marker([latMedia, lngMedia], {icon: icon}).addTo(map);
-                    novoMarcador.bindPopup(`<b>${identificacao}</b><br>Alunos colaborando: ${totalAlunos}`);
-                    
-                    marcadoresOnibus[linhaID] = novoMarcador;
+                    marcadoresOnibus[id] = L.marker([config.latTerminal, config.lngTerminal], {icon: icon}).addTo(map);
+                    marcadoresOnibus[id].bindPopup(config.nome);
                 }
             }
-        }
-    });
-</script>
+        });
+
+        // --- MOTOR DE MOVIMENTAÇÃO ---
+        onValue(ref(db, 'onibus'), (snapshot) => {
+            const dadosGps = snapshot.val() || {};
+            const AGORA = Date.now();
+            let htmlInfo = "";
+
+            for (let id in CONFIG_LINHAS) {
+                const config = CONFIG_LINHAS[id];
+                const marcador = marcadoresOnibus[id];
+                let somaLat = 0, somaLng = 0, cont = 0;
+
+                if (dadosGps[id]) {
+                    for (let user in dadosGps[id]) {
+                        const info = dadosGps[id][user];
+                        if (AGORA - info.timestamp < 40000) {
+                            somaLat += info.lat; somaLng += info.lng; cont++;
+                        }
+                    }
+                }
+
+                if (cont > 0) {
+                    const mLat = somaLat / cont; const mLng = somaLng / cont;
+                    marcador.setLatLng([mLat, mLng]);
+                    marcador.getElement().style.backgroundColor = config.cor;
+                    marcador.getElement().classList.add('ativo', 'pulse');
+                    htmlInfo += `<div class="d-flex justify-content-between small mb-1"><b>${config.nome}</b> <span class="badge bg-success">EM TRÂNSITO</span></div>`;
+                } else {
+                    marcador.setLatLng([config.latTerminal, config.lngTerminal]);
+                    marcador.getElement().style.backgroundColor = '#7f8c8d';
+                    marcador.getElement().classList.remove('ativo', 'pulse');
+                }
+            }
+            document.getElementById('listaProximos').innerHTML = htmlInfo || '<p class="small text-muted m-0">Aguardando sinais de GPS...</p>';
+        });
+
+        // --- TRANSMISSÃO ---
+        document.getElementById('btnIniciarColaboracao').addEventListener('click', () => {
+            const linha = document.getElementById('linhaSelecionada').value;
+            bootstrap.Modal.getInstance(document.getElementById('modalLinhas')).hide();
+            
+            if (watchID) {
+                navigator.geolocation.clearWatch(watchID);
+                remove(ref(db, `onibus/${linhaAtiva}/${idUsuario}`));
+            }
+
+            linhaAtiva = linha;
+            watchID = navigator.geolocation.watchPosition((pos) => {
+                const userRef = ref(db, `onibus/${linha}/${idUsuario}`);
+                set(userRef, { lat: pos.coords.latitude, lng: pos.coords.longitude, timestamp: Date.now() });
+                onDisconnect(userRef).remove();
+                document.getElementById('btnPrincipal').classList.replace('btn-primary', 'btn-danger');
+            }, null, { enableHighAccuracy: true });
+        });
+
+        window.centralizarGps = () => {
+            navigator.geolocation.getCurrentPosition(p => map.flyTo([p.coords.latitude, p.coords.longitude], 16));
+        };
+        
+        window.pegarLocalizacaoAdmin = () => {
+            navigator.geolocation.getCurrentPosition(p => {
+                document.getElementById('admLat').value = p.coords.latitude;
+                document.getElementById('admLng').value = p.coords.longitude;
+            });
+        };
+    </script>
 </body>
 </html>
