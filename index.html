@@ -12,13 +12,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
-        :root { --blue: #1a73e8; --sidebar-w: 310px; --z-sidebar: 3500; --green-active: #28a745; --gray-inactive: #7f8c8d; }
+        :root { --blue: #1a73e8; --sidebar-w: 310px; --z-sidebar: 4000; --green: #28a745; --gray: #7f8c8d; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Inter', sans-serif; overflow: hidden; background: #e5e3df; }
 
         /* Mapa */
         #map { position: absolute; inset: 0; z-index: 1; }
 
-        /* Sidebar */
+        /* Sidebar Google Maps */
         #sidebar { 
             position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w); 
             background: white; z-index: var(--z-sidebar); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -26,13 +26,13 @@
             box-shadow: 5px 0 15px rgba(0,0,0,0.15);
         }
         #sidebar.active { transform: translateX(0); }
-        #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 3000; backdrop-filter: blur(2px); }
+        #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 3500; backdrop-filter: blur(2px); }
         #sidebar-overlay.active { display: block; }
 
         .sidebar-view { display: none; flex-direction: column; height: 100%; width: 100%; padding: 20px; overflow-y: auto; }
         .sidebar-view.active { display: flex; }
 
-        /* Interface Flutuante */
+        /* UI Centralizada */
         .top-ui { position: absolute; top: 15px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000; pointer-events: none; }
         .search-bar { 
             width: 90%; max-width: 420px; background: white; border-radius: 24px; padding: 8px 16px; 
@@ -42,12 +42,12 @@
 
         .bottom-ui { position: absolute; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000; pointer-events: none; }
         .info-card { 
-            width: 90%; max-width: 380px; background: white; border-radius: 16px; padding: 15px; 
+            width: 90%; max-width: 380px; background: white; border-radius: 16px; padding: 18px; 
             box-shadow: 0 4px 20px rgba(0,0,0,0.2); pointer-events: auto;
         }
 
         /* Botões Laterais */
-        .side-btns { position: absolute; right: 15px; bottom: 160px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; }
+        .side-btns { position: absolute; right: 15px; bottom: 180px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; }
         .btn-circle { 
             width: 52px; height: 52px; border-radius: 50%; background: white; border: none; 
             box-shadow: 0 3px 10px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; 
@@ -58,22 +58,21 @@
 
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0.6); } 70% { box-shadow: 0 0 0 15px rgba(217, 48, 37, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0); } }
 
-        /* Marcadores de Ônibus */
-        .bus-pin { width: 42px; height: 42px; background: var(--gray-inactive); border: 2px solid white; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: background 0.5s ease; }
+        /* Marcadores */
+        .bus-pin { width: 42px; height: 42px; background: var(--gray); border: 2px solid white; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: background 0.5s ease; }
         .bus-pin span { transform: rotate(45deg); font-size: 20px; }
         .bus-pin.pulse { animation: bus-glow 1.5s infinite; }
-        @keyframes bus-glow { 0% { filter: brightness(1); box-shadow: 0 0 0 0 rgba(0,0,0,0.3); } 50% { filter: brightness(1.2); box-shadow: 0 0 20px rgba(0,0,0,0.2); } 100% { filter: brightness(1); } }
+        @keyframes bus-glow { 0% { filter: brightness(1); } 50% { filter: brightness(1.25); } 100% { filter: brightness(1); } }
 
-        /* Boneco */
         .user-marker { background: var(--blue); width: 18px !important; height: 18px !important; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 15px rgba(66, 133, 244, 0.8); }
         .user-marker::before { content: ''; position: absolute; width: 40px; height: 40px; border: 2px solid var(--blue); border-radius: 50%; animation: user-glow 2s infinite; left: -14px; top: -14px; }
         @keyframes user-glow { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
 
-        /* Sidebar Status */
-        .list-group-item { cursor: pointer; transition: all 0.2s; border: none; padding: 12px 10px; border-radius: 8px; }
-        .status-dot { width: 6px; height: 6px; border-radius: 50%; margin-right: 8px; background-color: var(--gray-inactive); transition: background 0.4s ease, box-shadow 0.4s ease; }
-        .dot-active { background-color: var(--green-active) !important; box-shadow: 0 0 8px var(--green-active); }
-        .line-text { transition: all 0.3s ease; font-size: 14px; }
+        /* Sidebar Status Dots */
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 12px; background-color: var(--gray); transition: all 0.4s ease; }
+        .dot-active { background-color: var(--green) !important; box-shadow: 0 0 8px var(--green); }
+        .list-group-item { cursor: pointer; border: none; padding: 10px; border-radius: 8px; transition: all 0.2s; }
+        .list-group-item:hover { background: #f1f3f4; }
     </style>
 </head>
 <body>
@@ -81,21 +80,18 @@
     <div id="sidebar-overlay" onclick="window.toggleSidebar()"></div>
 
     <aside id="sidebar">
-        <!-- VISTA 1: MENU PRINCIPAL -->
+        <!-- VISTA 1: MENU -->
         <div id="view-main" class="sidebar-view active">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="fw-bold text-primary m-0">BusU-Crowd</h4>
                 <i class="bi bi-x-lg cursor-pointer fs-5" onclick="window.toggleSidebar()"></i>
             </div>
-            
             <div id="auth-area" class="mb-4 text-center"></div>
-
             <div class="flex-grow-1 overflow-auto">
-                <h6 class="text-muted small fw-bold text-uppercase mb-3">Linhas Cadastradas</h6>
+                <h6 class="text-muted small fw-bold text-uppercase mb-3">Linhas Disponíveis</h6>
                 <div id="sidebar-line-list" class="list-group"></div>
             </div>
-
-            <div id="admin-only-btn" style="display:none">
+            <div id="admin-section" style="display:none">
                 <hr>
                 <button class="btn btn-dark w-100 py-2 fw-bold" onclick="window.switchView('admin')">
                     <i class="bi bi-sliders me-2"></i> Configurações
@@ -103,20 +99,21 @@
             </div>
         </div>
 
-        <!-- VISTA 2: PAINEL ADMIN -->
+        <!-- VISTA 2: ADMIN -->
         <div id="view-admin" class="sidebar-view">
             <div class="d-flex align-items-center mb-4">
                 <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('main')"></i>
-                <h5 class="fw-bold m-0 text-dark">Gerenciar Linhas</h5>
+                <h5 class="fw-bold m-0">Gerenciar Linhas</h5>
             </div>
             <div class="card card-body border-0 bg-light mb-3 shadow-sm rounded-4">
                 <input type="text" id="admID" class="form-control mb-2" placeholder="ID (ex: L01)">
                 <input type="text" id="admNome" class="form-control mb-2" placeholder="Nome da Linha">
+                <input type="text" id="admParada" class="form-control mb-2" placeholder="Próxima Parada (Opcional)">
                 <div class="d-flex gap-2 mb-3">
                     <input type="color" id="admCor" class="form-control form-control-color flex-grow-1" style="height:45px" value="#1a73e8">
                     <input type="text" id="admIcone" class="form-control w-50" placeholder="Emoji 🚌">
                 </div>
-                <button class="btn btn-primary w-100 fw-bold py-2 shadow-sm" onclick="window.saveLine()">SALVAR LINHA</button>
+                <button class="btn btn-primary w-100 fw-bold py-2" onclick="window.saveLine()">SALVAR LINHA</button>
             </div>
             <div id="admin-lines-edit" class="list-group list-group-flush"></div>
         </div>
@@ -137,8 +134,11 @@
         </div>
         <div class="bottom-ui">
             <div class="info-card shadow">
-                <h6 class="fw-bold small text-muted text-uppercase mb-2">Status em Tempo Real</h6>
-                <div id="status-display"><p class="small text-muted m-0">Aguardando sinais...</p></div>
+                <h6 class="fw-bold small text-muted text-uppercase mb-2">Ônibus Próximos (5km)</h6>
+                <div id="status-display"><p class="small text-muted m-0">Logue para ver ônibus ativos.</p></div>
+                <div id="global-counter" class="mt-3 pt-2 border-top text-center" style="display:none">
+                    <span class="badge bg-primary rounded-pill px-3 py-2" id="total-active-text"></span>
+                </div>
             </div>
         </div>
     </main>
@@ -182,36 +182,36 @@
         const map = L.map('map', { zoomControl: false }).setView([-14.7981, -39.0347], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        let user = null;
-        let watchID = null;
-        let currentLine = null;
-        let userMarker = null;
-        const markers = {};
-        const configLinhas = {};
+        let user = null, watchID = null, currentLine = null, userMarker = null;
+        const markers = {}, configLinhas = {};
 
-        // --- GLOBAIS ---
+        // Funções Auxiliares
+        const calcDist = (la1, lo1, la2, lo2) => {
+            const R = 6371;
+            const dLat = (la2-la1)*Math.PI/180; const dLon = (lo2-lo1)*Math.PI/180;
+            const a = Math.sin(dLat/2)**2 + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLon/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        };
+
         window.toggleSidebar = () => {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            const isActive = sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
+            const isActive = document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('sidebar-overlay').classList.toggle('active');
             if(!isActive) window.switchView('main');
         };
 
-        window.switchView = (view) => {
-            document.querySelectorAll('.sidebar-view').forEach(v => v.classList.remove('active'));
-            const target = document.getElementById('view-' + view);
-            if(target) target.classList.add('active');
+        window.switchView = (v) => {
+            document.querySelectorAll('.sidebar-view').forEach(view => view.classList.remove('active'));
+            document.getElementById('view-' + v).classList.add('active');
         };
 
         window.fazerLogin = () => signInWithPopup(auth, provider);
-        window.fazerLogout = () => { if(confirm("Deseja sair?")) signOut(auth).then(() => { localStorage.removeItem('busu_active_line'); location.reload(); }); };
+        window.fazerLogout = () => { if(confirm("Sair?")) signOut(auth).then(() => { localStorage.removeItem('busu_active_line'); location.reload(); }); };
 
         window.geoCenter = () => {
             navigator.geolocation.getCurrentPosition(p => {
                 const { latitude, longitude } = p.coords;
                 map.flyTo([latitude, longitude], 17);
-                if (userMarker) { userMarker.setLatLng([latitude, longitude]); } 
+                if (userMarker) userMarker.setLatLng([latitude, longitude]);
                 else {
                     const icon = L.divIcon({ className:'user-marker', iconSize:[18,18], iconAnchor:[9,9] });
                     userMarker = L.marker([latitude, longitude], {icon:icon, zIndexOffset:2000}).addTo(map);
@@ -219,10 +219,7 @@
             }, null, {enableHighAccuracy:true});
         };
 
-        window.onActionClick = () => {
-            if(watchID) window.stopTrack();
-            else new bootstrap.Modal(document.getElementById('modalLine')).show();
-        };
+        window.onActionClick = () => watchID ? window.stopTrack() : new bootstrap.Modal(document.getElementById('modalLine')).show();
 
         window.startTrack = () => {
             const line = document.getElementById('line-select').value;
@@ -246,14 +243,12 @@
         }
 
         window.stopTrack = () => {
-            if(watchID) {
-                navigator.geolocation.clearWatch(watchID);
-                remove(ref(db, `onibus/${currentLine}/${user.uid}`));
-                watchID = null;
-                localStorage.removeItem('busu_active_line');
-                document.getElementById('action-btn').classList.remove('active');
-                document.getElementById('action-icon').className = 'bi bi-broadcast';
-            }
+            navigator.geolocation.clearWatch(watchID);
+            remove(ref(db, `onibus/${currentLine}/${user.uid}`));
+            watchID = null;
+            localStorage.removeItem('busu_active_line');
+            document.getElementById('action-btn').classList.remove('active');
+            document.getElementById('action-icon').className = 'bi bi-broadcast';
         };
 
         window.saveLine = () => {
@@ -261,6 +256,7 @@
             if(!id) return;
             set(ref(db, 'config/linhas/' + id), {
                 nome: document.getElementById('admNome').value,
+                proximaParada: document.getElementById('admParada').value,
                 cor: document.getElementById('admCor').value,
                 icone: document.getElementById('admIcone').value || "🚌",
                 latTerminal: -14.7981, lngTerminal: -39.0347
@@ -269,38 +265,30 @@
 
         window.deleteLine = (id) => { if(confirm("Excluir?")) remove(ref(db, 'config/linhas/' + id)); };
 
-        // --- AUTH ---
         onAuthStateChanged(auth, u => {
             user = u;
             const authDiv = document.getElementById('auth-area');
-            const actionBtn = document.getElementById('action-btn');
-            const adminBtn = document.getElementById('admin-only-btn');
             if(u) {
-                authDiv.innerHTML = `<div class="d-flex align-items-center p-2 bg-light rounded-3 shadow-sm mb-3"><img src="${u.photoURL}" width="34" class="rounded-circle me-2"> <div class="flex-grow-1 text-start fw-bold small text-truncate">${u.displayName}</div> <i class="bi bi-box-arrow-right text-muted cursor-pointer fs-4" onclick="window.fazerLogout()"></i></div>`;
-                if(actionBtn) actionBtn.style.display = 'flex';
-                if(u.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim()) if(adminBtn) adminBtn.style.display = 'block';
+                authDiv.innerHTML = `<div class="d-flex align-items-center p-2 bg-light rounded-3 mb-3"><img src="${u.photoURL}" width="34" class="rounded-circle me-2"> <div class="flex-grow-1 fw-bold small text-truncate text-start">${u.displayName}</div> <i class="bi bi-box-arrow-right text-muted fs-4 ms-2 cursor-pointer" onclick="window.fazerLogout()"></i></div>`;
+                document.getElementById('action-btn').style.display = 'flex';
+                if(u.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase()) document.getElementById('admin-section').style.display = 'block';
                 const saved = localStorage.getItem('busu_active_line');
                 if(saved && !watchID) iniciarGPS(saved);
             } else {
-                authDiv.innerHTML = `<button class="btn btn-primary w-100 py-2 fw-bold rounded-pill shadow-sm" onclick="window.fazerLogin()"><i class="bi bi-google me-2"></i> Entrar com Google</button>`;
-                if(actionBtn) actionBtn.style.display = 'none';
-                if(adminBtn) adminBtn.style.display = 'none';
+                authDiv.innerHTML = `<button class="btn btn-primary w-100 py-2 fw-bold rounded-pill" onclick="window.fazerLogin()"><i class="bi bi-google me-2"></i> Entrar com Google</button>`;
+                document.getElementById('action-btn').style.display = 'none';
             }
         });
 
-        // --- DATA SYNC ---
         onValue(ref(db, 'config/linhas'), snap => {
             const data = snap.val() || {};
-            const sidebar = document.getElementById('sidebar-line-list');
-            const select = document.getElementById('line-select');
-            const admin = document.getElementById('admin-lines-edit');
+            const sidebar = document.getElementById('sidebar-line-list'), select = document.getElementById('line-select'), admin = document.getElementById('admin-lines-edit');
             sidebar.innerHTML = ''; select.innerHTML = ''; admin.innerHTML = '';
             for(let id in data) {
-                const c = data[id];
-                configLinhas[id] = c;
-                sidebar.innerHTML += `<div class="list-group-item d-flex align-items-center"><div id="side-dot-${id}" class="status-dot"></div><span id="side-txt-${id}" class="line-text text-muted">${c.nome}</span></div>`;
+                const c = data[id]; configLinhas[id] = c;
+                sidebar.innerHTML += `<div class="list-group-item d-flex align-items-center"><div id="side-dot-${id}" class="status-dot"></div><span id="side-txt-${id}" class="text-muted small">${c.nome}</span></div>`;
                 select.innerHTML += `<option value="${id}">${c.nome}</option>`;
-                admin.innerHTML += `<div class="list-group-item d-flex justify-content-between py-2 small border-bottom">${c.nome} <i class="bi bi-trash text-danger cursor-pointer" onclick="window.deleteLine('${id}')"></i></div>`;
+                admin.innerHTML += `<div class="list-group-item d-flex justify-content-between p-2 small border-bottom">${c.nome} <i class="bi bi-trash text-danger cursor-pointer" onclick="window.deleteLine('${id}')"></i></div>`;
                 if(!markers[id]) {
                     const icon = L.divIcon({ className:'custom-pin', html:`<div class="bus-pin" id="pin-${id}"><span>${c.icone}</span></div>`, iconSize:[42,42], iconAnchor:[21,42] });
                     markers[id] = L.marker([c.latTerminal, c.lngTerminal], {icon:icon}).addTo(map).bindPopup(c.nome);
@@ -309,28 +297,35 @@
         });
 
         onValue(ref(db, 'onibus'), snap => {
-            const gps = snap.val() || {};
-            const now = Date.now();
-            let statusHtml = "";
+            const gps = snap.val() || {}, now = Date.now();
+            let statusHtml = "", totalGeral = 0;
+            const uLat = userMarker ? userMarker.getLatLng().lat : null;
+            const uLng = userMarker ? userMarker.getLatLng().lng : null;
+
             for(let id in configLinhas) {
-                const c = configLinhas[id];
-                const marker = markers[id];
-                let lat=0, lng=0, count=0;
+                const c = configLinhas[id], marker = markers[id];
+                let lt=0, lg=0, ct=0;
                 if(gps[id]) {
                     for(let uid in gps[id]) {
                         const info = gps[id][uid];
-                        if(now - info.timestamp < 45000) { lat+=info.lat; lng+=info.lng; count++; }
+                        if(now - info.timestamp < 45000) { lt+=info.lat; lg+=info.lng; ct++; }
                     }
                 }
-                const pin = document.getElementById(`pin-${id}`);
-                const dot = document.getElementById(`side-dot-${id}`);
-                const txt = document.getElementById(`side-txt-${id}`);
-                if(count > 0) {
-                    marker.setLatLng([lat/count, lng/count]);
+                totalGeral += ct;
+                const pin = document.getElementById(`pin-${id}`), dot = document.getElementById(`side-dot-${id}`), txt = document.getElementById(`side-txt-${id}`);
+                if(ct > 0) {
+                    const mLat = lt/ct, mLng = lg/ct;
+                    marker.setLatLng([mLat, mLng]);
                     if(pin) { pin.style.background = c.cor; pin.classList.add('pulse'); }
                     if(dot) dot.classList.add('dot-active');
                     if(txt) { txt.classList.remove('text-muted'); txt.classList.add('fw-bold', 'text-dark'); }
-                    statusHtml += `<div class="d-flex justify-content-between mb-1 small fw-bold"><span>${c.icone} ${c.nome}</span> <span class="text-success text-uppercase" style="font-size:10px">Ativo (${count})</span></div>`;
+                    
+                    const d = uLat ? calcDist(uLat, uLng, mLat, mLng) : null;
+                    if (!uLat || d <= 5) {
+                        const distT = d ? `(${d.toFixed(1)} km)` : "";
+                        const paradaT = c.proximaParada ? `<br><small class="text-primary fw-bold"><i class="bi bi-geo-alt"></i> Próxima: ${c.proximaParada}</small>` : "";
+                        statusHtml += `<div class="mb-3 border-bottom pb-2"><div class="d-flex justify-content-between align-items-center fw-bold small"><span>${c.icone} ${c.nome}</span><span class="text-success">${distT}</span></div>${paradaT}</div>`;
+                    }
                 } else {
                     marker.setLatLng([c.latTerminal, c.lngTerminal]);
                     if(pin) { pin.style.background = "#7f8c8d"; pin.classList.remove('pulse'); }
@@ -338,7 +333,12 @@
                     if(txt) { txt.classList.add('text-muted'); txt.classList.remove('fw-bold', 'text-dark'); }
                 }
             }
-            document.getElementById('status-display').innerHTML = statusHtml || '<p class="small text-muted m-0">Nenhum ônibus em movimento.</p>';
+            document.getElementById('status-display').innerHTML = statusHtml || '<p class="small text-muted m-0">Nenhum ônibus próximo no momento.</p>';
+            const cntDiv = document.getElementById('global-counter');
+            if(totalGeral > 0) {
+                cntDiv.style.display = 'block';
+                document.getElementById('total-active-text').innerHTML = `<i class="bi bi-people-fill me-2"></i> ${totalGeral} alunos colaborando agora`;
+            } else { cntDiv.style.display = 'none'; }
         });
     </script>
 </body>
