@@ -24,7 +24,7 @@
         .sidebar-view { display: none; flex-direction: column; height: 100%; width: 100%; padding: 20px; overflow-y: auto; }
         .sidebar-view.active { display: flex; }
 
-        /* Títulos de Seção Originais */
+        /* Títulos de Seção */
         .section-header { display: flex; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #f1f3f4; padding-bottom: 15px; }
         .section-title { font-weight: 800; font-size: 16px; color: #202124; letter-spacing: -0.5px; margin: 0; }
 
@@ -36,7 +36,7 @@
         /* UI Flutuante */
         .menu-trigger { position: absolute; top: 15px; left: 15px; z-index: var(--z-ui); width: 44px; height: 44px; border-radius: 50%; background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 22px; color: #5f6368; cursor: pointer; }
 
-        /* Card Superior (Linhas Ativas) */
+        /* Card Superior */
         #lines-drawer { position: absolute; top: 70px; left: 15px; z-index: var(--z-ui); width: 220px; background: rgba(255,255,255,0.96); backdrop-filter: blur(10px); border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: 0.3s; max-height: 40vh; overflow: hidden; border: 1px solid white; }
         #lines-drawer.collapsed { width: 44px; height: 44px; border-radius: 50%; }
         #lines-drawer.collapsed .active-label, #lines-drawer.collapsed #floating-active-list { display: none; }
@@ -77,15 +77,13 @@
     <div id="sidebar-overlay" onclick="window.toggleSidebar()"></div>
 
     <aside id="sidebar">
-        <!-- VISTA USUÁRIO -->
+        <!-- USUÁRIO -->
         <div id="view-main" class="sidebar-view active">
             <div class="section-header">
                 <h5 class="section-title text-primary">BusU-Crowd</h5>
                 <i class="bi bi-x-lg cursor-pointer ms-auto fs-5" onclick="window.toggleSidebar()"></i>
             </div>
-            
             <div id="auth-area" class="mb-4"></div>
-            
             <nav>
                 <button class="nav-item-custom" onclick="window.toggleSidebar()"><i class="bi bi-map text-primary me-3 fs-5"></i> Mapa em Tempo Real</button>
                 <button class="nav-item-custom"><i class="bi bi-star text-warning me-3 fs-5"></i> Paradas Favoritas <span class="standby-badge">Standby</span></button>
@@ -99,7 +97,7 @@
             </div>
         </div>
 
-        <!-- DASHBOARD ADMIN -->
+        <!-- ADMIN -->
         <div id="view-admin-dashboard" class="sidebar-view">
             <div class="section-header">
                 <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('main')"></i>
@@ -120,7 +118,7 @@
             </nav>
         </div>
 
-        <!-- GESTÃO CRUD -->
+        <!-- CRUD LINHAS -->
         <div id="view-admin-lines" class="sidebar-view">
             <div class="section-header">
                 <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('admin-dashboard')"></i>
@@ -131,11 +129,13 @@
                 <input type="text" id="admID" class="form-control form-control-sm mb-2" placeholder="ID (ex: 203)">
                 <input type="text" id="admNome" class="form-control form-control-sm mb-2" placeholder="Nome da Linha">
                 <input type="text" id="admVia" class="form-control form-control-sm mb-2" placeholder="Via / Trajeto">
-                <div class="d-flex gap-2 mb-3">
-                    <input type="color" id="admCor" class="form-control form-control-color border-0 flex-grow-1" value="#1a73e8">
-                    <input type="text" id="admIcone" class="form-control form-control-sm w-50" placeholder="🚌">
+                <!-- Seletor de Cor com Botão Random -->
+                <div class="d-flex gap-2 mb-3 align-items-center">
+                    <input type="color" id="admCor" class="form-control form-control-color border-0 shadow-sm" value="#1a73e8" style="height:38px; flex:1">
+                    <button class="btn btn-white btn-sm shadow-sm border" onclick="window.randomizeColorInput()" style="height:38px; width:45px" title="Cor Aleatória"><i class="bi bi-shuffle"></i></button>
+                    <input type="text" id="admIcone" class="form-control form-control-sm w-25 border-0 shadow-sm" style="height:38px" placeholder="🚌">
                 </div>
-                <button id="btn-save-line" class="btn btn-primary btn-sm w-100 fw-bold" onclick="window.saveLine()">SALVAR ALTERAÇÕES</button>
+                <button id="btn-save-line" class="btn btn-primary btn-sm w-100 fw-bold shadow-sm" onclick="window.saveLine()">SALVAR ALTERAÇÕES</button>
             </div>
             <h6 class="fw-bold text-muted text-uppercase mb-2" style="font-size:9px">Linhas (Clique para editar)</h6>
             <div id="admin-lines-list-crud" class="list-group list-group-flush"></div>
@@ -165,7 +165,7 @@
     <div class="side-btns">
         <button class="btn-circle shadow" onclick="window.geoCenter()"><i class="bi bi-crosshair"></i></button>
         <button id="action-btn" class="btn-circle shadow" style="display:none" onclick="window.onActionClick()"><i id="action-icon" class="bi bi-broadcast"></i></button>
-        <button class="btn-circle shadow" onclick="alert('Vi um ônibus: Reporte rápido em breve!')"><i class="bi bi-eye"></i></button>
+        <button class="btn-circle shadow" onclick="alert('Funcionalidade disponível em breve!')"><i class="bi bi-eye"></i></button>
     </div>
 
     <div class="bottom-ui">
@@ -175,7 +175,7 @@
                 <i class="bi bi-chevron-down text-muted" style="font-size:12px" id="bottom-card-icon"></i>
             </div>
             <div id="status-display" class="mt-3"></div>
-            <div id="global-counter" class="mt-2 pt-2 border-top text-center" style="display:none; font-size:9px; font-weight:800; color:var(--blue);">
+            <div id="global-counter" class="mt-2 pt-2 border-top text-center" style="display:none; font-size:9px; font-weight:800; color:var(--blue); letter-spacing:0.5px;">
                 <span id="total-active-text"></span>
             </div>
         </div>
@@ -184,9 +184,9 @@
     <div id="map"></div>
 
     <div class="modal fade" id="modalLine" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered px-4"><div class="modal-content border-0 shadow-lg" style="border-radius:24px"><div class="modal-body p-4 text-center">
-        <h6 class="fw-bold mb-3 text-dark">Em qual ônibus você está?</h6>
+        <h6 class="fw-bold mb-3 text-dark">Qual linha você está?</h6>
         <select id="line-select" class="form-select form-select-lg mb-4 rounded-4 border-0 bg-light" style="font-size:14px"></select>
-        <button class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow" onclick="window.startTrack()">INICIAR TRANSMISSÃO</button>
+        <button class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow" onclick="window.startTrack()">INICIAR AGORA</button>
     </div></div></div></div>
 
     <!-- Scripts -->
@@ -241,6 +241,7 @@
         window.toggleDrawer = () => {
             const isCollapsed = document.getElementById('lines-drawer').classList.toggle('collapsed');
             document.getElementById('drawer-icon').className = isCollapsed ? 'bi bi-chevron-down' : 'bi bi-chevron-up';
+            document.getElementById('drawer-title').style.display = isCollapsed ? 'none' : 'block';
         };
 
         window.toggleBottomCard = () => {
@@ -301,14 +302,15 @@
             }
         };
 
-        // --- ADMIN CRUD FUNCTIONS ---
+        // --- ADMIN CRUD ---
+        window.randomizeColorInput = () => {
+            document.getElementById('admCor').value = randomColor();
+        };
+
         window.saveLine = () => {
             const id = document.getElementById('admID').value;
             if(!id) return alert("ID obrigatório");
-            const colorInput = document.getElementById('admCor').value;
-            // Reforço da cor aleatória: Se a cor for o azul padrão (#1a73e8) e a linha for nova, gera aleatória.
-            const isNew = !configLinhas[id];
-            const corFinal = (isNew && colorInput === "#1a73e8") ? randomColor() : colorInput;
+            const corFinal = document.getElementById('admCor').value;
             
             set(ref(db, 'config/linhas/' + id), {
                 nome: document.getElementById('admNome').value,
@@ -345,7 +347,7 @@
             user = u;
             const authDiv = document.getElementById('auth-area');
             if(u) {
-                authDiv.innerHTML = `<div class="d-flex align-items-center p-2 bg-light rounded-3 mb-3"><img src="${u.photoURL}" width="34" class="rounded-circle me-2"> <div class="flex-grow-1 fw-bold small text-truncate text-start">${u.displayName}</div> <i class="bi bi-box-arrow-right text-muted fs-5 ms-2 cursor-pointer" onclick="window.fazerLogout()"></i></div>`;
+                authDiv.innerHTML = `<div class="d-flex align-items-center p-2 bg-light rounded-3 shadow-sm mb-3"><img src="${u.photoURL}" width="34" class="rounded-circle me-2"> <div class="flex-grow-1 fw-bold small text-truncate text-start">${u.displayName}</div> <i class="bi bi-box-arrow-right text-muted fs-5 ms-2 cursor-pointer" onclick="window.fazerLogout()"></i></div>`;
                 document.getElementById('action-btn').style.display = 'flex';
                 if(u.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase()) document.getElementById('admin-entry').style.display = 'block';
                 const saved = localStorage.getItem('busu_active_line');
@@ -363,11 +365,8 @@
             let tLines = 0;
             for(let id in data) {
                 const c = data[id]; configLinhas[id] = c; tLines++;
-                // Modal de Seleção formatado
                 select.innerHTML += `<option value="${id}">${id} - ${c.nome} (${c.via})</option>`;
-                // Lista Admin Selecionável
                 admin.innerHTML += `<div class="list-group-item d-flex justify-content-between align-items-center p-2 small border-bottom cursor-pointer" onclick="window.loadLineForEdit('${id}')"><div><span class="fw-bold">${id}</span> - ${c.nome}</div><i class="bi bi-trash text-danger" onclick="event.stopPropagation(); window.deleteLine('${id}')"></i></div>`;
-                // Planejar Rota
                 planning.innerHTML += `<div class="nav-item-custom border-bottom" onclick="window.fazeZoom('${id}')"><div><div class="fw-bold">${id} - ${c.nome}</div><div class="text-muted" style="font-size:10px">${c.via}</div></div></div>`;
             }
             document.getElementById('stat-lines').innerText = tLines;
