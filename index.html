@@ -302,33 +302,56 @@
         else { new bootstrap.Modal(document.getElementById('modalLine')).show(); }
     };
 
-    window.startTrack = () => {
-        const line = document.getElementById('line-select').value;
-        if(!line) return;
-        currentLine = line;
-        bootstrap.Modal.getInstance(document.getElementById('modalLine')).hide();
+ window.startTrack = () => {
+    const line = document.getElementById('line-select').value;
+    if(!line) return;
+    
+    // SALVAR NO NAVEGADOR: "Estou transmitindo a linha X"
+    localStorage.setItem('busu_active_line', line);
+    
+    currentLine = line;
+    bootstrap.Modal.getInstance(document.getElementById('modalLine')).hide();
 
-        watchID = navigator.geolocation.watchPosition(p => {
-            const path = `onibus/${line}/${user.uid}`;
-            set(ref(db, path), { lat: p.coords.latitude, lng: p.coords.longitude, timestamp: Date.now() });
-            onDisconnect(ref(db, path)).remove();
-            
-            // Alterar visual do botão para modo "Stop"
-            document.getElementById('action-btn').classList.add('active');
-            document.getElementById('action-icon').className = 'bi bi-stop-circle-fill';
-        }, null, { enableHighAccuracy: true });
-    };
+    // Inicia o GPS
+    iniciarGps(line);
+};
 
-    window.stopTrack = () => {
-        if (watchID) {
-            navigator.geolocation.clearWatch(watchID);
-            remove(ref(db, `onibus/${currentLine}/${user.uid}`));
-            watchID = null;
-            document.getElementById('action-btn').classList.remove('active');
-            document.getElementById('action-icon').className = 'bi bi-broadcast';
-            alert("Transmissão encerrada.");
-        }
-    };
+window.stopTrack = () => {
+    if (watchID) {
+        navigator.geolocation.clearWatch(watchID);
+        remove(ref(db, `onibus/${currentLine}/${user.uid}`));
+        watchID = null;
+        
+        // LIMPAR MEMÓRIA: "Não estou mais transmitindo"
+        localStorage.removeItem('busu_active_line');
+        
+        document.getElementById('action-btn').classList.remove('active');
+        document.getElementById('action-icon').className = 'bi bi-broadcast';
+        alert("Transmissão encerrada.");
+    }
+};
+
+    // Função isolada para ligar o GPS e mandar pro Firebase
+    function iniciarGps(line) {
+    if (watchID) navigator.geolocation.clearWatch(watchID);
+
+    watchID = navigator.geolocation.watchPosition(p => {
+        if (!user) return; // Segurança caso o login ainda não tenha carregado
+        
+        const path = `onibus/${line}/${user.uid}`;
+        set(ref(db, path), { 
+            lat: p.coords.latitude, 
+            lng: p.coords.longitude, 
+            timestamp: Date.now() 
+        });
+        
+        onDisconnect(ref(db, path)).remove();
+        
+        // Atualiza o visual do botão para "Stop"
+        document.getElementById('action-btn').classList.add('active');
+        document.getElementById('action-icon').className = 'bi bi-stop-circle-fill';
+    }, null, { enableHighAccuracy: true });
+}
 
     // Funções Admin
     window.saveLine = () => {
@@ -354,28 +377,35 @@
     // --- 5. OBSERVADORES DE DADOS (SYNC) ---
 
     // Observar Login
-    onAuthStateChanged(auth, u => {
-        user = u;
-        const authDiv = document.getElementById('auth-area');
-        const actionBtn = document.getElementById('action-btn');
-        const adminBtn = document.getElementById('admin-only-btn');
+   onAuthStateChanged(auth, u => {
+    user = u;
+    const authDiv = document.getElementById('auth-area');
+    const actionBtn = document.getElementById('action-btn');
+    const adminBtn = document.getElementById('admin-only-btn');
 
-        if(u) {
-            authDiv.innerHTML = `
-                <div class="d-flex align-items-center p-2 bg-light rounded shadow-sm">
-                    <img src="${u.photoURL}" width="32" class="rounded-circle me-2 border"> 
-                    <small class="fw-bold flex-grow-1 text-truncate">${u.displayName}</small> 
-                    <i class="bi bi-box-arrow-right text-muted fs-4 ms-2 cursor-pointer" onclick="window.fazerLogout()"></i>
-                </div>`;
-            actionBtn.style.display = 'flex';
-            if(u.email === ADMIN_EMAIL) adminBtn.style.display = 'block';
-        } else {
-            authDiv.innerHTML = `<button class="btn btn-primary w-100 py-2 fw-bold" onclick="window.fazerLogin()"><i class="bi bi-google me-2"></i> Entrar com Google</button>`;
-            actionBtn.style.display = 'none';
-            adminBtn.style.display = 'none';
+    if(u) {
+        // ... (seu código de exibição do perfil logado) ...
+        authDiv.innerHTML = `...`; 
+        actionBtn.style.display = 'flex';
+        if(u.email === ADMIN_EMAIL) adminBtn.style.display = 'block';
+
+        // --- RECUPERAR TRANSMISSÃO APÓS REFRESH ---
+        const savedLine = localStorage.getItem('busu_active_line');
+        if (savedLine && !watchID) {
+            currentLine = savedLine;
+            console.log("Retomando transmissão da linha: " + savedLine);
+            iniciarGps(savedLine);
         }
-    });
 
+    } else {
+        // Se deslogou, limpa tudo
+        localStorage.removeItem('busu_active_line');
+        authDiv.innerHTML = `...`;
+        actionBtn.style.display = 'none';
+        adminBtn.style.display = 'none';
+    }
+});
+        
     // Sincronizar Configuração das Linhas
     onValue(ref(db, 'config/linhas'), snap => {
         const data = snap.val() || {};
