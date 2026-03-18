@@ -27,42 +27,39 @@
         .section-header { display: flex; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f1f3f4; }
         .section-title { font-weight: 800; font-size: 15px; color: #202124; margin: 0; }
 
-        /* LED PULSE */
         .active-label { font-size: 9px; color: var(--green); font-weight: 800; letter-spacing: 1px; text-transform: uppercase; display: flex; align-items: center; }
         .active-label::before { content: ''; width: 5px; height: 5px; background: var(--green); border-radius: 50%; margin-right: 6px; box-shadow: 0 0 6px var(--green); animation: blink 1.2s infinite; }
         @keyframes blink { 50% { opacity: 0.3; } }
 
         /* DRAWER CIRCULAR */
         .menu-trigger { position: absolute; top: 15px; left: 15px; z-index: var(--z-ui); width: 46px; height: 46px; border-radius: 50%; background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; font-size: 22px; color: #5f6368; cursor: pointer; }
-        
         #lines-drawer { position: absolute; top: 75px; left: 15px; z-index: var(--z-ui); width: 230px; background: rgba(255,255,255,0.96); backdrop-filter: blur(10px); border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: 0.3s; overflow: hidden; border: 1px solid white; }
         #lines-drawer.collapsed { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         #lines-drawer.collapsed .drawer-full-content { display: none; }
         .drawer-icon-collapsed { display: none; font-size: 20px; color: var(--blue); }
         #lines-drawer.collapsed .drawer-icon-collapsed { display: block; }
 
-        /* CARD INFERIOR E ETA */
+        /* CARDS E ITENS */
         .bottom-ui { position: absolute; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; z-index: var(--z-ui); pointer-events: none; }
         .info-card { width: 92%; max-width: 360px; background: white; border-radius: 24px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); pointer-events: auto; transition: all 0.4s ease; overflow: hidden; }
         .info-card.minimized { height: 50px; padding: 14px 16px; }
 
-        .bus-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
+        .bus-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
         .bus-logo-mini { width: 16px; height: 16px; border-radius: 4px; margin-right: 10px; object-fit: contain; }
         .bus-title { font-weight: 700; color: #202124; font-size: 11px; }
-        .bus-subtitle { font-size: 9px; color: var(--gray); font-weight: 500; }
+        .bus-subtitle { font-size: 9px; color: var(--gray); font-weight: 500; display: block; }
 
         .status-box { text-align: right; min-width: 60px; }
         .eta-val { font-size: 11px; font-weight: 800; color: var(--blue); }
         .neon-dot { width: 8px; height: 8px; background: var(--neon); border-radius: 50%; display: inline-block; box-shadow: 0 0 10px var(--neon); animation: neon-blink 1s infinite; }
         @keyframes neon-blink { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
 
-        /* BOTOES E PINS */
+        /* UI */
         .side-btns { position: absolute; right: 15px; bottom: 180px; z-index: var(--z-ui); display: flex; flex-direction: column; gap: 12px; }
         .btn-circle { width: 54px; height: 54px; border-radius: 50%; background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #5f6368; cursor: pointer; transition: 0.3s; }
         .btn-circle.active { background: var(--red) !important; color: white !important; animation: pulse-red 1.5s infinite; }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.6); } 70% { box-shadow: 0 0 0 15px rgba(234, 67, 53, 0); } 100% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0); } }
 
-        /* MENUS */
         .nav-item-custom { display: flex; align-items: center; padding: 12px; border-radius: 12px; cursor: pointer; border: none; background: none; width: 100%; text-align: left; font-size: 13px; font-weight: 500; transition: 0.2s; color: #3c4043; }
         .nav-item-custom:hover { background: #f8f9fa; color: var(--blue); }
         .nav-item-custom i { font-size: 18px; margin-right: 15px; }
@@ -96,7 +93,7 @@
                 <button class="nav-item-custom"><i class="bi bi-geo-alt"></i> Paradas Próximas <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom" onclick="window.switchView('planning')"><i class="bi bi-signpost-split"></i> Planejar Rota</button>
                 <button class="nav-item-custom"><i class="bi bi-star"></i> Favoritos <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom" onclick="alert('Vi um ônibus: Selecione a linha na barra lateral ou transmita se estiver dentro!')"><i class="bi bi-eye"></i> Reportar (Vi um Ônibus)</button>
+                <button class="nav-item-custom" onclick="alert('Vi um ônibus: Clique na linha desejada para ver a frota ou transmita sua localização!')"><i class="bi bi-eye text-warning"></i> Reportar (Vi um Ônibus)</button>
                 <button class="nav-item-custom"><i class="bi bi-award"></i> Contribuições <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-trophy"></i> Ranking / Pontuação <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-bell"></i> Notificações <span class="standby-badge">Standby</span></button>
@@ -115,40 +112,40 @@
                 <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('main')"></i>
                 <h6 class="section-title">Admin Dashboard</h6>
             </div>
-            <div class="row g-2 mb-4">
+            <div class="row g-2 mb-3">
                 <div class="col-6"><div class="adm-card text-center"><span class="adm-metric" id="stat-users">0</span><small style="font-size:8px">ATIVOS</small></div></div>
                 <div class="col-6"><div class="adm-card text-center"><span class="adm-metric" id="stat-lines">0</span><small style="font-size:8px">LINHAS</small></div></div>
             </div>
             <nav>
-                <button class="nav-item-custom" onclick="window.switchView('admin-dashboard')"><i class="bi bi-speedometer2"></i> Dashboard Geral</button>
-                <button class="nav-item-custom" onclick="window.switchView('admin-lines')"><i class="bi bi-signpost-2"></i> Gestão de Linhas</button>
+                <button class="nav-item-custom" onclick="window.switchView('admin-dashboard')"><i class="bi bi-speedometer2 text-primary"></i> Dashboard Geral</button>
+                <button class="nav-item-custom" onclick="window.switchView('admin-lines')"><i class="bi bi-signpost-2 text-primary"></i> Gestão de Linhas</button>
                 <button class="nav-item-custom"><i class="bi bi-map"></i> Gestão de Rotas <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-geo"></i> Gestão de Paradas <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-building"></i> Gestão de Terminais <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-broadcast"></i> Monitoramento em Tempo Real <span class="standby-badge">Standby</span></button>
+                <button class="nav-item-custom"><i class="bi bi-broadcast"></i> Monitoramento Tempo Real <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-people"></i> Usuários e Reputação <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-chat-dots"></i> Reports da Comunidade <span class="standby-badge">Standby</span></button>
+                <button class="nav-item-custom"><i class="bi bi-chat-dots"></i> Reports Comunidade <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-cpu"></i> Sugestões Automáticas <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-arrow-down-up"></i> Importação / Exportação <span class="standby-badge">Standby</span></button>
+                <button class="nav-item-custom"><i class="bi bi-arrow-down-up"></i> Imp/Exp Dados <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-bar-chart"></i> Estatísticas e Análises <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-sliders"></i> Configurações do Sistema <span class="standby-badge">Standby</span></button>
+                <button class="nav-item-custom"><i class="bi bi-sliders"></i> Configurações Sistema <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-journal-text"></i> Logs e Auditoria <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-megaphone"></i> Alertas e Comunicados <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-shield-lock"></i> Permissões e Admins <span class="standby-badge">Standby</span></button>
+                <button class="nav-item-custom"><i class="bi bi-shield-lock"></i> Permissões / Admins <span class="standby-badge">Standby</span></button>
             </nav>
         </div>
 
-        <!-- GESTÃO DE LINHAS -->
+        <!-- CRUD LINHAS -->
         <div id="view-admin-lines" class="sidebar-view">
             <div class="section-header">
                 <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('admin-dashboard')"></i>
-                <h6 class="section-title">Gerenciar Linhas</h6>
+                <h6 class="section-title">Gestão de Linhas</h6>
             </div>
-            <div class="card card-body border-0 bg-light mb-3 p-3 shadow-sm">
+            <div class="card card-body border-0 bg-light mb-4 p-3 shadow-sm">
                 <input type="hidden" id="admDbKey">
                 <input type="text" id="admID" class="form-control form-control-sm mb-2" placeholder="ID (L26)">
-                <input type="text" id="admNome" class="form-control form-control-sm mb-2" placeholder="Destino">
-                <input type="text" id="admVia" class="form-control form-control-sm mb-2" placeholder="Subtítulo">
+                <input type="text" id="admNome" class="form-control form-control-sm mb-2" placeholder="Nome do Destino">
+                <input type="text" id="admVia" class="form-control form-control-sm mb-2" placeholder="Subtítulo / Via">
                 
                 <div class="d-flex gap-2 mb-3">
                     <div class="company-option" onclick="window.selectCompany('atlantico')" id="adm-opt-atlantico"><img src="assets/atlantico-logo.png"></div>
@@ -156,18 +153,20 @@
                 </div>
 
                 <div class="d-flex gap-2">
-                    <input type="color" id="admCor" class="form-control form-control-color border-0 mb-3" value="#1a73e8" style="width: 50px;">
-                    <button class="btn btn-primary btn-sm flex-grow-1 mb-3 fw-bold" onclick="window.saveLine()">SALVAR</button>
+                    <input type="color" id="admCor" class="form-control form-control-color border-0" value="#1a73e8" style="width: 44px; height: 38px;">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="window.randomizeColor()"><i class="bi bi-shuffle"></i></button>
+                    <button class="btn btn-primary btn-sm flex-grow-1 fw-bold" onclick="window.saveLine()">SALVAR</button>
                 </div>
+                <button class="btn btn-link btn-sm text-muted mt-2 py-0" onclick="window.clearAdminForm()">Limpar Campos</button>
             </div>
             <div id="admin-lines-list-crud" class="list-group list-group-flush"></div>
         </div>
 
-        <!-- PLANEJAR ROTA -->
+        <!-- PLANNING -->
         <div id="view-planning" class="sidebar-view">
             <div class="section-header">
                 <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('main')"></i>
-                <h6 class="section-title">Linhas Disponíveis</h6>
+                <h6 class="section-title">Busca de Linhas</h6>
             </div>
             <div id="planning-all-lines" class="list-group list-group-flush"></div>
         </div>
@@ -189,18 +188,18 @@
     <div class="side-btns">
         <button class="btn-circle shadow" onclick="window.geoCenter()"><i class="bi bi-crosshair"></i></button>
         <button id="action-btn" class="btn-circle shadow" style="display:none" onclick="window.onActionClick()"><i id="action-icon" class="bi bi-broadcast"></i></button>
-        <button class="btn-circle shadow" onclick="alert('Vi um ônibus: Clique em uma linha na lateral para reportar!')"><i class="bi bi-eye"></i></button>
+        <button class="btn-circle shadow" onclick="alert('Vi um ônibus: Clique em uma linha na lateral para ver frota ou transmita sua localização!')"><i class="bi bi-eye"></i></button>
     </div>
 
     <div class="bottom-ui">
         <div class="info-card shadow-lg minimized" id="bottom-info-card">
             <div class="d-flex justify-content-between align-items-center" onclick="window.toggleBottomCard()" style="cursor:pointer; height: 18px;">
-                <span class="active-label">STATUS EM TEMPO REAL</span>
+                <span class="active-label">PRÓXIMOS DE VOCÊ • 5KM</span>
                 <i class="bi bi-chevron-up text-muted" style="font-size:12px" id="bottom-card-icon"></i>
             </div>
             <div id="status-display" class="mt-3"></div>
-            <div id="global-counter" class="mt-2 pt-2 border-top text-center" style="display:none; font-size:9px; font-weight:800; color:var(--blue); letter-spacing:1px">
-                <span id="total-active-text"></span>
+            <div id="global-counter" class="mt-2 pt-2 border-top text-center" style="display:none;">
+                <span id="total-active-text" style="font-size:9px; font-weight:800; color:var(--blue); letter-spacing:1px"></span>
             </div>
         </div>
     </div>
@@ -212,7 +211,6 @@
         <div id="line-selection-grid" class="list-group list-group-flush overflow-auto" style="max-height:350px"></div>
     </div></div></div></div>
 
-    <!-- Scripts Firebase e Sistema -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -232,7 +230,7 @@
 
         const COMPANIES = {
             atlantico: { name: "Atlântico", favicon: "assets/atlantico-favicon.png" },
-            viametro: { name: "Via Metro", favicon: "assets/viametro-favicon.png" }
+            viametro: { name: "Via Metro", favicon: "assets/viametro-logo.png" }
         };
 
         const app = initializeApp(firebaseConfig);
@@ -248,7 +246,7 @@
         let adminSelectedCompany = 'atlantico';
         const markers = {}, configLinhas = {};
 
-        // Logica de login recuperada
+        // Login Func
         window.fazerLogin = () => signInWithPopup(auth, provider);
         window.fazerLogout = () => signOut(auth).then(() => { localStorage.removeItem('busu_active_line'); location.reload(); });
 
@@ -263,25 +261,14 @@
         };
 
         window.toggleDrawer = () => {
-            const drw = document.getElementById('lines-drawer');
-            const isCol = drw.classList.toggle('collapsed');
+            const isCol = document.getElementById('lines-drawer').classList.toggle('collapsed');
             document.getElementById('drawer-icon').className = isCol ? 'bi bi-chevron-down' : 'bi bi-chevron-up';
         };
 
         window.toggleBottomCard = () => {
-            const card = document.getElementById('bottom-info-card');
-            const isMin = card.classList.toggle('minimized');
+            const isMin = document.getElementById('bottom-info-card').classList.toggle('minimized');
             document.getElementById('bottom-card-icon').className = isMin ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
         };
-
-        const calcDist = (la1, lo1, la2, lo2) => {
-            const R = 6371;
-            const dLat = (la2-la1)*Math.PI/180; const dLon = (lo2-lo1)*Math.PI/180;
-            const a = Math.sin(dLat/2)**2 + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLon/2)**2;
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        };
-
-        window.fazeZoom = (key) => { if(markers[key]) { map.flyTo(markers[key].getLatLng(), 17); markers[key].openPopup(); } };
 
         window.geoCenter = () => {
             navigator.geolocation.getCurrentPosition(p => {
@@ -292,11 +279,16 @@
             }, null, {enableHighAccuracy:true});
         };
 
-        // CRUD ADMIN
+        // CRUD
         window.selectCompany = (id) => {
             document.querySelectorAll(`.company-option`).forEach(el => el.classList.remove('selected'));
             document.getElementById(`adm-opt-${id}`).classList.add('selected');
             adminSelectedCompany = id;
+        };
+
+        window.randomizeColor = () => {
+            const color = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            document.getElementById('admCor').value = color;
         };
 
         window.saveLine = () => {
@@ -309,7 +301,7 @@
                 via: document.getElementById('admVia').value || "Principal",
                 cor: document.getElementById('admCor').value,
                 company: adminSelectedCompany
-            }).then(() => { alert("Linha salva!"); window.clearAdminForm(); });
+            }).then(() => { alert("OK"); window.clearAdminForm(); });
         };
 
         window.clearAdminForm = () => {
@@ -330,7 +322,7 @@
             window.selectCompany(c.company || 'atlantico');
         };
 
-        // GPS E TRANSMISSAO
+        // TRACK
         window.onActionClick = () => {
             if(watchID) window.stopTrack();
             else new bootstrap.Modal(document.getElementById('modalLine')).show();
@@ -364,15 +356,22 @@
             document.getElementById('action-icon').className = 'bi bi-broadcast';
         };
 
-        // SYNC AUTH & DATABASE
+        const calcDist = (la1, lo1, la2, lo2) => {
+            const R = 6371;
+            const dLat = (la2-la1)*Math.PI/180; const dLon = (lo2-lo1)*Math.PI/180;
+            const a = Math.sin(dLat/2)**2 + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLon/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        };
+
+        // SYNC
         onAuthStateChanged(auth, u => {
             user = u;
             if(u) {
                 document.getElementById('auth-area').innerHTML = `<div class="d-flex align-items-center p-2 bg-light rounded-3 shadow-sm mb-3"><img src="${u.photoURL}" width="34" class="rounded-circle me-2"><div class="flex-grow-1 small fw-bold">${u.displayName.split(' ')[0]}</div><i class="bi bi-box-arrow-right text-muted ms-2 cursor-pointer" onclick="window.fazerLogout()"></i></div>`;
                 document.getElementById('action-btn').style.display = 'flex';
                 if(u.email.toLowerCase() === ADMIN_EMAIL) document.getElementById('admin-entry').style.display = 'block';
-                const active = localStorage.getItem('busu_active_line');
-                if(active) iniciarGPS(active);
+                const act = localStorage.getItem('busu_active_line');
+                if(act) iniciarGPS(act);
             } else {
                 document.getElementById('auth-area').innerHTML = `<button class="btn btn-primary btn-sm w-100 fw-bold rounded-pill" onclick="window.fazerLogin()"><i class="bi bi-google me-2"></i> LOGIN GOOGLE</button>`;
                 document.getElementById('action-btn').style.display = 'none';
@@ -381,15 +380,28 @@
 
         onValue(ref(db, 'config/linhas'), snap => {
             const data = snap.val() || {};
-            const grid = document.getElementById('line-selection-grid'), admList = document.getElementById('admin-lines-list-crud'), planning = document.getElementById('planning-all-lines');
-            grid.innerHTML = ''; admList.innerHTML = ''; planning.innerHTML = '';
+            const grid = document.getElementById('line-selection-grid'), admList = document.getElementById('admin-lines-list-crud'), plan = document.getElementById('planning-all-lines');
+            grid.innerHTML = ''; admList.innerHTML = ''; plan.innerHTML = '';
             let t = 0;
             for(let key in data) {
                 const c = data[key]; configLinhas[key] = c; t++;
                 const comp = COMPANIES[c.company || 'atlantico'];
                 grid.innerHTML += `<button class="list-group-item list-group-item-action d-flex align-items-center py-2" onclick="window.startTrack('${key}')"><img src="${comp.favicon}" class="bus-logo-mini"><div><div class="fw-bold small">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div></button>`;
-                admList.innerHTML += `<div class="list-group-item d-flex justify-content-between p-2 small border-bottom" onclick="window.loadLineForEdit('${key}')"><div><img src="${comp.favicon}" width="14" class="me-2">${c.id} - ${c.nome}</div><i class="bi bi-trash text-danger" onclick="event.stopPropagation(); remove(ref(db, 'config/linhas/${key}'))"></i></div>`;
-                planning.innerHTML += `<button class="nav-item-custom border-bottom" onclick="window.fazeZoom('${key}'); window.toggleSidebar();"><img src="${comp.favicon}" class="bus-logo-mini"><div><div class="fw-bold">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div></button>`;
+                
+                // Admin List Styled as Map Cards
+                admList.innerHTML += `
+                    <div class="list-group-item bus-item border-bottom px-0" onclick="window.loadLineForEdit('${key}')">
+                        <div class="d-flex align-items-center flex-grow-1">
+                            <img src="${comp.favicon}" class="bus-logo-mini">
+                            <div>
+                                <div class="bus-title">${c.id} - ${c.nome}</div>
+                                <div class="bus-subtitle">${c.via}</div>
+                            </div>
+                        </div>
+                        <i class="bi bi-trash text-danger ms-auto px-2 fs-5" onclick="event.stopPropagation(); remove(ref(db, 'config/linhas/${key}'))"></i>
+                    </div>`;
+                    
+                plan.innerHTML += `<button class="nav-item-custom border-bottom" onclick="map.flyTo(markers['${key}'].getLatLng(), 17); window.toggleSidebar();"><img src="${comp.favicon}" class="bus-logo-mini"><div><div class="fw-bold">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div></button>`;
             }
             document.getElementById('stat-lines').innerText = t;
         });
@@ -405,9 +417,7 @@
                 let latA=0, lngA=0, cnt=0;
                 if(gps[key]) {
                     for(let uid in gps[key]) {
-                        if(now - gps[key][uid].timestamp < 45000) { 
-                            latA += gps[key][uid].lat; lngA += gps[key][uid].lng; cnt++; 
-                        }
+                        if(now - gps[key][uid].timestamp < 45000) { latA += gps[key][uid].lat; lngA += gps[key][uid].lng; cnt++; }
                     }
                 }
                 tUser += cnt;
@@ -417,23 +427,23 @@
                         markers[key] = L.marker([mLt, mLn], { icon: L.divIcon({ className:'custom-pin', html:`<div class="bus-pin" style="background:${c.cor}"><span>${c.id}</span></div>`, iconSize:[42,42], iconAnchor:[21,42] }) }).addTo(map).bindPopup(`<b>${c.id}</b>`);
                     }
                     markers[key].setLatLng([mLt, mLn]);
-                    const dist = uLat ? calcDist(uLat, uLng, mLt, mLn) : null;
+                    const d = uLat ? calcDist(uLat, uLng, mLt, mLn) : null;
                     const comp = COMPANIES[c.company || 'atlantico'];
-                    
-                    drawerH += `<div class="d-flex align-items-center mb-3" onclick="window.fazeZoom('${key}')" style="cursor:pointer; border-left: 3px solid ${c.cor}; padding-left:10px;"><div class="flex-grow-1"><div class="bus-title"><img src="${comp.favicon}" class="bus-logo-mini">${c.id} - ${c.nome}</div><div class="bus-subtitle" style="font-size:8px">${c.via.substring(0,20)}...</div></div></div>`;
 
-                    if (!uLat || dist <= 5) {
-                        const eta = dist ? Math.round(dist / 0.33) : null;
-                        statusH += `<div class="bus-item" onclick="window.fazeZoom('${key}')"><div><div class="bus-title"><img src="${comp.favicon}" class="bus-logo-mini">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div><div class="status-box">${eta ? `<div class="eta-val">${eta} min</div><small style="font-size:8px; color:#aaa">${dist.toFixed(1)}km</small>` : `<div class="neon-dot"></div>`}</div></div>`;
+                    drawerH += `<div class="d-flex align-items-center mb-3" onclick="map.flyTo(markers['${key}'].getLatLng(), 17)" style="cursor:pointer; border-left: 3px solid ${c.cor}; padding-left:10px;"><div class="flex-grow-1"><div class="bus-title"><img src="${comp.favicon}" class="bus-logo-mini">${c.id} - ${c.nome}</div><div class="bus-subtitle" style="font-size:8px">${c.via.substring(0,20)}...</div></div></div>`;
+
+                    if (!uLat || d <= 5) {
+                        const eta = d ? Math.round(d / 0.33) : null;
+                        statusH += `<div class="bus-item" onclick="map.flyTo(markers['${key}'].getLatLng(), 17)"><div><div class="bus-title"><img src="${comp.favicon}" class="bus-logo-mini">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div><div class="status-box">${eta ? `<div class="eta-val">${eta} min</div><small style="font-size:8px; color:#aaa">${d.toFixed(1)}km</small>` : `<div class="neon-dot"></div>`}</div></div>`;
                     }
                 } else if(markers[key]) { map.removeLayer(markers[key]); delete markers[key]; }
             }
-            document.getElementById('floating-active-list').innerHTML = drawerH || '<small class="text-muted" style="font-size:9px">Nada no mapa</small>';
-            document.getElementById('status-display').innerHTML = statusH || '<small class="text-muted" style="font-size:10px">Sem frota ativa no raio...</small>';
+            document.getElementById('floating-active-list').innerHTML = drawerH || '<small class="text-muted">Mapa Vazio</small>';
+            document.getElementById('status-display').innerHTML = statusH || '<small class="text-muted">Sem frota detectada</small>';
             document.getElementById('stat-users').innerText = tUser;
             if(tUser > 0) {
                 document.getElementById('global-counter').style.display = 'block';
-                document.getElementById('total-active-text').innerText = `${tUser} COLABORADOR${tUser > 1 ? 'ES' : ''} ATIVOS AGORA`;
+                document.getElementById('total-active-text').innerText = `${tUser} COLABORADOR(ES) ATIVOS`;
             } else { document.getElementById('global-counter').style.display = 'none'; }
         });
 
