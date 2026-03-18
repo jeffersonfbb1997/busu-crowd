@@ -376,33 +376,45 @@ window.stopTrack = () => {
 
     // --- 5. OBSERVADORES DE DADOS (SYNC) ---
 
-    // Observar Login
-   onAuthStateChanged(auth, u => {
+    // --- OBSERVADOR DE LOGIN (CORRIGIDO) ---
+    onAuthStateChanged(auth, u => {
     user = u;
     const authDiv = document.getElementById('auth-area');
     const actionBtn = document.getElementById('action-btn');
-    const adminBtn = document.getElementById('admin-only-btn');
+    const adminBtn = document.getElementById('admin-section');
 
     if(u) {
-        // ... (seu código de exibição do perfil logado) ...
-        authDiv.innerHTML = `...`; 
-        actionBtn.style.display = 'flex';
-        if(u.email === ADMIN_EMAIL) adminBtn.style.display = 'block';
+        // Se o usuário estiver LOGADO: Mostrar foto, nome e botão de sair
+        authDiv.innerHTML = `
+            <div class="d-flex align-items-center p-2 bg-light rounded-3 shadow-sm mb-3">
+                <img src="${u.photoURL}" width="34" class="rounded-circle me-2 border"> 
+                <div class="flex-grow-1 text-start fw-bold small text-truncate">${u.displayName}</div> 
+                <i class="bi bi-box-arrow-right text-muted fs-4 ms-2 cursor-pointer" title="Sair" onclick="window.fazerLogout()"></i>
+            </div>`;
+        
+        actionBtn.style.display = 'flex'; // Mostra botão de transmitir GPS
 
-        // --- RECUPERAR TRANSMISSÃO APÓS REFRESH ---
-        const savedLine = localStorage.getItem('busu_active_line');
-        if (savedLine && !watchID) {
-            currentLine = savedLine;
-            console.log("Retomando transmissão da linha: " + savedLine);
-            iniciarGps(savedLine);
+        // Verifica se o e-mail é o do Administrador
+        if(u.email === ADMIN_EMAIL) {
+            adminBtn.style.display = 'block';
         }
 
+        // Recupera a transmissão se a página foi atualizada
+        const saved = localStorage.getItem('busu_active_line');
+        if(saved && !watchID) {
+            console.log("Retomando sinal da linha: " + saved);
+            iniciarGPS(saved);
+        }
     } else {
-        // Se deslogou, limpa tudo
-        localStorage.removeItem('busu_active_line');
-        authDiv.innerHTML = `...`;
-        actionBtn.style.display = 'none';
-        adminBtn.style.display = 'none';
+        // Se o usuário estiver DESLOGADO: Mostrar botão de "Entrar com Google"
+        authDiv.innerHTML = `
+            <button class="btn btn-primary w-100 py-2 fw-bold rounded-pill shadow-sm" onclick="window.fazerLogin()">
+                <i class="bi bi-google me-2"></i> Entrar com Google
+            </button>`;
+        
+        actionBtn.style.display = 'none'; // Esconde botão de transmitir
+        adminBtn.style.display = 'none';  // Esconde botão de admin
+        localStorage.removeItem('busu_active_line'); // Limpa memória se deslogar
     }
 });
         
