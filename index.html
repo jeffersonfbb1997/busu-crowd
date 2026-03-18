@@ -41,7 +41,7 @@
 
         /* CARDS E ITENS */
         .bottom-ui { position: absolute; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; z-index: var(--z-ui); pointer-events: none; }
-        .info-card { width: 92%; max-width: 360px; background: white; border-radius: 24px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); pointer-events: auto; transition: all 0.4s ease; overflow: hidden; }
+        .info-card { width: 92%; max-width: 360px; background: white; border-radius: 24px; padding: 166px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); pointer-events: auto; transition: all 0.4s ease; overflow: hidden; }
         .info-card.minimized { height: 50px; padding: 14px 16px; }
 
         .bus-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
@@ -112,7 +112,7 @@
             </div>
         </div>
 
-<!-- DASHBOARD ADMIN (ATUALIZADO) -->
+        <!-- DASHBOARD ADMIN (ATUALIZADO) -->
         <div id="view-admin-dashboard" class="sidebar-view">
             <div class="section-header">
                 <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('main')"></i>
@@ -125,12 +125,9 @@
             <nav>
                 <button class="nav-item-custom" onclick="window.switchView('admin-dashboard')"><i class="bi bi-speedometer2 text-primary"></i> Dashboard Geral</button>
                 <button class="nav-item-custom" onclick="window.switchView('admin-lines')"><i class="bi bi-signpost-2 text-primary"></i> Gestão de Linhas</button>
-                
-                <!-- FUNÇÕES INTEGRADAS NO EDITOR DE TRAJETO -->
                 <button class="nav-item-custom" onclick="window.openRouteManager()"><i class="bi bi-map text-success"></i> Gestão de Rotas</button>
                 <button class="nav-item-custom" onclick="window.openRouteManager(); window.setRouteMode('stops');"><i class="bi bi-geo text-success"></i> Gestão de Paradas</button>
                 <button class="nav-item-custom" onclick="window.openRouteManager(); window.setRouteMode('terminal');"><i class="bi bi-building text-success"></i> Gestão de Terminais</button>
-                
                 <button class="nav-item-custom"><i class="bi bi-broadcast"></i> Monitoramento Tempo Real <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-people"></i> Usuários e Reputação <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-chat-dots"></i> Reports Comunidade <span class="standby-badge">Standby</span></button>
@@ -138,7 +135,7 @@
                 <button class="nav-item-custom"><i class="bi bi-arrow-down-up"></i> Imp/Exp Dados <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-bar-chart"></i> Estatísticas e Análises <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-sliders"></i> Configurações Sistema <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-journal-text"></i> Logs e Auditoria <span class="standby-badge">Standby</span></button>
+                <button class="nav-item-custom"><i class="bi bi journal-text"></i> Logs e Auditoria <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-megaphone"></i> Alertas e Comunicados <span class="standby-badge">Standby</span></button>
                 <button class="nav-item-custom"><i class="bi bi-shield-lock"></i> Permissões / Admins <span class="standby-badge">Standby</span></button>
             </nav>
@@ -169,6 +166,28 @@
                 <button class="btn btn-link btn-sm text-muted mt-2 py-0" onclick="window.clearAdminForm()">Limpar Campos</button>
             </div>
             <div id="admin-lines-list-crud" class="list-group list-group-flush"></div>
+        </div>
+
+        <!-- VISTA GESTÃO ROTAS (CORRIGIDO) -->
+        <div id="view-admin-routes" class="sidebar-view">
+            <div class="section-header">
+                <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('admin-dashboard'); window.closeRouteManager();"></i>
+                <h6 class="section-title">Editor de Trajeto</h6>
+            </div>
+            
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <div id="btn-mode-path" class="route-mode-badge active" onclick="window.setRouteMode('path')">Traçado</div>
+                <div id="btn-mode-stops" class="route-mode-badge" onclick="window.setRouteMode('stops')">Paradas</div>
+                <div id="btn-mode-terminal" class="route-mode-badge" onclick="window.setRouteMode('terminal')">Terminal</div>
+            </div>
+
+            <div class="mb-3 d-flex gap-2">
+                <button class="btn btn-primary btn-sm flex-grow-1 fw-bold" onclick="window.saveRouteData()">SALVAR MAPA</button>
+                <button class="btn btn-light btn-sm" onclick="window.clearCurrentDraft()"><i class="bi bi-trash"></i></button>
+            </div>
+
+            <div class="small text-muted mb-2 fw-bold">SELECIONE A LINHA PARA EDITAR:</div>
+            <div id="route-admin-list" class="list-group list-group-flush border-top"></div>
         </div>
 
         <!-- PLANNING -->
@@ -272,7 +291,7 @@
 
         window.switchView = (v) => {
             document.querySelectorAll('.sidebar-view').forEach(view => view.classList.remove('active'));
-            document.getElementById('view-' + v).classList.add('active');
+            if(document.getElementById('view-' + v)) document.getElementById('view-' + v).classList.add('active');
         };
 
         window.toggleDrawer = () => {
@@ -378,7 +397,7 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         };
 
-        // SYNC
+        // SYNC AUTH
         onAuthStateChanged(auth, u => {
             user = u;
             if(u) {
@@ -393,29 +412,25 @@
             }
         });
 
-onValue(ref(db, 'config/linhas'), snap => {
+        // SYNC DATABASE LINHAS (CORRIGIDO)
+        onValue(ref(db, 'config/linhas'), snap => {
             const data = snap.val() || {};
-            const grid = document.getElementById('line-selection-grid'), admList = document.getElementById('admin-lines-list-crud');
-            const routeAdminList = document.getElementById('route-admin-list'); // NOVO
+            const grid = document.getElementById('line-selection-grid');
+            const admList = document.getElementById('admin-lines-list-crud');
+            const routeAdminList = document.getElementById('route-admin-list');
+            const plan = document.getElementById('planning-all-lines');
             
-            grid.innerHTML = ''; admList.innerHTML = ''; routeAdminList.innerHTML = '';
-            
+            grid.innerHTML = ''; admList.innerHTML = ''; routeAdminList.innerHTML = ''; plan.innerHTML = '';
+            let tCount = 0;
+
             for(let key in data) {
-                const c = data[key]; configLinhas[key] = c;
+                const c = data[key]; 
+                configLinhas[key] = c;
+                tCount++;
                 const comp = COMPANIES[c.company || 'atlantico'];
                 
-                // Popula a lista original (Transmitir/Grid)
                 grid.innerHTML += `<button class="list-group-item list-group-item-action d-flex align-items-center py-2" onclick="window.startTrack('${key}')"><img src="${comp.favicon}" class="bus-logo-mini"><div><div class="fw-bold small">${c.id} - ${c.nome}</div></div></button>`;
                 
-                // Popula a lista CRUD original
-                admList.innerHTML += `<div class="list-group-item bus-item border-bottom px-0" onclick="window.loadLineForEdit('${key}')">...</div>`; // (Mantenha seu HTML de CRUD original aqui)
-                
-                // NOVO: Alimenta a lista da Gestão de Rotas
-                routeAdminList.innerHTML += `<div class="list-group-item adm-route-item p-2 small border-bottom" onclick="window.selectLineForRoute('${key}')"><img src="${comp.favicon}" width="12" class="me-2"><b>${c.id}</b> - ${c.via}</div>`;
-            }
-        });
-        
-                // Admin List Styled as Map Cards
                 admList.innerHTML += `
                     <div class="list-group-item bus-item border-bottom px-0" onclick="window.loadLineForEdit('${key}')">
                         <div class="d-flex align-items-center flex-grow-1">
@@ -427,12 +442,15 @@ onValue(ref(db, 'config/linhas'), snap => {
                         </div>
                         <i class="bi bi-trash text-danger ms-auto px-2 fs-5" onclick="event.stopPropagation(); remove(ref(db, 'config/linhas/${key}'))"></i>
                     </div>`;
+
+                routeAdminList.innerHTML += `<div class="list-group-item adm-route-item p-2 small border-bottom" onclick="window.selectLineForRoute('${key}')"><img src="${comp.favicon}" width="12" class="me-2"><b>${c.id}</b> - ${c.via}</div>`;
                     
-                plan.innerHTML += `<button class="nav-item-custom border-bottom" onclick="map.flyTo(markers['${key}'].getLatLng(), 17); window.toggleSidebar();"><img src="${comp.favicon}" class="bus-logo-mini"><div><div class="fw-bold">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div></button>`;
+                plan.innerHTML += `<button class="nav-item-custom border-bottom" onclick="if(markers['${key}']) map.flyTo(markers['${key}'].getLatLng(), 17); window.toggleSidebar();"><img src="${comp.favicon}" class="bus-logo-mini"><div><div class="fw-bold">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div></button>`;
             }
-            document.getElementById('stat-lines').innerText = t;
+            document.getElementById('stat-lines').innerText = tCount;
         });
 
+        // MAPEAMENTO ONIBUS
         onValue(ref(db, 'onibus'), snap => {
             const gps = snap.val() || {}, now = Date.now();
             let statusH = "", drawerH = "", tUser = 0;
@@ -459,7 +477,7 @@ onValue(ref(db, 'config/linhas'), snap => {
 
                     drawerH += `<div class="d-flex align-items-center mb-3" onclick="map.flyTo(markers['${key}'].getLatLng(), 17)" style="cursor:pointer; border-left: 3px solid ${c.cor}; padding-left:10px;"><div class="flex-grow-1"><div class="bus-title"><img src="${comp.favicon}" class="bus-logo-mini">${c.id} - ${c.nome}</div><div class="bus-subtitle" style="font-size:8px">${c.via.substring(0,20)}...</div></div></div>`;
 
-                    if (!uLat || d <= 5) {
+                    if (!uLat || (d && d <= 5)) {
                         const eta = d ? Math.round(d / 0.33) : null;
                         statusH += `<div class="bus-item" onclick="map.flyTo(markers['${key}'].getLatLng(), 17)"><div><div class="bus-title"><img src="${comp.favicon}" class="bus-logo-mini">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div><div class="status-box">${eta ? `<div class="eta-val">${eta} min</div><small style="font-size:8px; color:#aaa">${d.toFixed(1)}km</small>` : `<div class="neon-dot"></div>`}</div></div>`;
                     }
@@ -476,6 +494,7 @@ onValue(ref(db, 'config/linhas'), snap => {
 
         window.onload = () => setTimeout(() => window.geoCenter(), 2000);
 
+        // EDITOR DE ROTAS LOGICA
         window.openRouteManager = () => {
             window.switchView('admin-routes');
             map.on('click', onMapClickForRoute);
@@ -514,9 +533,10 @@ onValue(ref(db, 'config/linhas'), snap => {
             window.clearCurrentDraft();
             routeDraft.lineKey = key;
             const c = configLinhas[key];
-            draftPolyline.setStyle({ color: c.cor });
-            alert("Editando: " + c.id);
-            // Opcional: Carregar rota existente do banco aqui se houver
+            if(c) {
+                draftPolyline.setStyle({ color: c.cor });
+                alert("Editando rota da linha: " + c.id);
+            }
         };
 
         window.saveRouteData = () => {
