@@ -376,14 +376,14 @@ window.stopTrack = () => {
 
     // --- 5. OBSERVADORES DE DADOS (SYNC) ---
 
-    // --- OBSERVADOR DE LOGIN (CORRIGIDO) ---
-    onAuthStateChanged(auth, u => {
+   // --- OBSERVADOR DE LOGIN (VERSÃO BLINDADA) ---
+onAuthStateChanged(auth, (u) => {
     user = u;
     const authDiv = document.getElementById('auth-area');
     const actionBtn = document.getElementById('action-btn');
     const adminBtn = document.getElementById('admin-section');
 
-    if(u) {
+    if (u) {
         // Se o usuário estiver LOGADO: Mostrar foto, nome e botão de sair
         authDiv.innerHTML = `
             <div class="d-flex align-items-center p-2 bg-light rounded-3 shadow-sm mb-3">
@@ -394,14 +394,22 @@ window.stopTrack = () => {
         
         actionBtn.style.display = 'flex'; // Mostra botão de transmitir GPS
 
-        // Verifica se o e-mail é o do Administrador
-        if(u.email === ADMIN_EMAIL) {
+        // --- VALIDAÇÃO DE ADMIN (ROBUSTA) ---
+        // Convertemos ambos para minúsculo e removemos espaços extras
+        const emailLogado = u.email.toLowerCase().trim();
+        const emailAdminPermitido = ADMIN_EMAIL.toLowerCase().trim();
+
+        if (emailLogado === emailAdminPermitido) {
+            console.log("✅ Admin reconhecido com sucesso!");
             adminBtn.style.display = 'block';
+        } else {
+            console.warn("⚠️ Acesso admin negado para: " + emailLogado);
+            adminBtn.style.display = 'none';
         }
 
         // Recupera a transmissão se a página foi atualizada
         const saved = localStorage.getItem('busu_active_line');
-        if(saved && !watchID) {
+        if (saved && !watchID) {
             console.log("Retomando sinal da linha: " + saved);
             iniciarGPS(saved);
         }
@@ -412,9 +420,9 @@ window.stopTrack = () => {
                 <i class="bi bi-google me-2"></i> Entrar com Google
             </button>`;
         
-        actionBtn.style.display = 'none'; // Esconde botão de transmitir
-        adminBtn.style.display = 'none';  // Esconde botão de admin
-        localStorage.removeItem('busu_active_line'); // Limpa memória se deslogar
+        actionBtn.style.display = 'none'; 
+        adminBtn.style.display = 'none';  
+        localStorage.removeItem('busu_active_line'); 
     }
 });
         
