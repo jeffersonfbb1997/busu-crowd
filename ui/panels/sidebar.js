@@ -7,6 +7,38 @@ export const switchView = (v) => {
     document.querySelectorAll('.sidebar-view').forEach(view => view.classList.remove('active'));
     const target = document.getElementById('view-' + v);
     if (target) target.classList.add('active');
+    
+    // Initialize admin monitor when admin dashboard is opened
+    if (v === 'admin-dashboard' || v === 'admin-settings') {
+        setTimeout(() => {
+            // Load admin monitor if available
+            if (window.initAdminMonitor) {
+                window.initAdminMonitor();
+            }
+            
+            // Apply admin security checks
+            if (window.applyAdminSecurity) {
+                window.applyAdminSecurity();
+            }
+            
+            // Update health metrics
+            if (window.updateHealthMetricsDisplay) {
+                window.updateHealthMetricsDisplay();
+            }
+            
+            // Load current parameters
+            if (window.loadCurrentParameters) {
+                window.loadCurrentParameters();
+            }
+        }, 100);
+    }
+    
+    // Clear debug marker when leaving admin views
+    if (v !== 'admin-dashboard' && v !== 'admin-settings' && v !== 'admin-lines' && v !== 'admin-routes') {
+        if (window.clearDebugMarker) {
+            window.clearDebugMarker();
+        }
+    }
 };
 
 export const toggleDrawer = () => {

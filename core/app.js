@@ -315,20 +315,31 @@ async function saveSystemParameters() {
     const radiusInput = document.getElementById('system-radius-input');
     const saveBtn = document.getElementById('save-params-btn');
     const statusDiv = document.getElementById('params-status');
+    const ttlWarning = document.getElementById('ttl-warning');
     
     if (!ttlInput || !radiusInput) return;
     
-    const ttl = parseInt(ttlInput.value);
-    const radius = parseInt(radiusInput.value);
+    const ttlSeconds = parseInt(ttlInput.value);
+    const radiusKm = parseInt(radiusInput.value);
     
-    // Validate inputs
-    if (ttl < 10 || ttl > 300) {
-        showParamsStatus('TTL deve estar entre 10 e 300 segundos', 'danger');
+    // Show/hide TTL warning
+    if (ttlWarning) {
+        ttlWarning.style.display = ttlSeconds < 5 ? 'block' : 'none';
+    }
+    
+    // Validate inputs - Block saving if values are dangerous (TTL < 5 seconds)
+    if (ttlSeconds < 5) {
+        showParamsStatus('ERRO: TTL menor que 5 segundos é perigoso para o sistema', 'danger');
         return;
     }
     
-    if (radius < 1 || radius > 50) {
-        showParamsStatus('Raio deve estar entre 1 e 50 km', 'danger');
+    if (ttlSeconds > 300) {
+        showParamsStatus('TTL deve ser no máximo 300 segundos', 'danger');
+        return;
+    }
+    
+    if (radiusKm < 1 || radiusKm > 100) {
+        showParamsStatus('Raio deve estar entre 1 e 100 km', 'danger');
         return;
     }
     
@@ -342,9 +353,15 @@ async function saveSystemParameters() {
     const isAdmin = await isUserAdmin(state.user);
     
     if (!isAdmin) {
-        showParamsStatus('Apenas administradores podem alterar parâmetros', 'danger');
+        showParamsStatus('Apenas administradores autorizados podem alterar parâmetros', 'danger');
+        // Show admin security alert
+        const adminAlert = document.getElementById('admin-security-alert');
+        if (adminAlert) adminAlert.style.display = 'block';
         return;
     }
+    
+    // Convert seconds to milliseconds for Firebase storage
+    const ttlMilliseconds = ttlSeconds * 1000;
     
     // Save to Firebase
     try {
@@ -352,10 +369,16 @@ async function saveSystemParameters() {
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>SALVANDO...';
         
-        await updateSystemParameters({ ttl, radius });
+        await updateSystemParameters({
+            ttl: ttlMilliseconds, // Store as milliseconds
+            radius: radiusKm
+        });
         
-        showParamsStatus('Parâmetros salvos com sucesso!', 'success');
+        showParamsStatus(`Parâmetros salvos com sucesso! TTL: ${ttlSeconds}s (${ttlMilliseconds}ms), Raio: ${radiusKm}km`, 'success');
         saveBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>SALVO';
+        
+        // Update health metrics display
+        updateHealthMetricsDisplay();
         
         // Re-enable button after 2 seconds
         setTimeout(() => {
@@ -377,14 +400,23 @@ function loadCurrentParameters() {
     
     if (!ttlInput || !radiusInput) return;
     
-    // Load from current state
+    // Load from current state (fetch from Firebase config/parametros)
     const currentTTL = Math.floor((state.systemTTL || 45000) / 1000); // Convert ms to seconds
     const currentRadius = state.systemRadius || 5;
     
     ttlInput.value = currentTTL;
     radiusInput.value = currentRadius;
     
-    showParamsStatus('Parâmetros atuais carregados', 'info');
+    // Update TTL warning display
+    const ttlWarning = document.getElementById('ttl-warning');
+    if (ttlWarning) {
+        ttlWarning.style.display = currentTTL < 5 ? 'block' : 'none';
+    }
+    
+    showParamsStatus('Valores atuais carregados do Firebase', 'info');
+    
+    // Also update admin permissions status
+    updateAdminPermissionsStatus();
 }
 
 function showParamsStatus(message, type = 'info') {
@@ -494,12 +526,96 @@ function toggleSimulatedData() {
     }
 }
 
+/**
+ * Update health metrics display in admin settings
+ */
+function updateHealthMetricsDisplay() {
+    // Get data from live monitor if available
+    if (window.getLastProcessedData) {
+        const lastData = window.getLastProcessedData();
+        const activeUsers = new Set(lastData.map(s => s.userId)).size;
+        const rejectedSignals = lastData.filter(s => s.accuracy > 80).length;
+        
+        const activeUsersEl = document.getElementById('health-active-users');
+        const rejectedSignalsEl = document.getElementById('health-rejected-signals');
+        
+        if (activeUsersEl) activeUsersEl.textContent = activeUsers;
+        if (rejectedSignalsEl) rejectedSignalsEl.textContent = rejectedSignals;
+    }
+}
+
+/**
+ * Update admin permissions status display
+ */
+async function updateAdminPermissionsStatus() {
+    const permissionsStatus = document.getElementById('admin-permissions-status');
+    const adminAlert = document.getElementById('admin-security-alert');
+    
+    if (!permissionsStatus) return;
+    
+    if (!state.user) {
+        permissionsStatus.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Usuário não autenticado</span>';
+        if (adminAlert) adminAlert.style.display = 'block';
+        return;
+    }
+    
+    try {
+        const { isUserAdmin } = await import('../services/authService.js');
+        const isAdmin = await isUserAdmin(state.user);
+        
+        if (isAdmin) {
+            permissionsStatus.innerHTML = '<span class="text-success"><i class="bi bi-shield-check me-1"></i>Administrador autorizado</span>';
+            if (adminAlert) adminAlert.style.display = 'none';
+            
+            // Enable admin features
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.display = 'block';
+            });
+        } else {
+            permissionsStatus.innerHTML = '<span class="text-warning"><i class="bi bi-shield-exclamation me-1"></i>Usuário não administrador</span>';
+            if (adminAlert) adminAlert.style.display = 'block';
+            
+            // Disable admin features
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.display = 'none';
+            });
+        }
+    } catch (error) {
+        console.error('Error checking admin permissions:', error);
+        permissionsStatus.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Erro ao verificar permissões</span>';
+    }
+}
+
+/**
+ * Check and apply admin security on view switch
+ */
+function applyAdminSecurity() {
+    if (!state.user) {
+        // Hide admin-only features
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = 'none';
+        });
+        return;
+    }
+    
+    // Check admin status and update UI
+    updateAdminPermissionsStatus();
+}
+
 // Expose functions to window
 window.saveSystemParameters = saveSystemParameters;
 window.loadCurrentParameters = loadCurrentParameters;
 window.forceTTLCleanup = forceTTLCleanup;
 window.deleteLine = deleteLine;
+window.updateHealthMetricsDisplay = updateHealthMetricsDisplay;
+window.applyAdminSecurity = applyAdminSecurity;
 
 // Expose cleanup function from bus renderer
 import { cleanupDeletedLineMarkers } from '../modules/buses/busRenderer.js';
 window.cleanupDeletedLineMarkers = cleanupDeletedLineMarkers;
+
+// Initialize admin security when app loads
+setTimeout(() => {
+    applyAdminSecurity();
+    updateHealthMetricsDisplay();
+}, 3000);
