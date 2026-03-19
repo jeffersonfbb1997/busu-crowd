@@ -328,23 +328,44 @@
             bootstrap.Modal.getInstance(document.getElementById('modalLine')).hide();
         };
 
-        function iniciarGPS(key) {
+function iniciarGPS(key) {
             if(watchID) navigator.geolocation.clearWatch(watchID);
+            
+            // Forçamos a linha atual para garantir sincronia no banco
+            currentLineKey = key;
+
             watchID = navigator.geolocation.watchPosition(p => {
                 if(!user) return;
                 const speedKmh = (p.coords.speed || 0) * 3.6;
                 const accuracy = p.coords.accuracy || 100;
                 
-                // Filtro qualidade solicitado:
+                // MANTIDAS CONFIGURAÇÕES ORIGINAIS:
                 if (accuracy > 50 || speedKmh < 4) return; 
 
-                const data = { lat: p.coords.latitude, lng: p.coords.longitude, timestamp: Date.now(), speed: speedKmh.toFixed(1) };
-                set(ref(db, `onibus/${key}/${user.uid}`), data);
-                onDisconnect(ref(db, `onibus/${key}/${user.uid}`)).remove();
+                const data = { 
+                    lat: p.coords.latitude, 
+                    lng: p.coords.longitude, 
+                    timestamp: Date.now(), 
+                    speed: speedKmh.toFixed(1) 
+                };
+
+                const trackRef = ref(db, `onibus/${key}/${user.uid}`);
+                set(trackRef, data);
+                onDisconnect(trackRef).remove();
                 
-                document.getElementById('action-btn').classList.add('active');
-                document.getElementById('action-icon').className = 'bi bi-stop-circle-fill';
-            }, null, {enableHighAccuracy:true});
+                // Atualização visual do botão
+                const actionBtn = document.getElementById('action-btn');
+                if (actionBtn) {
+                    actionBtn.classList.add('active');
+                    document.getElementById('action-icon').className = 'bi bi-stop-circle-fill';
+                }
+            }, (error) => {
+                console.warn("Aviso de GPS: " + error.message);
+            }, {
+                enableHighAccuracy: true,
+                maximumAge: 0, // Essencial: força o sensor a ler posição real, não a última salva
+                timeout: 10000
+            });
         }
 
         window.stopTrack = () => {
