@@ -1,0 +1,25 @@
+{
+  "rules": {
+    ".read": true,
+    "onibus": {
+      ".write": "auth.token.email == 'jeffersonfbb1997@gmail.com' || root.child('config/admins').child(auth.uid).exists()",
+      "$linha": {
+        "$usuario": {
+          ".write": "auth != null && (auth.uid == $usuario || auth.token.email == 'jeffersonfbb1997@gmail.com' || root.child('config/admins').child(auth.uid).exists())"
+        }
+      }
+    },
+    "config": {
+      "admins": {
+        ".write": "auth.token.email == 'jeffersonfbb1997@gmail.com'",
+        ".read": "auth != null"
+      },
+      "linhas": {
+        ".write": "auth.token.email == 'jeffersonfbb1997@gmail.com' || root.child('config/admins').child(auth.uid).exists()"
+      },
+      "parametros": {
+        ".write": "auth.token.email == 'jeffersonfbb1997@gmail.com' || root.child('config/admins').child(auth.uid).exists()"
+      }
+    }
+  }
+}

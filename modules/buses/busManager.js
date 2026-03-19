@@ -13,9 +13,13 @@ export function renderBusList(gpsData, configLinhas) {
         let latA = 0, lngA = 0, cnt = 0;
         if (gpsData[key]) {
             for (let uid in gpsData[key]) {
-                if (now - gpsData[key][uid].timestamp < 45000) {
-                    latA += gpsData[key][uid].lat;
-                    lngA += gpsData[key][uid].lng;
+                const gpsPoint = gpsData[key][uid];
+                const accuracy = gpsPoint.acc || gpsPoint.accuracy || 0;
+                
+                // Apply accuracy gate: only include data with accuracy <= 80 meters
+                if (now - gpsPoint.timestamp < (state.systemTTL || 45000) && accuracy <= 80) {
+                    latA += gpsPoint.lat;
+                    lngA += gpsPoint.lng;
                     cnt++;
                 }
             }

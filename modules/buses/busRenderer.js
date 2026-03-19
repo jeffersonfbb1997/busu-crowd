@@ -1,6 +1,25 @@
 import { state, updateState } from "../../core/stateManager.js";
 import { COMPANIES } from "../../config/systemConfig.js";
 
+/**
+ * Force cleanup of markers for deleted lines
+ * This can be called when a line is deleted to immediately remove its marker
+ */
+export function cleanupDeletedLineMarkers(configLinhas) {
+    if (!state.map) return;
+    
+    const now = Date.now();
+    
+    for (const key in state.markers) {
+        if (!configLinhas[key]) {
+            // Line no longer exists in config, remove marker immediately
+            console.log('Removing marker for deleted line:', key);
+            state.map.removeLayer(state.markers[key]);
+            delete state.markers[key];
+        }
+    }
+}
+
 export function renderBusMarkers(gpsData, configLinhas) {
     // Check if map is initialized
     if (!state.map) {
@@ -24,7 +43,11 @@ export function renderBusMarkers(gpsData, configLinhas) {
             
             if (lineGps) {
                 for (const uid in lineGps) {
-                    if (now - lineGps[uid].timestamp < 45000) {
+                    const gpsData = lineGps[uid];
+                    const accuracy = gpsData.acc || gpsData.accuracy || 0;
+                    
+                    // Check if data is fresh AND accurate (accuracy gate: <= 80 meters)
+                    if (now - gpsData.timestamp < (state.systemTTL || 45000) && accuracy <= 80) {
                         hasActive = true;
                         break;
                     }
@@ -49,9 +72,13 @@ export function renderBusMarkers(gpsData, configLinhas) {
         
         if (gpsData[key]) {
             for (const uid in gpsData[key]) {
-                if (now - gpsData[key][uid].timestamp < 45000) {
-                    latA += gpsData[key][uid].lat;
-                    lngA += gpsData[key][uid].lng;
+                const gpsPoint = gpsData[key][uid];
+                const accuracy = gpsPoint.acc || gpsPoint.accuracy || 0;
+                
+                // Apply accuracy gate: only include data with accuracy <= 80 meters
+                if (now - gpsPoint.timestamp < (state.systemTTL || 45000) && accuracy <= 80) {
+                    latA += gpsPoint.lat;
+                    lngA += gpsPoint.lng;
                     cnt++;
                 }
             }

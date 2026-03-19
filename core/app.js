@@ -1,5 +1,7 @@
 import { db, auth, ADMIN_EMAIL } from '../services/firebaseService.js';
-import { login, logout, subscribeToAuthChanges } from '../services/authService.js';
+import { login, logout, subscribeToAuthChanges, isUserAdmin } from '../services/authService.js';
+import { initParametersListener } from '../services/parametersService.js';
+import { initTimeService } from '../services/timeService.js';
 import { initMap } from '../modules/map/mapInit.js';
 import { state, updateState } from './stateManager.js';
 import { iniciarGPS, stopTrack } from '../modules/gps/gpsCollector.js';
@@ -47,6 +49,14 @@ export function initApp() {
     // Auth subscription
     subscribeToAuthChanges(handleAuthChange);
     
+    // Initialize time service (server clock synchronization)
+    initTimeService().then(offset => {
+        console.log('Time service initialized with offset:', offset, 'ms');
+    });
+    
+    // Initialize system parameters listener
+    initParametersListener();
+    
     // Data listeners
     setupDataListeners();
     
@@ -77,16 +87,55 @@ function onActionClick() {
     state.watchID ? stopTrack() : new bootstrap.Modal(document.getElementById('modalLine')).show();
 }
 
-function handleAuthChange(u) {
+async function handleAuthChange(u) {
     updateState('user', u);
     if(u) {
-        document.getElementById('auth-area').innerHTML = `<div class="d-flex align-items-center p-2 bg-light rounded-3 shadow-sm mb-3"><img src="${u.photoURL}" width="34" class="rounded-circle me-2"><div class="flex-grow-1 small fw-bold">${u.displayName.split(' ')[0]}</div><i class="bi bi-box-arrow-right text-muted ms-2 cursor-pointer" onclick="window.fazerLogout()"></i></div>`;
+        // Modern user profile card
+        document.getElementById('auth-area').innerHTML = `
+            <div class="user-profile-card d-flex align-items-center p-3 mb-4">
+                <div class="user-avatar-wrapper position-relative">
+                    <img src="${u.photoURL}" width="40" class="rounded-circle user-avatar" alt="${u.displayName}">
+                    <div class="user-status-indicator bg-success"></div>
+                </div>
+                <div class="user-info ms-3 flex-grow-1">
+                    <div class="user-name fw-bold">${u.displayName.split(' ')[0]}</div>
+                    <div class="user-email small text-muted">${u.email ? u.email.substring(0, 20) + (u.email.length > 20 ? '...' : '') : 'Usuário'}</div>
+                </div>
+                <button class="btn-logout btn btn-outline-light border-0 p-2 rounded-circle" onclick="window.fazerLogout()" title="Sair">
+                    <i class="bi bi-box-arrow-right text-muted"></i>
+                </button>
+            </div>`;
         document.getElementById('action-btn').style.display = 'flex';
-        if(u.email.toLowerCase() === ADMIN_EMAIL) document.getElementById('admin-entry').style.display = 'block';
+        
+        // Check if user is admin (master admin or listed in Firebase admins)
+        const isAdmin = await isUserAdmin(u);
+        if (isAdmin) {
+            document.getElementById('admin-entry').style.display = 'block';
+            // Update admin button style
+            document.querySelector('#admin-entry button').className = 'btn-admin-panel w-100 py-3 fw-bold';
+        } else {
+            document.getElementById('admin-entry').style.display = 'none';
+        }
+        
         if(localStorage.getItem('busu_active_line')) iniciarGPS(localStorage.getItem('busu_active_line'));
     } else {
-        document.getElementById('auth-area').innerHTML = `<button class="btn btn-primary btn-sm w-100 fw-bold rounded-pill" onclick="window.fazerLogin()"><i class="bi bi-google me-2"></i> LOGIN GOOGLE</button>`;
+        // Modern login button
+        document.getElementById('auth-area').innerHTML = `
+            <div class="auth-promo-card text-center p-4 mb-4">
+                <div class="auth-icon mb-3">
+                    <i class="bi bi-shield-check display-4 text-primary"></i>
+                </div>
+                <h6 class="fw-bold mb-2">Acesse sua conta</h6>
+                <p class="small text-muted mb-3">Faça login para contribuir com dados em tempo real e acessar recursos exclusivos.</p>
+                <button class="btn-login-modern w-100 py-3 fw-bold" onclick="window.fazerLogin()">
+                    <i class="bi bi-google me-2"></i> Continuar com Google
+                </button>
+                <div class="mt-3 small text-muted">
+                    <i class="bi bi-lock me-1"></i> Seus dados estão seguros
+                </div>
+            </div>`;
         document.getElementById('action-btn').style.display = 'none';
+        document.getElementById('admin-entry').style.display = 'none';
     }
 }
 
@@ -182,11 +231,14 @@ function randomizeColor() {
     document.getElementById('admCor').value = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'); 
 }
 
-function clearAdminForm() { 
-    document.getElementById('admDbKey').value = ""; 
-    document.getElementById('admID').value = ""; 
-    document.getElementById('admNome').value = ""; 
-    document.getElementById('admVia').value = ""; 
+function clearAdminForm() {
+    document.getElementById('admDbKey').value = "";
+    document.getElementById('admID').value = "";
+    document.getElementById('admNome').value = "";
+    document.getElementById('admVia').value = "";
+    
+    // Hide delete button when form is cleared
+    document.getElementById('delete-line-btn').style.display = 'none';
 }
 
 function loadLineForEdit(key) {
@@ -198,4 +250,209 @@ function loadLineForEdit(key) {
     document.getElementById('admVia').value = c.via;
     document.getElementById('admCor').value = c.cor;
     selectCompany(c.company || 'atlantico');
+    
+    // Show delete button when editing existing line
+    document.getElementById('delete-line-btn').style.display = 'block';
 }
+
+async function deleteLine() {
+    const key = document.getElementById('admDbKey').value;
+    if (!key) {
+        alert('Selecione uma linha para excluir');
+        return;
+    }
+    
+    if (!confirm(`Tem certeza que deseja excluir a linha ${key}?`)) {
+        return;
+    }
+    
+    // Check if user is admin
+    if (!state.user) {
+        alert('Usuário não autenticado');
+        return;
+    }
+    
+    const { isUserAdmin } = await import('../services/authService.js');
+    const isAdmin = await isUserAdmin(state.user);
+    
+    if (!isAdmin) {
+        alert('Apenas administradores podem excluir linhas');
+        return;
+    }
+    
+    try {
+        const { ref, remove } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js");
+        
+        // Delete line from Firebase
+        await remove(ref(db, `config/linhas/${key}`));
+        
+        // Also delete any active GPS data for this line
+        await remove(ref(db, `onibus/${key}`));
+        
+        // Clear form
+        clearAdminForm();
+        
+        // Hide delete button
+        document.getElementById('delete-line-btn').style.display = 'none';
+        
+        // Force immediate marker cleanup
+        if (window.cleanupDeletedLineMarkers) {
+            window.cleanupDeletedLineMarkers(state.configLinhas);
+        }
+        
+        alert('Linha excluída com sucesso!');
+        
+    } catch (error) {
+        console.error('Error deleting line:', error);
+        alert('Erro ao excluir linha: ' + error.message);
+    }
+}
+
+// Admin Settings Functions
+async function saveSystemParameters() {
+    const ttlInput = document.getElementById('system-ttl-input');
+    const radiusInput = document.getElementById('system-radius-input');
+    const saveBtn = document.getElementById('save-params-btn');
+    const statusDiv = document.getElementById('params-status');
+    
+    if (!ttlInput || !radiusInput) return;
+    
+    const ttl = parseInt(ttlInput.value);
+    const radius = parseInt(radiusInput.value);
+    
+    // Validate inputs
+    if (ttl < 10 || ttl > 300) {
+        showParamsStatus('TTL deve estar entre 10 e 300 segundos', 'danger');
+        return;
+    }
+    
+    if (radius < 1 || radius > 50) {
+        showParamsStatus('Raio deve estar entre 1 e 50 km', 'danger');
+        return;
+    }
+    
+    // Check if user is admin
+    if (!state.user) {
+        showParamsStatus('Usuário não autenticado', 'danger');
+        return;
+    }
+    
+    const { isUserAdmin } = await import('../services/authService.js');
+    const isAdmin = await isUserAdmin(state.user);
+    
+    if (!isAdmin) {
+        showParamsStatus('Apenas administradores podem alterar parâmetros', 'danger');
+        return;
+    }
+    
+    // Save to Firebase
+    try {
+        const { updateSystemParameters } = await import('../services/parametersService.js');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>SALVANDO...';
+        
+        await updateSystemParameters({ ttl, radius });
+        
+        showParamsStatus('Parâmetros salvos com sucesso!', 'success');
+        saveBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>SALVO';
+        
+        // Re-enable button after 2 seconds
+        setTimeout(() => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>SALVAR PARÂMETROS';
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error saving parameters:', error);
+        showParamsStatus('Erro ao salvar parâmetros: ' + error.message, 'danger');
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>SALVAR PARÂMETROS';
+    }
+}
+
+function loadCurrentParameters() {
+    const ttlInput = document.getElementById('system-ttl-input');
+    const radiusInput = document.getElementById('system-radius-input');
+    
+    if (!ttlInput || !radiusInput) return;
+    
+    // Load from current state
+    const currentTTL = Math.floor((state.systemTTL || 45000) / 1000); // Convert ms to seconds
+    const currentRadius = state.systemRadius || 5;
+    
+    ttlInput.value = currentTTL;
+    radiusInput.value = currentRadius;
+    
+    showParamsStatus('Parâmetros atuais carregados', 'info');
+}
+
+function showParamsStatus(message, type = 'info') {
+    const statusDiv = document.getElementById('params-status');
+    if (!statusDiv) return;
+    
+    const alertClass = type === 'success' ? 'alert-success' :
+                      type === 'danger' ? 'alert-danger' :
+                      type === 'warning' ? 'alert-warning' : 'alert-info';
+    
+    statusDiv.innerHTML = `
+        <div class="alert ${alertClass} alert-dismissible fade show py-2" role="alert">
+            <small>${message}</small>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        const alert = statusDiv.querySelector('.alert');
+        if (alert) {
+            alert.classList.remove('show');
+            setTimeout(() => statusDiv.innerHTML = '', 300);
+        }
+    }, 5000);
+}
+
+async function forceTTLCleanup() {
+    const btn = document.getElementById('force-cleanup-btn');
+    if (!btn) return;
+    
+    // Check if user is admin
+    if (!state.user) {
+        alert('Usuário não autenticado');
+        return;
+    }
+    
+    const { isUserAdmin } = await import('../services/authService.js');
+    const isAdmin = await isUserAdmin(state.user);
+    
+    if (!isAdmin) {
+        alert('Apenas administradores podem forçar limpeza');
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>LIMPEZA EM ANDAMENTO...';
+    
+    // Trigger cleanup through global function
+    if (window.triggerTTLCleanup) {
+        window.triggerTTLCleanup();
+        showParamsStatus('Limpeza forçada executada', 'success');
+    } else {
+        showParamsStatus('Função de limpeza não disponível', 'warning');
+    }
+    
+    // Re-enable button after 3 seconds
+    setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-trash me-1"></i>FORÇAR LIMPEZA DE SINAIS EXPIRADOS';
+    }, 3000);
+}
+
+// Expose functions to window
+window.saveSystemParameters = saveSystemParameters;
+window.loadCurrentParameters = loadCurrentParameters;
+window.forceTTLCleanup = forceTTLCleanup;
+window.deleteLine = deleteLine;
+
+// Expose cleanup function from bus renderer
+import { cleanupDeletedLineMarkers } from '../modules/buses/busRenderer.js';
+window.cleanupDeletedLineMarkers = cleanupDeletedLineMarkers;
