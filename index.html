@@ -336,45 +336,51 @@
         };;
 
 function iniciarGPS(key) {
-            if(watchID) navigator.geolocation.clearWatch(watchID);
-            currentLineKey = key;
+    if(watchID) navigator.geolocation.clearWatch(watchID);
+    currentLineKey = key;
 
-            watchID = navigator.geolocation.watchPosition(p => {
-                if(!user) return;
-                const speedKmh = (p.coords.speed || 0) * 3.6;
-                const accuracy = p.coords.accuracy || 100;
-                
-                // MANTIDAS CONFIGURAÇÕES ORIGINAIS
-                if (accuracy > 50 || speedKmh < 4) return; 
+    // 1. FEEDBACK IMEDIATO: Muda o ícone na hora para o usuário saber que funcionou
+    const btn = document.getElementById('action-btn');
+    const icon = document.getElementById('action-icon');
+    if (btn) {
+        btn.classList.add('active');
+        icon.className = 'bi bi-arrow-repeat rotate-animation'; // Ícone de carregando
+    }
 
-                const data = { 
-                    lat: p.coords.latitude, 
-                    lng: p.coords.longitude, 
-                    timestamp: Date.now(), 
-                    speed: speedKmh.toFixed(1) 
-                };
+    watchID = navigator.geolocation.watchPosition(p => {
+        const speedKmh = (p.coords.speed || 0) * 3.6;
+        const accuracy = p.coords.accuracy || 0;
 
-                const trackRef = ref(db, `onibus/${key}/${user.uid}`);
-                set(trackRef, data);
-                onDisconnect(trackRef).remove();
-                
-                if (document.getElementById('action-btn')) {
-                    document.getElementById('action-btn').classList.add('active');
-                    document.getElementById('action-icon').className = 'bi bi-stop-circle-fill';
-                }
-            }, (error) => {
-                console.warn("Aviso de GPS: " + error.message);
-                // Se der erro de Timeout (code 3), ele tenta reconectar automaticamente
-                if(error.code === 3) {
-                    setTimeout(() => iniciarGPS(key), 3000);
-                }
-            }, {
-                enableHighAccuracy: true,
-                maximumAge: 0,
-                timeout: 20000 // Aumentado para 20s para dar tempo do hardware "acordar"
-            });
-        }
-        
+        // 2. LOGICA DE TRANSMISSÃO GRADUAL
+        // Se a precisão for péssima (>200m), ignoramos. 
+        // Mas se for razoável, já mandamos para o mapa não ficar vazio.
+        if (accuracy > 200) return; 
+
+        // Agora o ícone vira o de "transmitindo" de fato
+        icon.className = 'bi bi-stop-circle-fill';
+
+        const data = { 
+            lat: p.coords.latitude, 
+            lng: p.coords.longitude, 
+            timestamp: Date.now(), 
+            speed: speedKmh.toFixed(1),
+            accuracy: accuracy.toFixed(0)
+        };
+
+        const trackRef = ref(db, `onibus/${key}/${user.uid}`);
+        set(trackRef, data);
+        onDisconnect(trackRef).remove();
+
+    }, (error) => {
+        console.warn("Erro de sensor:", error.message);
+        icon.className = 'bi bi-exclamation-triangle-fill text-warning';
+    }, {
+        enableHighAccuracy: true,
+        maximumAge: 0, 
+        timeout: 10000 // Diminuí para 10s para forçar o erro e o retry mais rápido
+    });
+}
+
         window.stopTrack = () => {
             navigator.geolocation.clearWatch(watchID);
             if(currentLineKey && user) remove(ref(db, `onibus/${currentLineKey}/${user.uid}`));
