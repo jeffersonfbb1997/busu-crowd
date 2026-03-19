@@ -337,8 +337,6 @@
 
 function iniciarGPS(key) {
             if(watchID) navigator.geolocation.clearWatch(watchID);
-            
-            // Forçamos a linha atual para garantir sincronia no banco
             currentLineKey = key;
 
             watchID = navigator.geolocation.watchPosition(p => {
@@ -346,7 +344,7 @@ function iniciarGPS(key) {
                 const speedKmh = (p.coords.speed || 0) * 3.6;
                 const accuracy = p.coords.accuracy || 100;
                 
-                // MANTIDAS CONFIGURAÇÕES ORIGINAIS:
+                // MANTIDAS CONFIGURAÇÕES ORIGINAIS
                 if (accuracy > 50 || speedKmh < 4) return; 
 
                 const data = { 
@@ -360,21 +358,23 @@ function iniciarGPS(key) {
                 set(trackRef, data);
                 onDisconnect(trackRef).remove();
                 
-                // Atualização visual do botão
-                const actionBtn = document.getElementById('action-btn');
-                if (actionBtn) {
-                    actionBtn.classList.add('active');
+                if (document.getElementById('action-btn')) {
+                    document.getElementById('action-btn').classList.add('active');
                     document.getElementById('action-icon').className = 'bi bi-stop-circle-fill';
                 }
             }, (error) => {
                 console.warn("Aviso de GPS: " + error.message);
+                // Se der erro de Timeout (code 3), ele tenta reconectar automaticamente
+                if(error.code === 3) {
+                    setTimeout(() => iniciarGPS(key), 3000);
+                }
             }, {
                 enableHighAccuracy: true,
-                maximumAge: 0, // Essencial: força o sensor a ler posição real, não a última salva
-                timeout: 10000
+                maximumAge: 0,
+                timeout: 20000 // Aumentado para 20s para dar tempo do hardware "acordar"
             });
         }
-
+        
         window.stopTrack = () => {
             navigator.geolocation.clearWatch(watchID);
             if(currentLineKey && user) remove(ref(db, `onibus/${currentLineKey}/${user.uid}`));
