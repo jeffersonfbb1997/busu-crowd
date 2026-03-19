@@ -16,8 +16,8 @@ export function renderBusList(gpsData, configLinhas) {
                 const gpsPoint = gpsData[key][uid];
                 const accuracy = gpsPoint.acc || gpsPoint.accuracy || 0;
                 
-                // Apply accuracy gate: only include data with accuracy <= 80 meters
-                if (now - gpsPoint.timestamp < (state.systemTTL || 45000) && accuracy <= 80) {
+                // Apply accuracy gate: include data with accuracy up to 200 meters (matching GPS collector filter)
+                if (now - gpsPoint.timestamp < (state.systemTTL || 45000) && accuracy <= 200) {
                     latA += gpsPoint.lat;
                     lngA += gpsPoint.lng;
                     cnt++;

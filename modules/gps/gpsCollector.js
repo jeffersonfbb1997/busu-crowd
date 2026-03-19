@@ -24,7 +24,10 @@ export function iniciarGPS(key) {
 
         // Filter by accuracy (max 80 meters for quality data, but still accept up to 200 for backup)
         // Data with accuracy > 80m will be filtered out in rendering and processing
-        if (accuracy > 200) return; // Extreme accuracy issues
+        if (accuracy > 200) {
+            console.log(`GPS accuracy too low: ${accuracy}m, skipping update`);
+            return; // Extreme accuracy issues
+        }
 
         if (icon) icon.className = 'bi bi-stop-circle-fill';
 
@@ -40,12 +43,18 @@ export function iniciarGPS(key) {
             serverTimestamp: serverTimestamp()                 // Firebase server timestamp placeholder
         };
 
+        console.log(`GPS data received: ${data.lat}, ${data.lng}, accuracy: ${data.acc}m`);
+
         const trackRef = ref(db, `onibus/${key}/${state.user.uid}`);
-        set(trackRef, data);
+        set(trackRef, data).then(() => {
+            console.log('GPS data written to Firebase successfully');
+        }).catch(error => {
+            console.error('Error writing GPS data to Firebase:', error);
+        });
         onDisconnect(trackRef).remove();
 
     }, (error) => {
-        console.warn("Erro de sensor:", error.message);
+        console.warn("Erro de sensor:", error.message, error.code);
         if (icon) icon.className = 'bi bi-exclamation-triangle-fill text-warning';
     }, {
         enableHighAccuracy: true,

@@ -343,9 +343,127 @@
         .company-option.selected { border-color: var(--blue); background: #e8f0fe; }
         .company-option img { height: 25px; width: auto; max-width: 100px; object-fit: contain; display: block; margin: 0 auto; }
 
-        .bus-pin { width: 42px; height: 42px; border: 2.5px solid white; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-        .bus-pin span { transform: rotate(45deg); font-size: 15px; font-weight: 800; }
-        .user-marker-icon { background: var(--blue); width: 14px; height: 14px; border: 2.5px solid white; border-radius: 50%; box-shadow: 0 0 10px var(--blue); }
+        /* MODERN BUS MARKER - Elegant teardrop shape with gradient and animation */
+        .bus-pin {
+            width: 48px;
+            height: 48px;
+            border: 3px solid white;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.3) inset;
+            background: linear-gradient(135deg, var(--bus-color, #1a73e8) 0%, color-mix(in srgb, var(--bus-color, #1a73e8) 80%, black) 100%);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .bus-pin::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 50%);
+            border-radius: 50% 50% 50% 0;
+            z-index: 1;
+        }
+        
+        .bus-pin::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50% 50% 50% 0;
+            z-index: 1;
+        }
+        
+        .bus-pin span {
+            transform: rotate(45deg);
+            font-size: 14px;
+            font-weight: 900;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            letter-spacing: -0.5px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .bus-pin:hover {
+            transform: rotate(-45deg) scale(1.1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.35), 0 0 0 2px rgba(255,255,255,0.4) inset;
+            animation-play-state: paused;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: rotate(-45deg) translateY(0); }
+            50% { transform: rotate(-45deg) translateY(-5px); }
+        }
+        
+        /* MODERN USER MARKER - Elegant pulsating dot with halo effect */
+        .user-marker-icon {
+            background: linear-gradient(135deg, var(--blue) 0%, #0d47a1 100%);
+            width: 20px;
+            height: 20px;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--blue), 0 4px 12px rgba(0,0,0,0.3);
+            position: relative;
+            animation: pulse 2s infinite;
+        }
+        
+        .user-marker-icon::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            border: 2px solid rgba(26, 115, 232, 0.3);
+            border-radius: 50%;
+            animation: ripple 2s infinite;
+        }
+        
+        .user-marker-icon::after {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: -12px;
+            right: -12px;
+            bottom: -12px;
+            border: 1px solid rgba(26, 115, 232, 0.15);
+            border-radius: 50%;
+            animation: ripple 2s infinite 0.5s;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 20px var(--blue), 0 4px 12px rgba(0,0,0,0.3);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 30px var(--blue), 0 6px 18px rgba(0,0,0,0.4);
+                transform: scale(1.05);
+            }
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
         .adm-card { background: #f8f9fa; padding: 10px; border-radius: 12px; }
         .adm-metric { font-size: 18px; font-weight: 800; color: var(--blue); display: block; }
 
@@ -876,21 +994,21 @@
             </div>
             
             <nav>
-                <button class="nav-item-custom" onclick="window.switchView('admin-dashboard')"><i class="bi bi-speedometer2"></i> Dashboard Geral</button>
-                <button class="nav-item-custom" onclick="window.switchView('admin-lines')"><i class="bi bi-signpost-2"></i> Gestão de Linhas</button>
-                <button class="nav-item-custom" onclick="window.openRouteManager()"><i class="bi bi-map"></i> Gestão de Rotas</button>
-                <button class="nav-item-custom" onclick="window.openRouteManager(); window.setRouteMode('stops');"><i class="bi bi-geo"></i> Gestão de Paradas</button>
-                <button class="nav-item-custom" onclick="window.openRouteManager(); window.setRouteMode('terminal');"><i class="bi bi-building"></i> Gestão de Terminais</button>
-                <button class="nav-item-custom"><i class="bi bi-broadcast"></i> Monitoramento em Tempo Real <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-people"></i> Usuários e Reputação <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-chat-dots"></i> Reports da Comunidade <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-magic"></i> Sugestões Automáticas <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-arrow-down-up"></i> Importação / Exportação <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-bar-chart"></i> Estatísticas e Análises <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom" onclick="window.switchView('admin-settings')"><i class="bi bi-sliders"></i> Configurações do Sistema</button>
-                <button class="nav-item-custom"><i class="bi bi-journal-text"></i> Logs e Auditoria <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-megaphone"></i> Alertas e Comunicados <span class="standby-badge">Standby</span></button>
-                <button class="nav-item-custom"><i class="bi bi-shield-lock"></i> Permissões e Administradores <span class="standby-badge">Standby</span></button>
+                <button class="nav-item-custom active" onclick="window.switchView('admin-dashboard')"><i class="bi bi-speedometer2"></i> Dashboard Geral <span class="active-feature-badge">ATIVO</span></button>
+                <button class="nav-item-custom" onclick="window.switchView('admin-lines')"><i class="bi bi-signpost-2"></i> Gestão de Linhas <span class="active-feature-badge">ATIVO</span></button>
+                <button class="nav-item-custom" onclick="window.openRouteManager()"><i class="bi bi-map"></i> Gestão de Rotas <span class="active-feature-badge">ATIVO</span></button>
+                <button class="nav-item-custom" onclick="window.openRouteManager(); window.setRouteMode('stops');"><i class="bi bi-geo"></i> Gestão de Paradas <span class="active-feature-badge">ATIVO</span></button>
+                <button class="nav-item-custom" onclick="window.openRouteManager(); window.setRouteMode('terminal');"><i class="bi bi-building"></i> Gestão de Terminais <span class="active-feature-badge">ATIVO</span></button>
+                <button class="nav-item-custom"><i class="bi bi-broadcast"></i> Monitoramento em Tempo Real <span class="standby-badge">EM BREVE</span></button>
+                <button class="nav-item-custom"><i class="bi bi-people"></i> Usuários e Reputação <span class="standby-badge">EM BREVE</span></button>
+                <button class="nav-item-custom"><i class="bi bi-chat-dots"></i> Reports da Comunidade <span class="standby-badge">EM BREVE</span></button>
+                <button class="nav-item-custom"><i class="bi bi-magic"></i> Sugestões Automáticas <span class="standby-badge">EM BREVE</span></button>
+                <button class="nav-item-custom"><i class="bi bi-arrow-down-up"></i> Importação / Exportação <span class="standby-badge">EM BREVE</span></button>
+                <button class="nav-item-custom"><i class="bi bi-bar-chart"></i> Estatísticas e Análises <span class="standby-badge">EM BREVE</span></button>
+                <button class="nav-item-custom" onclick="window.switchView('admin-settings')"><i class="bi bi-sliders"></i> Configurações do Sistema <span class="active-feature-badge">ATIVO</span></button>
+                <button class="nav-item-custom"><i class="bi bi-journal-text"></i> Logs e Auditoria <span class="standby-badge">EM BREVE</span></button>
+                <button class="nav-item-custom"><i class="bi bi-megaphone"></i> Alertas e Comunicados <span class="standby-badge">EM BREVE</span></button>
+                <button class="nav-item-custom"><i class="bi bi-shield-lock"></i> Permissões e Administradores <span class="standby-badge">EM BREVE</span></button>
             </nav>
         </div>
 
