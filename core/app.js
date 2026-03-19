@@ -45,6 +45,7 @@ export function initApp() {
     window.randomizeColor = randomizeColor;
     window.clearAdminForm = clearAdminForm;
     window.loadLineForEdit = loadLineForEdit;
+    window.toggleSimulatedData = toggleSimulatedData;
     
     // Auth subscription
     subscribeToAuthChanges(handleAuthChange);
@@ -445,6 +446,52 @@ async function forceTTLCleanup() {
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-trash me-1"></i>FORÇAR LIMPEZA DE SINAIS EXPIRADOS';
     }, 3000);
+}
+
+function toggleSimulatedData() {
+    const btn = document.getElementById('simulate-data-btn');
+    const statUsers = document.getElementById('stat-users');
+    const statLines = document.getElementById('stat-lines');
+    
+    if (!btn || !statUsers || !statLines) return;
+    
+    // Check if data is currently simulated
+    const isSimulated = btn.classList.contains('btn-success');
+    
+    if (isSimulated) {
+        // Clear simulated data
+        statUsers.textContent = '0';
+        statLines.textContent = '4'; // Keep the base value from the HTML
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-outline-secondary');
+        btn.innerHTML = '<i class="bi bi-database me-1"></i> Simular Dados Fictícios';
+        
+        // Show notification
+        showParamsStatus('Dados fictícios removidos', 'info');
+        
+        // Fallback alert if params-status not found
+        if (!document.getElementById('params-status')) {
+            alert('Dados fictícios removidos');
+        }
+    } else {
+        // Insert simulated data
+        const randomUsers = Math.floor(Math.random() * 50) + 20; // 20-70 users
+        const randomLines = Math.floor(Math.random() * 10) + 4; // 4-14 lines
+        
+        statUsers.textContent = randomUsers.toString();
+        statLines.textContent = randomLines.toString();
+        btn.classList.remove('btn-outline-secondary');
+        btn.classList.add('btn-success');
+        btn.innerHTML = '<i class="bi bi-database-fill-check me-1"></i> Limpar Dados Fictícios';
+        
+        // Show notification
+        showParamsStatus(`Dados fictícios inseridos: ${randomUsers} usuários, ${randomLines} linhas`, 'success');
+        
+        // Fallback alert if params-status not found
+        if (!document.getElementById('params-status')) {
+            alert(`Dados fictícios inseridos: ${randomUsers} usuários ativos, ${randomLines} linhas`);
+        }
+    }
 }
 
 // Expose functions to window
