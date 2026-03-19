@@ -4,6 +4,7 @@ import { initMap } from '../modules/map/mapInit.js';
 import { state, updateState } from './stateManager.js';
 import { iniciarGPS, stopTrack } from '../modules/gps/gpsCollector.js';
 import { renderBusList } from '../modules/buses/busManager.js';
+import { renderBusMarkers } from '../modules/buses/busRenderer.js';
 import { toggleSidebar, switchView, toggleDrawer, toggleBottomCard } from '../ui/panels/sidebar.js';
 import { onMapClickForRoute, selectLineForRoute, saveRouteData, clearCurrentDraft } from '../admin/mapEditor/routeEditor.js';
 import { COMPANIES } from '../config/systemConfig.js';
@@ -14,6 +15,7 @@ import { ref, set, onValue, onDisconnect, remove, push } from "https://www.gstat
 export function initApp() {
     // Initialize map
     const map = initMap('map');
+    state.map = map;
     
     // Initialize state
     state.draftPolyline = L.polyline([], {color: '#1a73e8', weight: 4}).addTo(map);
@@ -125,6 +127,9 @@ function setupDataListeners() {
     onValue(ref(db, 'onibus'), snap => {
         const gpsData = snap.val() || {};
         const { statusH, drawerH, tU } = renderBusList(gpsData, state.configLinhas);
+        
+        // Render bus markers on the map
+        renderBusMarkers(gpsData, state.configLinhas);
         
         document.getElementById('floating-active-list').innerHTML = drawerH || '<small class="text-muted">Sem frota ativa</small>';
         document.getElementById('status-display').innerHTML = statusH || '<small class="text-muted">Aguardando dados...</small>';

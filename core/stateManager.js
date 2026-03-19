@@ -4,6 +4,7 @@ export const state = {
     currentLineKey: null,
     userMarker: null,
     adminSelectedCompany: 'atlantico',
+    map: null,
     markers: {},
     configLinhas: {},
     routeDraft: { lineKey: null, path: [], stops: [], terminals: [] },
