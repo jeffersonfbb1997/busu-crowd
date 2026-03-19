@@ -66,7 +66,7 @@
 
         .company-option { flex: 1; border: 2px solid #f1f3f4; border-radius: 12px; padding: 10px; cursor: pointer; transition: 0.2s; text-align: center; }
         .company-option.selected { border-color: var(--blue); background: #e8f0fe; }
-        .company-option img { height: 25px; object-fit: contain; }
+        .company-option img { height: 25px; width: auto; max-width: 100%; object-fit: contain; display: block; margin: 0 auto; }
 
         .bus-pin { width: 42px; height: 42px; border: 2.5px solid white; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
         .bus-pin span { transform: rotate(45deg); font-size: 15px; font-weight: 800; }
@@ -151,7 +151,7 @@
                 <input type="text" id="admVia" class="form-control form-control-sm mb-2" placeholder="Subtítulo / Via">
                 
                 <div class="d-flex gap-2 mb-3">
-                    <div class="company-option" onclick="window.selectCompany('atlantico')" id="adm-opt-atlantico"><img src="assets/atlantico-logo.png"></div>
+                    <div class="company-option" onclick="window.selectCompany('atlantico')" id="adm-opt-atlantico"><img src="assets/atlantico-logo.jpeg"></div>
                     <div class="company-option" onclick="window.selectCompany('viametro')" id="adm-opt-viametro"><img src="assets/viametro-logo.png"></div>
                 </div>
 
