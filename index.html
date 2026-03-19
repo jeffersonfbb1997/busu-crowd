@@ -321,12 +321,19 @@
         });
 
         // TRACKING
-        window.startTrack = (key) => {
+            window.startTrack = (key) => {
+            // Remove o foco do botão para evitar o erro de ARIA mostrado no console
+            if (document.activeElement) document.activeElement.blur();
+            
             currentLineKey = key;
             localStorage.setItem('busu_active_line', key);
+            
+            const modalEl = document.getElementById('modalLine');
+            const modalInst = bootstrap.Modal.getInstance(modalEl);
+            if (modalInst) modalInst.hide();
+            
             iniciarGPS(key);
-            bootstrap.Modal.getInstance(document.getElementById('modalLine')).hide();
-        };
+        };;
 
 function iniciarGPS(key) {
             if(watchID) navigator.geolocation.clearWatch(watchID);
