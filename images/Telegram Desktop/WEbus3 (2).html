@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>BusU-Crowd - Rastreador Universitário</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
+        
+        /* O mapa ocupa a tela toda */
+        #map { height: 100vh; width: 100vw; z-index: 1; }
+        
+        /* Botão flutuante para Colaborar */
+        .btn-colaborar {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000; /* Fica acima do mapa */
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+            border-radius: 30px;
+            padding: 12px 24px;
+            font-weight: bold;
+        }
+
+        /* Estilo customizado para os ícones dos ônibus */
+        .bus-marker {
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .bg-red { background-color: #dc3545; }
+        .bg-blue { background-color: #0d6efd; }
+        .bg-green { background-color: #198754; }
+    </style>
+</head>
+<body>
+
+    <!-- Mapa -->
+    <div id="map"></div>
+
+    <!-- Botão Flutuante -->
+    <button class="btn btn-primary btn-colaborar" data-bs-toggle="modal" data-bs-target="#modalLinhas">
+        📍 Quero Colaborar (Estou no Ônibus)
+    </button>
+
+    <!-- Modal de Seleção de Linha -->
+    <div class="modal fade" id="modalLinhas" tabindex="-1" aria-labelledby="modalLinhasLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLinhasLabel">Em qual linha você está?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">Ao selecionar, pediremos acesso ao seu GPS para atualizar o mapa para todos os alunos.</p>
+                    <select class="form-select form-select-lg mb-3" id="linhaSelecionada">
+                        <option value="" selected disabled>Selecione a Linha...</option>
+                        <option value="linha_vermelha">Linha 26 - Vermelha (UESC/VIA PRINCESA ISABEL)</option>
+                        <!-- <option value="linha_azul">Linha 02 - Azul (Circular Interno)</option> -->
+                        <!-- "<option value="linha_verde">Linha 03 - Verde (Direto Metrô)</option>" -->
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="btnIniciarColaboracao">OK, Começar!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+	
+	// ==========================================
+// MOTOR DE FUSÃO E FILTRO ANTI-ZUMBI
+// ==========================================
+
+// Objeto para guardar os marcadores reais desenhados no mapa
+const onibusNoMapa = {}; 
+
+/**
+ * Função principal que recebe os dados "crus" (vários alunos na mesma linha),
+ * limpa os dados velhos, calcula o centroide e move o ônibus.
+ */
+function processarDadosDaLinha(codigoLinha, corClasse, usuariosAtivos) {
+    const tempoAtual = Date.now();
+    let somaLat = 0;
+    let somaLng = 0;
+    let quantidadeValida = 0;
+
+    // 1. FILTRO ANTI-ZUMBI
+    // Percorre todos os alunos transmitindo nesta linha
+    for (const idUsuario in usuariosAtivos) {
+        const dados = usuariosAtivos[idUsuario];
+        
+        // Verifica a idade da informação (Ex: ignora se for mais velha que 30 segundos)
+        const idadeDaInformacao = tempoAtual - dados.timestamp;
+        
+        if (idadeDaInformacao < 30000) { // 30.000 milissegundos = 30 segundos
+            somaLat += dados.lat;
+            somaLng += dados.lng;
+            quantidadeValida++;
+        } else {
+            console.log(`Dado ignorado do usuário ${idUsuario} (Muito antigo)`);
+        }
+    }
+
+    // 2. SE NINGUÉM FOR VÁLIDO, REMOVE O ÔNIBUS DO MAPA
+    if (quantidadeValida === 0) {
+        if (onibusNoMapa[codigoLinha]) {
+            map.removeLayer(onibusNoMapa[codigoLinha]);
+            delete onibusNoMapa[codigoLinha];
+        }
+        return; // Sai da função
+    }
+
+    // 3. CÁLCULO DO CENTROIDE (FUSÃO)
+    // Calcula a média exata de todas as latitudes e longitudes válidas
+    const mediaLat = somaLat / quantidadeValida;
+    const mediaLng = somaLng / quantidadeValida;
+
+    // 4. ATUALIZA OU CRIA O MARCADOR NO MAPA
+    if (onibusNoMapa[codigoLinha]) {
+        // Se o ônibus já existe, apenas move ele suavemente para a nova posição
+        onibusNoMapa[codigoLinha].setLatLng([mediaLat, mediaLng]);
+        onibusNoMapa[codigoLinha].getPopup().setContent(`<b>Linha ${codigoLinha}</b><br>Colaboradores ativos: ${quantidadeValida}`);
+    } else {
+        // Se não existe, cria o ícone e adiciona ao mapa
+        const novoIcone = createBusIcon(corClasse, codigoLinha);
+        const novoMarcador = L.marker([mediaLat, mediaLng], { icon: novoIcone }).addTo(map);
+        novoMarcador.bindPopup(`<b>Linha ${codigoLinha}</b><br>Colaboradores ativos: ${quantidadeValida}`);
+        
+        onibusNoMapa[codigoLinha] = novoMarcador;
+    }
+}
+
+// ==========================================
+// SIMULADOR DE TESTE (Para vermos a mágica funcionando)
+// ==========================================
+// Vamos simular 3 alunos na linha "L1" (Vermelha), um deles com a internet caída (dado velho).
+
+setInterval(() => {
+    // Simulando dados vindo do banco de dados (Firebase falso)
+    const dadosSimuladosDoFirebase = {
+        "aluno_01": { lat: -23.5600 + (Math.random()*0.001), lng: -46.7250, timestamp: Date.now() }, // Ativo
+        "aluno_02": { lat: -23.5605 + (Math.random()*0.001), lng: -46.7245, timestamp: Date.now() }, // Ativo e pertinho do aluno 01
+        "aluno_03": { lat: -23.5000, lng: -46.7000, timestamp: Date.now() - 60000 } // ZUMBI (Há 1 minuto atrás, não vai contar)
+    };
+
+    // Chamamos o motor de fusão para a Linha 1 (Vermelha)
+    processarDadosDaLinha('L1', 'bg-red', dadosSimuladosDoFirebase);
+
+}, 2000); // Roda a cada 2 segundos simulando o tempo real
+	
+	
+	
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        // 1. CONFIGURAÇÃO DA REGIÃO (Mude as coordenadas [Lat, Lng] para sua universidade)
+        // Exemplo: Coordenadas da USP em SP. Zoom level: 15
+        const centerCoords = [-14.7981, -39.0347]; 
+
+        const map = L.map('map').setView(centerCoords, 15);
+
+        // Camada de ruas do OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // 2. MODO ESPECTADOR (Simulação de ônibus no mapa)
+        // Função para criar o ícone customizado com cor
+        function createBusIcon(colorClass, code) {
+            return L.divIcon({
+                className: `bus-marker ${colorClass}`,
+                html: code,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15] // Centro do ícone
+            });
+        }
+
+        // Criando marcadores simulados (Isso virá do Firebase depois)
+        const bus1 = L.marker([-23.5600, -46.7250], {icon: createBusIcon('bg-red', 'L1')}).addTo(map);
+        bus1.bindPopup('<b>Linha Vermelha</b><br>Código: L1<br>Status: Em movimento');
+
+        const bus2 = L.marker([-23.5650, -46.7300], {icon: createBusIcon('bg-blue', 'L2')}).addTo(map);
+        bus2.bindPopup('<b>Linha Azul</b><br>Código: L2<br>Status: Parado no ponto');
+
+        // 3. MODO COLABORADOR (Lógica do Modal e Permissões)
+        document.getElementById('btnIniciarColaboracao').addEventListener('click', async () => {
+            const linha = document.getElementById('linhaSelecionada').value;
+            if(!linha) {
+                alert("Por favor, selecione uma linha primeiro.");
+                return;
+            }
+
+            // Esconde o modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalLinhas'));
+            modal.hide();
+
+            // Pede permissão e inicia GPS
+            iniciarGPS(linha);
+        });
+
+        function iniciarGPS(linhaID) {
+            if ("geolocation" in navigator) {
+                // Altera o botão para mostrar que está transmitindo
+                const btn = document.querySelector('.btn-colaborar');
+                btn.innerHTML = `📡 Transmitindo: ${linhaID} (Parar)`;
+                btn.classList.replace('btn-primary', 'btn-danger');
+
+                // AQUI ENTRA A WAKE LOCK API (Evita a tela apagar no celular)
+                // requestWakeLock();
+
+                // Inicia o rastreamento real
+                navigator.geolocation.watchPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        console.log(`[${linhaID}] Coordenada capturada: ${lat}, ${lng}`);
+                        // FUTURO: Enviar lat/lng para o Firebase aqui
+                    },
+                    (error) => {
+                        alert("Erro ao obter GPS: " + error.message);
+                    },
+                    { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+                );
+            } else {
+                alert("Seu navegador não suporta geolocalização.");
+            }
+        }
+    </script>
+</body>
+</html>
