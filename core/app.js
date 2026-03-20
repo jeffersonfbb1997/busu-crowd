@@ -16,13 +16,51 @@ import { updateUserPointer, centerMapOnPointer, initPointerService } from '../se
 import { ref, set, onValue, onDisconnect, remove, push } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
 export function initApp() {
+    // Check if Leaflet is available
+    if (typeof L === 'undefined') {
+        console.error('Leaflet (L) is not defined. Make sure Leaflet script is loaded before this module.');
+        // Try to load Leaflet dynamically or show error
+        document.getElementById('map').innerHTML = '<div style="padding: 20px; color: red;">Erro: Leaflet não carregou. Verifique a conexão.</div>';
+        return;
+    }
+    
     // Initialize map
-    const map = initMap('map');
+    let map;
+    try {
+        map = initMap('map');
+    } catch (error) {
+        console.error('Failed to initialize map:', error);
+        document.getElementById('map').innerHTML = `<div style="padding: 20px; color: red;">Erro ao inicializar mapa: ${error.message}</div>`;
+        return;
+    }
+    
+    if (!map) {
+        console.error('Map initialization returned null/undefined');
+        return;
+    }
+    
     state.map = map;
     
-    // Initialize state
-    state.draftPolyline = L.polyline([], {color: '#1a73e8', weight: 4}).addTo(map);
-    state.draftMarkers = L.layerGroup().addTo(map);
+    // Hide loading indicator
+    try {
+        const loadingIndicator = document.getElementById('map-loading');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+    } catch (e) {
+        console.log('Could not hide loading indicator:', e);
+    }
+    
+    // Initialize state with error handling
+    try {
+        state.draftPolyline = L.polyline([], {color: '#1a73e8', weight: 4}).addTo(map);
+        state.draftMarkers = L.layerGroup().addTo(map);
+    } catch (error) {
+        console.warn('Failed to initialize draft elements:', error);
+        // Continue without draft elements
+        state.draftPolyline = null;
+        state.draftMarkers = null;
+    }
     
     // Expose functions to window
     window.toggleSidebar = toggleSidebar;

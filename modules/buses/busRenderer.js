@@ -197,13 +197,100 @@ export function renderBusMarkers(gpsData, configLinhas) {
              * @param {number} lat - Latitude
              * @param {number} lng - Longitude
              */
-            function updateBusDetailsCard(lineKey, lineConfig, company, activeCount, lat, lng) {
+            /**
+             * Adjust color brightness by a percentage
+             * @param {string} color - Hex color code (e.g., #1a73e8)
+             * @param {number} percent - Percentage to adjust (-100 to 100)
+             * @returns {string} Adjusted hex color
+             */
+            function adjustColorBrightness(color, percent) {
+                // Remove # if present
+                let hex = color.replace('#', '');
+                
+                // Parse the hex color
+                let r = parseInt(hex.substring(0, 2), 16);
+                let g = parseInt(hex.substring(2, 4), 16);
+                let b = parseInt(hex.substring(4, 6), 16);
+                
+                // Adjust brightness
+                r = Math.max(0, Math.min(255, r + (r * percent / 100)));
+                g = Math.max(0, Math.min(255, g + (g * percent / 100)));
+                b = Math.max(0, Math.min(255, b + (b * percent / 100)));
+                
+                // Convert back to hex
+                const toHex = (c) => {
+                    const hex = Math.round(c).toString(16);
+                    return hex.length === 1 ? '0' + hex : hex;
+                };
+                
+                return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+            }
+            
+            /**
+             * Get street name from coordinates using OpenStreetMap Nominatim API
+             * @param {number} lat - Latitude
+             * @param {number} lng - Longitude
+             * @returns {Promise<string>} Street name or formatted coordinates
+             */
+            async function getStreetNameFromCoords(lat, lng) {
+                if (lat === 0 && lng === 0) return 'Localização GPS';
+                
+                try {
+                    // Use OpenStreetMap Nominatim API for reverse geocoding
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+                    );
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Extract street name from address
+                    if (data.address) {
+                        // Try to get road (street name)
+                        if (data.address.road) {
+                            return data.address.road;
+                        }
+                        // Fallback to other address components
+                        if (data.address.neighbourhood) {
+                            return data.address.neighbourhood;
+                        }
+                        if (data.address.suburb) {
+                            return data.address.suburb;
+                        }
+                        if (data.address.city) {
+                            return data.address.city;
+                        }
+                    }
+                    
+                    // If no address found, return formatted coordinates
+                    const latDir = lat >= 0 ? 'N' : 'S';
+                    const lngDir = lng >= 0 ? 'E' : 'W';
+                    return `${Math.abs(lat).toFixed(6)}°${latDir}, ${Math.abs(lng).toFixed(6)}°${lngDir}`;
+                    
+                } catch (error) {
+                    console.warn('Reverse geocoding failed:', error);
+                    // Fallback to formatted coordinates
+                    const latDir = lat >= 0 ? 'N' : 'S';
+                    const lngDir = lng >= 0 ? 'E' : 'W';
+                    return `${Math.abs(lat).toFixed(6)}°${latDir}, ${Math.abs(lng).toFixed(6)}°${lngDir}`;
+                }
+            }
+            
+            async function updateBusDetailsCard(lineKey, lineConfig, company, activeCount, lat, lng) {
                 try {
                     console.log(`updateBusDetailsCard called for line ${lineConfig.id}, setting data-bus-selected=true`);
                     
-                    // Get street location (for now, we'll use a placeholder - in production,
-                    // you would use reverse geocoding or store street names in config)
-                    const streetLocation = lineConfig.via || 'Via principal';
+                    // Get street name from GPS coordinates using reverse geocoding
+                    let streetLocation = 'Localização GPS';
+                    if (lat !== 0 && lng !== 0) {
+                        streetLocation = await getStreetNameFromCoords(lat, lng);
+                    }
+                    
+                    // Get route/trajectory data (via/subtítulo from line config)
+                    const routeInfo = lineConfig.via || 'Trajeto principal';
                     
                     // Determine if bus is delayed (simulated logic - in production,
                     // this would compare scheduled vs actual times)
@@ -241,8 +328,22 @@ export function renderBusMarkers(gpsData, configLinhas) {
                     document.getElementById('bus-company-logo').src = company.favicon;
                     document.getElementById('bus-company-name').textContent = company.name || 'Companhia';
                     
-                    // Update street location
-                    document.getElementById('bus-street-location').textContent = streetLocation;
+                    // Update bus line badge color to match the globe marker
+                    const busLineBadge = document.getElementById('bus-line-badge');
+                    if (busLineBadge && lineConfig.cor) {
+                        // Create a gradient using the line color
+                        const baseColor = lineConfig.cor;
+                        // Create a slightly darker shade for gradient
+                        const darkerColor = adjustColorBrightness(baseColor, -30);
+                        busLineBadge.style.background = `linear-gradient(135deg, ${baseColor}, ${darkerColor})`;
+                        console.log(`Updated bus line badge color to ${baseColor}`);
+                    }
+                    
+                    // Update street location with route info as subtitle
+                    const streetLocationElement = document.getElementById('bus-street-location');
+                    if (streetLocationElement) {
+                        streetLocationElement.innerHTML = `${streetLocation}<br><small class="text-muted">${routeInfo}</small>`;
+                    }
                     
                     // Update delay status
                     const delaySection = document.getElementById('bus-delay-section');
@@ -279,6 +380,16 @@ export function renderBusMarkers(gpsData, configLinhas) {
                         accessibilityStatusElement.className = `feature-status ${accessibilityStatus === 'OK' ? 'text-success' : 'text-warning'}`;
                     } else {
                         accessibilityFeature.style.display = 'none';
+                    }
+                    
+                    // Show/hide entire features section based on whether any features are available
+                    const featuresSection = document.getElementById('features-section');
+                    if (featuresSection) {
+                        if ((hasAC && acStatus) || (hasAccessibility && accessibilityStatus)) {
+                            featuresSection.style.display = 'block';
+                        } else {
+                            featuresSection.style.display = 'none';
+                        }
                     }
                     
                     // Update status dot
