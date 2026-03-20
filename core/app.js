@@ -92,10 +92,13 @@ function geoCenter() {
         
         console.log('Geolocation success:', { lat, lng, accuracy: accuracy + 'm' });
         
-        // Center map on location (NO MARKER CREATED)
+        // Create user pin (blue circle marker) when GPS locates user
+        updateUserPointer(lat, lng, accuracy, true); // forceUpdate = true
+        
+        // Center map on user location
         centerMapOnPointer(lat, lng, 17);
         
-        // Note: No pointer/marker is created - only map centering
+        console.log('User pin created and map centered on user location');
         
     }, (error) => {
         console.warn('Geolocation error:', error);
@@ -104,7 +107,7 @@ function geoCenter() {
         const defaultLat = -14.81929, defaultLng = -39.036015;
         centerMapOnPointer(defaultLat, defaultLng, 15);
         
-        // Note: No pointer/marker is created at default location
+        console.log('Geolocation failed, centered on default location');
         
     }, {enableHighAccuracy: true, timeout: 5000, maximumAge: 0});
 }
