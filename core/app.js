@@ -230,14 +230,16 @@ function setupDataListeners() {
 // Admin functions
 function saveLine() {
     const id = document.getElementById('admID').value;
-    const key = document.getElementById('admDbKey').value || push(ref(db, 'config/linhas')).key;
+    // Use the line ID as the key for consistency
+    // If editing an existing line, use the existing key from admDbKey
+    const key = document.getElementById('admDbKey').value || id;
     if(!id) return alert("Erro");
-    set(ref(db, `config/linhas/${key}`), { 
-        id, 
-        nome: document.getElementById('admNome').value, 
-        via: document.getElementById('admVia').value || "Principal", 
-        cor: document.getElementById('admCor').value, 
-        company: state.adminSelectedCompany 
+    set(ref(db, `config/linhas/${key}`), {
+        id,
+        nome: document.getElementById('admNome').value,
+        via: document.getElementById('admVia').value || "Principal",
+        cor: document.getElementById('admCor').value,
+        company: state.adminSelectedCompany
     }).then(() => { alert("OK"); clearAdminForm(); });
 }
 
