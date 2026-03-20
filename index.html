@@ -1020,6 +1020,37 @@
                 <small class="text-muted d-block mt-1" style="font-size: 9px;">Clique para inserir/limpar dados de teste</small>
             </div>
             
+            <!-- Live Monitor and Health Metrics -->
+            <div class="card card-body border-0 bg-light p-3 shadow-sm mb-4">
+                <h6 class="fw-bold mb-3"><i class="bi bi-graph-up me-2"></i>Monitoramento de Saúde</h6>
+                
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <div class="card bg-success text-white text-center p-2">
+                            <div class="card-body p-2">
+                                <h5 class="mb-0" id="health-active-users">0</h5>
+                                <small>Usuários Transmitindo</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card bg-warning text-dark text-center p-2">
+                            <div class="card-body p-2">
+                                <h5 class="mb-0" id="health-rejected-signals">0</h5>
+                                <small>Sinais Rejeitados</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="admin-monitor-container">
+                    <!-- Monitor will be loaded here dynamically -->
+                </div>
+                <div id="admin-stats-container" class="mt-3">
+                    <!-- Statistics will be loaded here dynamically -->
+                </div>
+            </div>
+            
             <nav>
                 <button class="nav-item-custom active" onclick="window.switchView('admin-dashboard')"><i class="bi bi-speedometer2"></i> Dashboard Geral <span class="active-feature-badge">ATIVO</span></button>
                 <button class="nav-item-custom" onclick="window.switchView('admin-lines')"><i class="bi bi-signpost-2"></i> Gestão de Linhas <span class="active-feature-badge">ATIVO</span></button>
