@@ -177,13 +177,14 @@ export function forceTTLCleanup() {
  */
 function updateBottomCardRadius(radius) {
     try {
-        const activeLabel = document.querySelector('.active-label');
+        // Target specifically the active-label inside the bottom-info-card
+        const activeLabel = document.querySelector('#bottom-info-card .active-label');
         if (activeLabel) {
             // Update the label text with the new radius
             activeLabel.textContent = `EM TEMPO REAL • ${radius}KM`;
             console.log('Bottom card radius updated to:', radius, 'KM');
         } else {
-            console.debug('Active label element not found yet, will update on next render');
+            console.debug('Bottom card active label element not found yet, will update on next render');
         }
     } catch (error) {
         console.warn('Failed to update bottom card radius:', error.message);

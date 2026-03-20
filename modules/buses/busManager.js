@@ -35,10 +35,8 @@ export function renderBusList(gpsData, configLinhas) {
 
             if (uLat) {
                 const d = calcDist(uLat, uLng, mLt, mLn);
-                if (d <= 5) {
-                    const eta = Math.round(d / 0.33);
-                    statusH += `<div class="bus-item" onclick="map.flyTo([${mLt},${mLn}], 17)"><div><div class="bus-title"><img src="${comp.favicon}" class="bus-logo-mini">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div><div class="status-box">${eta > 0 ? `<div class="eta-val">${eta} min</div><small style="font-size:8px; color:#aaa">${d.toFixed(1)}km</small>` : `<div class="neon-dot"></div>`}</div></div>`;
-                }
+                const eta = Math.round(d / 0.33);
+                statusH += `<div class="bus-item" onclick="map.flyTo([${mLt},${mLn}], 17)"><div><div class="bus-title"><img src="${comp.favicon}" class="bus-logo-mini">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div><div class="status-box">${eta > 0 ? `<div class="eta-val">${eta} min</div><small style="font-size:8px; color:#aaa">${d.toFixed(1)}km</small>` : `<div class="neon-dot"></div>`}</div></div>`;
             } else {
                 statusH += `<div class="bus-item"><div><div class="bus-title">${c.id} - ${c.nome}</div></div><div class="status-box"><div class="neon-dot"></div></div></div>`;
             }
