@@ -5,7 +5,7 @@ import { getPointerPosition } from "../../services/pointerService.js";
 
 export function renderBusList(gpsData, configLinhas) {
     const now = Date.now();
-    let statusH = "", drawerH = "", tU = 0;
+    let statusH = "", drawerH = "", tU = 0, activeLines = 0;
     const userPosition = getPointerPosition();
     const uLat = userPosition ? userPosition.lat : null;
     const uLng = userPosition ? userPosition.lng : null;
@@ -29,6 +29,7 @@ export function renderBusList(gpsData, configLinhas) {
         tU += cnt;
 
         if (cnt > 0) {
+            activeLines++;
             const mLt = latA / cnt, mLn = lngA / cnt;
             const comp = COMPANIES[c.company || 'atlantico'];
             drawerH += `<div class="d-flex align-items-center mb-3" onclick="map.flyTo([${mLt},${mLn}], 17)" style="cursor:pointer; border-left:3px solid ${c.cor}; padding-left:10px;"><div class="flex-grow-1"><div class="bus-title"><img src="${comp.favicon}" class="bus-logo-mini">${c.id}</div><div class="bus-subtitle" style="font-size:8px">${c.via.substring(0,20)}...</div></div></div>`;
@@ -43,5 +44,5 @@ export function renderBusList(gpsData, configLinhas) {
         }
     }
 
-    return { statusH, drawerH, tU };
+    return { statusH, drawerH, tU, activeLines };
 }

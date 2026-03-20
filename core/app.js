@@ -214,13 +214,20 @@ function setupDataListeners() {
     // GPS data listener
     onValue(ref(db, 'onibus'), snap => {
         const gpsData = snap.val() || {};
-        const { statusH, drawerH, tU } = renderBusList(gpsData, state.configLinhas);
+        const { statusH, drawerH, tU, activeLines } = renderBusList(gpsData, state.configLinhas);
         
         // Render bus markers on the map
         renderBusMarkers(gpsData, state.configLinhas);
         
         document.getElementById('floating-active-list').innerHTML = drawerH || '<small class="text-muted">Sem frota ativa</small>';
         document.getElementById('status-display').innerHTML = statusH || '<small class="text-muted">Aguardando dados...</small>';
+        
+        // Update FROTA ATIVA label with active bus lines count
+        const frotaLabel = document.getElementById('frota-ativa-label');
+        if (frotaLabel) {
+            frotaLabel.textContent = `FROTA ATIVA (${activeLines})`;
+        }
+        
         document.getElementById('stat-users').innerText = tU;
         document.getElementById('global-counter').style.display = tU > 0 ? 'block' : 'none';
         document.getElementById('total-active-text').innerText = `${tU} COLABORADORES ATIVOS`;
