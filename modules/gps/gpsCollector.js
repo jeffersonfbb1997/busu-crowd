@@ -90,11 +90,9 @@ export function stopTrack() {
         remove(ref(db, `onibus/${state.currentLineKey}/${state.user.uid}`));
     }
     
-    // Remove user marker from map when stopping GPS transmission
-    if (window.pointerService && window.pointerService.removeUserPointer) {
-        window.pointerService.removeUserPointer();
-        console.log('User marker removed (GPS transmission stopped)');
-    }
+    // DO NOT remove user marker when stopping GPS transmission
+    // User marker should remain visible unless GPS signal is blocked
+    console.log('GPS transmission stopped - user marker remains visible');
     
     localStorage.removeItem('busu_active_line');
     const btn = document.getElementById('action-btn');
