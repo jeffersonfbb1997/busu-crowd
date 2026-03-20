@@ -101,22 +101,27 @@ export function calculatePacketDelay(dataTimestamp, isClientTime = true) {
 }
 
 /**
- * Initialize time service and calculate offset
+ * Initialize time service and calculate offset (non-blocking)
  */
 export async function initTimeService() {
-    try {
-        await calculateServerTimeOffset();
-        
-        // Only set up periodic recalculation if the first attempt succeeded
-        // Recalculate offset periodically (every 5 minutes)
-        setInterval(async () => {
+    // Mark as calculated immediately to avoid blocking
+    isOffsetCalculated = true;
+    serverTimeOffset = 0;
+    
+    // Calculate offset in background without blocking initialization
+    setTimeout(async () => {
+        try {
             await calculateServerTimeOffset();
-        }, 5 * 60 * 1000);
-    } catch (error) {
-        console.warn('Time service initialization failed, using client time. Error:', error.message);
-        serverTimeOffset = 0;
-        isOffsetCalculated = true;
-    }
+            
+            // Set up periodic recalculation if the first attempt succeeded
+            setInterval(async () => {
+                await calculateServerTimeOffset();
+            }, 5 * 60 * 1000);
+        } catch (error) {
+            // Already using client time, no need to log as error
+            console.debug('Background time offset calculation failed, continuing with client time');
+        }
+    }, 0);
     
     return serverTimeOffset;
 }

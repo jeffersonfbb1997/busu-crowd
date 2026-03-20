@@ -65,8 +65,8 @@ export function initApp() {
     // Data listeners
     setupDataListeners();
     
-    // Initial geo center
-    setTimeout(() => geoCenter(), 2000);
+    // Initial geo center - reduced from 2000ms to 500ms for faster loading
+    setTimeout(() => geoCenter(), 500);
 }
 
 function geoCenter() {
@@ -99,7 +99,7 @@ function geoCenter() {
         
         // Note: No pointer/marker is created at default location
         
-    }, {enableHighAccuracy: true, timeout: 10000, maximumAge: 0});
+    }, {enableHighAccuracy: true, timeout: 5000, maximumAge: 0});
 }
 
 function startTrack(key) {
@@ -642,8 +642,8 @@ window.applyAdminSecurity = applyAdminSecurity;
 import { cleanupDeletedLineMarkers } from '../modules/buses/busRenderer.js';
 window.cleanupDeletedLineMarkers = cleanupDeletedLineMarkers;
 
-// Initialize admin security when app loads
+// Initialize admin security when app loads - reduced from 3000ms to 1000ms
 setTimeout(() => {
     applyAdminSecurity();
     updateHealthMetricsDisplay();
-}, 3000);
+}, 1000);
