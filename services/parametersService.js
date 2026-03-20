@@ -31,6 +31,9 @@ export function initParametersListener() {
                 updateState('systemTTL', systemTTL);
                 updateState('systemRadius', systemRadius);
                 
+                // Update bottom card label with new radius
+                updateBottomCardRadius(systemRadius);
+                
                 // Trigger cleanup if TTL changed
                 if (window.triggerTTLCleanup) {
                     window.triggerTTLCleanup();
@@ -167,3 +170,25 @@ export function forceTTLCleanup() {
     
     return true;
 }
+
+/**
+ * Update the bottom card label with the current radius value
+ * @param {number} radius - The radius in kilometers
+ */
+function updateBottomCardRadius(radius) {
+    try {
+        const activeLabel = document.querySelector('.active-label');
+        if (activeLabel) {
+            // Update the label text with the new radius
+            activeLabel.textContent = `EM TEMPO REAL • ${radius}KM`;
+            console.log('Bottom card radius updated to:', radius, 'KM');
+        } else {
+            console.debug('Active label element not found yet, will update on next render');
+        }
+    } catch (error) {
+        console.warn('Failed to update bottom card radius:', error.message);
+    }
+}
+
+// Export for global access if needed
+window.updateBottomCardRadius = updateBottomCardRadius;

@@ -61,6 +61,14 @@ export function initApp() {
     // Initialize pointer service
     initPointerService();
     
+    // Update bottom card with initial radius after a short delay
+    setTimeout(() => {
+        const initialRadius = state.systemRadius || 5;
+        if (window.updateBottomCardRadius) {
+            window.updateBottomCardRadius(initialRadius);
+        }
+    }, 1000);
+    
     // Data listeners
     setupDataListeners();
     
