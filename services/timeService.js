@@ -1,5 +1,5 @@
 import { db } from "./firebaseService.js";
-import { ref, serverTimestamp, onValue, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+import { ref, serverTimestamp, set, onValue, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
 // Server time offset in milliseconds (client time - server time)
 let serverTimeOffset = 0;
@@ -13,15 +13,28 @@ export async function calculateServerTimeOffset() {
     try {
         console.log('Calculating server time offset...');
         
-        // Create a reference to a temporary location
-        const tempRef = ref(db, '.info/serverTimeOffset');
+        // Create a temporary reference for time measurement
+        const tempRef = ref(db, '_serverTimeCheck/' + Date.now());
         
-        // Get server time offset from Firebase
+        // Write server timestamp
+        const startTime = Date.now();
+        await set(tempRef, {
+            clientTime: startTime,
+            serverTime: serverTimestamp()
+        });
+        
+        // Read back to get server time
         const snapshot = await get(tempRef);
-        const offset = snapshot.val();
+        const data = snapshot.val();
         
-        if (offset !== null) {
-            serverTimeOffset = offset;
+        if (data && data.serverTime) {
+            // Calculate offset: serverTime - clientTime
+            const serverTime = data.serverTime;
+            const endTime = Date.now();
+            const roundTripTime = endTime - startTime;
+            const estimatedServerTime = serverTime + (roundTripTime / 2);
+            serverTimeOffset = estimatedServerTime - startTime;
+            
             isOffsetCalculated = true;
             console.log('Server time offset calculated:', serverTimeOffset, 'ms');
             return serverTimeOffset;

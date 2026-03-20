@@ -434,62 +434,300 @@
             50% { transform: rotate(-45deg) translateY(-5px); }
         }
         
-        /* MODERN USER MARKER - Elegant pulsating dot with halo effect */
+        /* MODERN USER AVATAR SYSTEM - Customizable with multiple styles */
         .user-marker-icon {
+            /* Default style - Modern gradient dot */
             background: linear-gradient(135deg, var(--blue) 0%, #0d47a1 100%);
-            width: 20px;
-            height: 20px;
+            width: 28px;
+            height: 28px;
             border: 3px solid white;
             border-radius: 50%;
-            box-shadow: 0 0 20px var(--blue), 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: 0 0 25px var(--blue), 0 6px 16px rgba(0,0,0,0.25), inset 0 2px 4px rgba(255,255,255,0.3);
             position: relative;
-            animation: pulse 2s infinite;
+            animation: avatarPulse 2s infinite ease-in-out;
+            transition: all 0.3s ease;
         }
         
         .user-marker-icon::before {
             content: '';
             position: absolute;
-            top: -6px;
-            left: -6px;
-            right: -6px;
-            bottom: -6px;
-            border: 2px solid rgba(26, 115, 232, 0.3);
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border: 2px solid rgba(26, 115, 232, 0.25);
             border-radius: 50%;
-            animation: ripple 2s infinite;
+            animation: avatarRipple 2s infinite;
         }
         
         .user-marker-icon::after {
             content: '';
             position: absolute;
-            top: -12px;
-            left: -12px;
-            right: -12px;
-            bottom: -12px;
-            border: 1px solid rgba(26, 115, 232, 0.15);
+            top: -16px;
+            left: -16px;
+            right: -16px;
+            bottom: -16px;
+            border: 1px solid rgba(26, 115, 232, 0.1);
             border-radius: 50%;
-            animation: ripple 2s infinite 0.5s;
+            animation: avatarRipple 2s infinite 0.7s;
         }
         
-        @keyframes pulse {
+        /* Avatar style variations - will be applied via JavaScript based on user preference */
+        .user-marker-icon.style-circle {
+            /* Default - already circle */
+        }
+        
+        .user-marker-icon.style-square {
+            border-radius: 8px;
+        }
+        
+        .user-marker-icon.style-diamond {
+            border-radius: 4px;
+            transform: rotate(45deg);
+        }
+        
+        .user-marker-icon.style-ring {
+            background: transparent;
+            border-width: 4px;
+            box-shadow: 0 0 20px currentColor, 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .user-marker-icon.color-blue {
+            background: linear-gradient(135deg, var(--blue) 0%, #0d47a1 100%);
+            border-color: white;
+            box-shadow: 0 0 25px var(--blue), 0 6px 16px rgba(0,0,0,0.25);
+        }
+        
+        .user-marker-icon.color-green {
+            background: linear-gradient(135deg, var(--green) 0%, #0d7a3d 100%);
+            border-color: white;
+            box-shadow: 0 0 25px var(--green), 0 6px 16px rgba(0,0,0,0.25);
+        }
+        
+        .user-marker-icon.color-purple {
+            background: linear-gradient(135deg, #9c27b0 0%, #6a1b9a 100%);
+            border-color: white;
+            box-shadow: 0 0 25px #9c27b0, 0 6px 16px rgba(0,0,0,0.25);
+        }
+        
+        .user-marker-icon.color-orange {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            border-color: white;
+            box-shadow: 0 0 25px #ff9800, 0 6px 16px rgba(0,0,0,0.25);
+        }
+        
+        .user-marker-icon.color-red {
+            background: linear-gradient(135deg, var(--red) 0%, #c62828 100%);
+            border-color: white;
+            box-shadow: 0 0 25px var(--red), 0 6px 16px rgba(0,0,0,0.25);
+        }
+        
+        .user-marker-icon.size-small {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .user-marker-icon.size-medium {
+            width: 28px;
+            height: 28px;
+        }
+        
+        .user-marker-icon.size-large {
+            width: 36px;
+            height: 36px;
+        }
+        
+        @keyframes avatarPulse {
             0%, 100% {
-                box-shadow: 0 0 20px var(--blue), 0 4px 12px rgba(0,0,0,0.3);
+                box-shadow: 0 0 25px currentColor, 0 6px 16px rgba(0,0,0,0.25), inset 0 2px 4px rgba(255,255,255,0.3);
                 transform: scale(1);
             }
             50% {
-                box-shadow: 0 0 30px var(--blue), 0 6px 18px rgba(0,0,0,0.4);
-                transform: scale(1.05);
+                box-shadow: 0 0 35px currentColor, 0 8px 22px rgba(0,0,0,0.35), inset 0 2px 6px rgba(255,255,255,0.4);
+                transform: scale(1.08);
             }
         }
         
-        @keyframes ripple {
+        @keyframes avatarRipple {
             0% {
                 transform: scale(0.8);
-                opacity: 1;
+                opacity: 0.8;
             }
             100% {
-                transform: scale(1.5);
+                transform: scale(1.8);
                 opacity: 0;
             }
+        }
+        
+        /* Night mode avatar styles */
+        .night-mode .user-marker-icon {
+            border-color: #2d3748;
+            box-shadow: 0 0 25px currentColor, 0 6px 16px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.1);
+        }
+        
+        /* Avatar customization interface styles */
+        .btn-avatar-style {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 70px;
+            height: 70px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: white;
+            transition: all 0.2s ease;
+            padding: 8px;
+        }
+        
+        .btn-avatar-style:hover {
+            border-color: var(--blue);
+            transform: translateY(-2px);
+        }
+        
+        .btn-avatar-selected {
+            border-color: var(--blue) !important;
+            background-color: rgba(26, 115, 232, 0.05);
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.15);
+        }
+        
+        .avatar-preview-circle,
+        .avatar-preview-square,
+        .avatar-preview-diamond,
+        .avatar-preview-ring {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue) 0%, #0d47a1 100%);
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .avatar-preview-square {
+            border-radius: 6px;
+        }
+        
+        .avatar-preview-diamond {
+            border-radius: 4px;
+            transform: rotate(45deg);
+        }
+        
+        .avatar-preview-ring {
+            background: transparent;
+            border-width: 3px;
+            border-color: var(--blue);
+        }
+        
+        .btn-avatar-color {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            background: white;
+            transition: all 0.2s ease;
+            padding: 6px;
+        }
+        
+        .btn-avatar-color:hover {
+            border-color: var(--blue);
+            transform: translateY(-2px);
+        }
+        
+        .btn-avatar-color-selected {
+            border-color: var(--blue) !important;
+            background-color: rgba(26, 115, 232, 0.05);
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.15);
+        }
+        
+        .avatar-color-sample {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-bottom: 4px;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        
+        .btn-avatar-size {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 60px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            background: white;
+            transition: all 0.2s ease;
+            padding: 6px;
+        }
+        
+        .btn-avatar-size:hover {
+            border-color: var(--blue);
+            transform: translateY(-2px);
+        }
+        
+        .btn-avatar-size-selected {
+            border-color: var(--blue) !important;
+            background-color: rgba(26, 115, 232, 0.05);
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.15);
+        }
+        
+        .avatar-size-sample {
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue) 0%, #0d47a1 100%);
+            border: 2px solid white;
+            margin-bottom: 4px;
+        }
+        
+        .size-small {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .size-medium {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .size-large {
+            width: 32px;
+            height: 32px;
+        }
+        
+        /* Night mode theme */
+        .night-mode {
+            background: #1a202c !important;
+            color: #e2e8f0 !important;
+        }
+        
+        .night-mode .sidebar-view {
+            background: #2d3748 !important;
+            color: #e2e8f0 !important;
+        }
+        
+        .night-mode .card {
+            background: #4a5568 !important;
+            color: #e2e8f0 !important;
+            border-color: #718096 !important;
+        }
+        
+        .night-mode .btn-avatar-style,
+        .night-mode .btn-avatar-color,
+        .night-mode .btn-avatar-size {
+            background: #4a5568 !important;
+            border-color: #718096 !important;
+            color: #e2e8f0 !important;
+        }
+        
+        .night-mode .form-check-input:checked {
+            background-color: var(--blue);
+            border-color: var(--blue);
         }
         .adm-card { background: #f8f9fa; padding: 10px; border-radius: 12px; }
         .adm-metric { font-size: 18px; font-weight: 800; color: var(--blue); display: block; }
@@ -986,7 +1224,7 @@
                 <button class="nav-item-custom"><i class="bi bi-trophy"></i> Ranking <span class="standby-badge">EM BREVE</span></button>
                 <button class="nav-item-custom"><i class="bi bi-bell"></i> Notificações <span class="standby-badge">EM BREVE</span></button>
                 <button class="nav-item-custom"><i class="bi bi-clock-history"></i> Histórico <span class="standby-badge">EM BREVE</span></button>
-                <button class="nav-item-custom"><i class="bi bi-gear"></i> Configurações <span class="standby-badge">EM BREVE</span></button>
+                <button class="nav-item-custom" onclick="window.switchView('user-settings')"><i class="bi bi-gear"></i> Configurações</button>
                 <button class="nav-item-custom"><i class="bi bi-info-circle"></i> Ajuda <span class="standby-badge">EM BREVE</span></button>
             </nav>
             <div id="admin-entry" style="display:none" class="mt-auto">
@@ -1226,6 +1464,118 @@
             </div>
             <div id="planning-all-lines" class="list-group list-group-flush"></div>
         </div>
+
+        <!-- CONFIGURAÇÕES DO USUÁRIO - Personalização do Avatar -->
+        <div id="view-user-settings" class="sidebar-view">
+            <div class="section-header">
+                <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('main')"></i>
+                <h6 class="section-title text-primary">Configurações do Usuário</h6>
+                <i class="bi bi-x-lg cursor-pointer ms-auto fs-5 text-muted" onclick="window.toggleSidebar()"></i>
+            </div>
+            
+            <div class="card card-body border-0 bg-light p-3 shadow-sm mb-4">
+                <h6 class="fw-bold mb-3"><i class="bi bi-person-circle me-2"></i>Personalização do Avatar</h6>
+                <p class="small text-muted mb-3">Personalize a aparência do seu marcador no mapa</p>
+                
+                <div class="mb-4">
+                    <label class="form-label small fw-bold mb-2">Estilo do Avatar</label>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button class="btn-avatar-style btn-avatar-selected" data-style="circle" onclick="window.selectAvatarStyle('circle')">
+                            <div class="avatar-preview-circle"></div>
+                            <span class="small">Círculo</span>
+                        </button>
+                        <button class="btn-avatar-style" data-style="square" onclick="window.selectAvatarStyle('square')">
+                            <div class="avatar-preview-square"></div>
+                            <span class="small">Quadrado</span>
+                        </button>
+                        <button class="btn-avatar-style" data-style="diamond" onclick="window.selectAvatarStyle('diamond')">
+                            <div class="avatar-preview-diamond"></div>
+                            <span class="small">Diamante</span>
+                        </button>
+                        <button class="btn-avatar-style" data-style="ring" onclick="window.selectAvatarStyle('ring')">
+                            <div class="avatar-preview-ring"></div>
+                            <span class="small">Anel</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label small fw-bold mb-2">Cor do Avatar</label>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button class="btn-avatar-color btn-avatar-color-selected" data-color="blue" onclick="window.selectAvatarColor('blue')">
+                            <div class="avatar-color-sample bg-primary"></div>
+                            <span class="small">Azul</span>
+                        </button>
+                        <button class="btn-avatar-color" data-color="green" onclick="window.selectAvatarColor('green')">
+                            <div class="avatar-color-sample bg-success"></div>
+                            <span class="small">Verde</span>
+                        </button>
+                        <button class="btn-avatar-color" data-color="purple" onclick="window.selectAvatarColor('purple')">
+                            <div class="avatar-color-sample" style="background-color: #9c27b0;"></div>
+                            <span class="small">Roxo</span>
+                        </button>
+                        <button class="btn-avatar-color" data-color="orange" onclick="window.selectAvatarColor('orange')">
+                            <div class="avatar-color-sample" style="background-color: #ff9800;"></div>
+                            <span class="small">Laranja</span>
+                        </button>
+                        <button class="btn-avatar-color" data-color="red" onclick="window.selectAvatarColor('red')">
+                            <div class="avatar-color-sample bg-danger"></div>
+                            <span class="small">Vermelho</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label small fw-bold mb-2">Tamanho do Avatar</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn-avatar-size btn-avatar-size-selected" data-size="small" onclick="window.selectAvatarSize('small')">
+                            <div class="avatar-size-sample size-small"></div>
+                            <span class="small">Pequeno</span>
+                        </button>
+                        <button class="btn-avatar-size" data-size="medium" onclick="window.selectAvatarSize('medium')">
+                            <div class="avatar-size-sample size-medium"></div>
+                            <span class="small">Médio</span>
+                        </button>
+                        <button class="btn-avatar-size" data-size="large" onclick="window.selectAvatarSize('large')">
+                            <div class="avatar-size-sample size-large"></div>
+                            <span class="small">Grande</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mt-4">
+                    <button class="btn btn-primary btn-sm" onclick="window.applyAvatarSettings()">
+                        <i class="bi bi-check-circle me-1"></i> Aplicar Configurações
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="window.resetAvatarSettings()">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Restaurar Padrão
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card card-body border-0 bg-light p-3 shadow-sm">
+                <h6 class="fw-bold mb-3"><i class="bi bi-moon me-2"></i>Modo Noturno</h6>
+                <p class="small text-muted mb-3">Ative o modo noturno para melhor visualização em ambientes escuros</p>
+                
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="nightModeSwitch" onchange="window.toggleNightMode(this.checked)">
+                    <label class="form-check-label small fw-bold" for="nightModeSwitch">Ativar Modo Noturno</label>
+                </div>
+                
+                <div class="mt-3">
+                    <button class="btn btn-outline-dark btn-sm w-100" onclick="window.applyNightModeTheme('dark')">
+                        <i class="bi bi-moon-stars me-1"></i> Tema Escuro
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm w-100 mt-2" onclick="window.applyNightModeTheme('blue')">
+                        <i class="bi bi-moon me-1"></i> Tema Azul Escuro
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <small class="text-muted">As configurações são salvas automaticamente no seu navegador</small>
+            </div>
+        </div>
     </aside>
 
     <button class="menu-trigger shadow" onclick="window.toggleSidebar()"><i class="bi bi-list"></i></button>
@@ -1246,6 +1596,9 @@
         <button class="btn-circle shadow" onclick="window.geoCenter()"><i class="bi bi-crosshair"></i></button>
         <button id="action-btn" class="btn-circle shadow" style="display:none" onclick="window.onActionClick()"><i id="action-icon" class="bi bi-broadcast"></i></button>
         <button class="btn-circle shadow" onclick="alert('Função de reportar em breve disponível!')"><i class="bi bi-eye"></i></button>
+        <button class="btn-circle shadow night-mode-btn" onclick="window.toggleNightModeUI()" id="nightModeBtn" title="Modo Noturno">
+            <i class="bi bi-moon" id="nightModeIcon"></i>
+        </button>
     </div>
 
     <div class="bottom-ui">

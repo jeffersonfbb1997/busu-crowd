@@ -2,6 +2,7 @@ import { db, auth, ADMIN_EMAIL } from '../services/firebaseService.js';
 import { login, logout, subscribeToAuthChanges, isUserAdmin } from '../services/authService.js';
 import { initParametersListener } from '../services/parametersService.js';
 import { initTimeService } from '../services/timeService.js';
+import { initAvatarService, loadAvatarSettings, applyAvatarSettings, applyNightMode } from '../services/avatarService.js';
 import { initMap } from '../modules/map/mapInit.js';
 import { state, updateState } from './stateManager.js';
 import { iniciarGPS, stopTrack } from '../modules/gps/gpsCollector.js';
@@ -55,6 +56,10 @@ export function initApp() {
         console.log('Time service initialized with offset:', offset, 'ms');
     });
     
+    // Initialize avatar service (user marker customization and night mode)
+    initAvatarService();
+    applyNightMode(); // Apply saved night mode settings
+    
     // Initialize system parameters listener
     initParametersListener();
     
@@ -69,9 +74,61 @@ function geoCenter() {
     navigator.geolocation.getCurrentPosition(p => {
         const lat = p.coords.latitude, lng = p.coords.longitude;
         state.map.flyTo([lat, lng], 17);
-        if (state.userMarker) state.userMarker.setLatLng([lat, lng]);
-        else state.userMarker = L.marker([lat, lng], { icon: L.divIcon({ className:'user-marker-icon', iconSize:[14,14] }), zIndexOffset: 4000 }).addTo(state.map);
-    }, null, {enableHighAccuracy:true});
+        
+        if (state.userMarker) {
+            state.userMarker.setLatLng([lat, lng]);
+        } else {
+            // Create modern user marker with proper sizing
+            const userIcon = L.divIcon({
+                className: 'user-marker-icon',
+                iconSize: [32, 32], // Match CSS size with padding
+                iconAnchor: [16, 16], // Center the icon
+                popupAnchor: [0, -16]
+            });
+            
+            state.userMarker = L.marker([lat, lng], {
+                icon: userIcon,
+                zIndexOffset: 4000,
+                title: 'Sua localização',
+                alt: 'Marcador do usuário'
+            }).addTo(state.map);
+            
+            console.log('User marker created at:', lat, lng);
+            
+            // Apply avatar settings after marker is created
+            setTimeout(() => {
+                if (window.applyAvatarSettings) {
+                    window.applyAvatarSettings();
+                }
+            }, 100);
+        }
+    }, (error) => {
+        console.warn('Geolocation error:', error);
+        // Fallback to default location if geolocation fails
+        const defaultLat = -14.81929, defaultLng = -39.036015;
+        state.map.flyTo([defaultLat, defaultLng], 15);
+        
+        if (!state.userMarker) {
+            const userIcon = L.divIcon({
+                className: 'user-marker-icon',
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            });
+            
+            state.userMarker = L.marker([defaultLat, defaultLng], {
+                icon: userIcon,
+                zIndexOffset: 4000
+            }).addTo(state.map);
+            console.log('Default user marker created');
+            
+            // Apply avatar settings after marker is created
+            setTimeout(() => {
+                if (window.applyAvatarSettings) {
+                    window.applyAvatarSettings();
+                }
+            }, 100);
+        }
+    }, {enableHighAccuracy:true, timeout: 10000, maximumAge: 0});
 }
 
 function startTrack(key) {
