@@ -1,5 +1,6 @@
 import { state, updateState } from "../../core/stateManager.js";
 import { COMPANIES } from "../../config/systemConfig.js";
+import { getDistanceMeters } from "../../utils/geoUtils.js";
 
 /**
  * Force cleanup of markers for deleted lines
@@ -28,9 +29,16 @@ export function renderBusMarkers(gpsData, configLinhas) {
     }
     
     console.log(`renderBusMarkers called with ${Object.keys(configLinhas).length} lines, ${Object.keys(gpsData).length} active GPS datasets`);
-    console.log(`Current systemTTL: ${state.systemTTL}ms`);
+    console.log(`Current systemTTL: ${state.systemTTL}ms, systemRadius: ${state.systemRadius || 5}km`);
     
     const now = Date.now();
+    
+    // Get user's current position for radius filtering
+    let userPosition = null;
+    if (window.pointerService && window.pointerService.getPointerPosition) {
+        userPosition = window.pointerService.getPointerPosition();
+        console.log('User position for radius filtering:', userPosition);
+    }
     
     // Clear old markers that are no longer active
     for (const key in state.markers) {
@@ -113,6 +121,31 @@ export function renderBusMarkers(gpsData, configLinhas) {
             const mLat = latA / cnt;
             const mLng = lngA / cnt;
             const comp = COMPANIES[c.company || 'atlantico'];
+            
+            // Apply radius filtering if user position is available
+            let withinRadius = true;
+            if (userPosition && state.systemRadius) {
+                const distanceMeters = getDistanceMeters(
+                    userPosition.lat, userPosition.lng,
+                    mLat, mLng
+                );
+                const distanceKm = distanceMeters / 1000;
+                const radiusKm = state.systemRadius || 5;
+                
+                withinRadius = distanceKm <= radiusKm;
+                console.log(`Line ${c.id}: distance=${distanceKm.toFixed(2)}km, radius=${radiusKm}km, withinRadius=${withinRadius}`);
+                
+                if (!withinRadius) {
+                    console.log(`Line ${c.id} is outside ${radiusKm}km radius, skipping marker`);
+                    // Remove marker if it exists and is outside radius
+                    if (state.markers[key]) {
+                        state.map.removeLayer(state.markers[key]);
+                        delete state.markers[key];
+                        console.log(`Removed marker for line ${key} (outside radius)`);
+                    }
+                    continue; // Skip to next line
+                }
+            }
             
             console.log(`Line ${c.id}: ${cnt} active GPS points, average position ${mLat.toFixed(6)}, ${mLng.toFixed(6)}`);
             
