@@ -71,19 +71,37 @@ export function initApp() {
 }
 
 function geoCenter() {
+    console.log('Starting geoCenter function...');
+    
+    // Check if map is available
+    if (!state.map) {
+        console.error('Map not available in geoCenter');
+        return;
+    }
+    
     navigator.geolocation.getCurrentPosition(p => {
-        const lat = p.coords.latitude, lng = p.coords.longitude;
+        const lat = p.coords.latitude;
+        const lng = p.coords.longitude;
+        const accuracy = p.coords.accuracy;
+        
+        console.log('Geolocation success:', { lat, lng, accuracy: accuracy + 'm' });
+        
+        // Fly to the location
         state.map.flyTo([lat, lng], 17);
         
         if (state.userMarker) {
+            console.log('Updating existing user marker to:', [lat, lng]);
             state.userMarker.setLatLng([lat, lng]);
+            state.userMarker.setZIndexOffset(4000);
         } else {
-            // Create modern user marker with proper sizing
+            console.log('Creating new user marker at:', [lat, lng]);
+            
+            // Create user marker with corrected sizing
             const userIcon = L.divIcon({
                 className: 'user-marker-icon',
-                iconSize: [32, 32], // Match CSS size with padding
-                iconAnchor: [16, 16], // Center the icon
-                popupAnchor: [0, -16]
+                iconSize: [40, 40], // Larger size to account for CSS pseudo-elements
+                iconAnchor: [20, 20], // Center the icon
+                html: '<div class="user-marker-inner"></div>'
             });
             
             state.userMarker = L.marker([lat, lng], {
@@ -102,8 +120,24 @@ function geoCenter() {
                 }
             }, 100);
         }
+        
+        // Add a small circle to show accuracy (for debugging)
+        if (state.accuracyCircle) {
+            state.map.removeLayer(state.accuracyCircle);
+        }
+        state.accuracyCircle = L.circle([lat, lng], {
+            radius: accuracy,
+            color: '#1a73e8',
+            fillColor: '#1a73e8',
+            fillOpacity: 0.1,
+            weight: 1
+        }).addTo(state.map);
+        
+        console.log('Accuracy circle added with radius:', accuracy + 'm');
+        
     }, (error) => {
         console.warn('Geolocation error:', error);
+        
         // Fallback to default location if geolocation fails
         const defaultLat = -14.81929, defaultLng = -39.036015;
         state.map.flyTo([defaultLat, defaultLng], 15);
@@ -111,14 +145,15 @@ function geoCenter() {
         if (!state.userMarker) {
             const userIcon = L.divIcon({
                 className: 'user-marker-icon',
-                iconSize: [32, 32],
-                iconAnchor: [16, 16]
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
             });
             
             state.userMarker = L.marker([defaultLat, defaultLng], {
                 icon: userIcon,
                 zIndexOffset: 4000
             }).addTo(state.map);
+            
             console.log('Default user marker created');
             
             // Apply avatar settings after marker is created
@@ -127,8 +162,11 @@ function geoCenter() {
                     window.applyAvatarSettings();
                 }
             }, 100);
+        } else {
+            // Update existing marker to default location
+            state.userMarker.setLatLng([defaultLat, defaultLng]);
         }
-    }, {enableHighAccuracy:true, timeout: 10000, maximumAge: 0});
+    }, {enableHighAccuracy: true, timeout: 10000, maximumAge: 0});
 }
 
 function startTrack(key) {

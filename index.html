@@ -473,9 +473,6 @@
         }
         
         /* Avatar style variations - will be applied via JavaScript based on user preference */
-        .user-marker-icon.style-circle {
-            /* Default - already circle */
-        }
         
         .user-marker-icon.style-square {
             border-radius: 8px;
@@ -728,6 +725,29 @@
         .night-mode .form-check-input:checked {
             background-color: var(--blue);
             border-color: var(--blue);
+        }
+        
+        /* Ensure user marker is always visible */
+        .user-marker-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+            background: inherit;
+            box-shadow: inherit;
+        }
+        
+        /* Make sure marker appears above all other map elements */
+        .leaflet-marker-icon.user-marker-icon {
+            z-index: 1000 !important;
+        }
+        
+        .leaflet-marker-pane .user-marker-icon {
+            z-index: 1000 !important;
+        }
+        
+        /* Debug accuracy circle */
+        .leaflet-overlay-pane .accuracy-circle {
+            pointer-events: none;
         }
         .adm-card { background: #f8f9fa; padding: 10px; border-radius: 12px; }
         .adm-metric { font-size: 18px; font-weight: 800; color: var(--blue); display: block; }

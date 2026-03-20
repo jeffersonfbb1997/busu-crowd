@@ -1,6 +1,12 @@
 {
   "rules": {
     ".read": true,
+    "_timeCheck": {
+      "$timestamp": {
+        ".write": "auth != null",
+        ".read": "auth != null"
+      }
+    },
     "onibus": {
       ".write": "auth.token.email == 'jeffersonfbb1997@gmail.com' || root.child('config/admins').child(auth.uid).exists()",
       "$linha": {

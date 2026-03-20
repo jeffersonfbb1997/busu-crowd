@@ -45,6 +45,34 @@ export function iniciarGPS(key) {
 
         console.log(`GPS data received: ${data.lat}, ${data.lng}, accuracy: ${data.acc}m`);
 
+        // Update user marker on map if it exists
+        if (state.userMarker && typeof state.userMarker.setLatLng === 'function') {
+            state.userMarker.setLatLng([data.lat, data.lng]);
+            console.log('User marker updated to GPS position:', data.lat, data.lng);
+        } else if (state.map && window.L) {
+            // Create user marker if it doesn't exist
+            console.log('Creating user marker from GPS data');
+            const userIcon = window.L.divIcon({
+                className: 'user-marker-icon',
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+            });
+            
+            state.userMarker = window.L.marker([data.lat, data.lng], {
+                icon: userIcon,
+                zIndexOffset: 4000
+            }).addTo(state.map);
+            
+            // Apply avatar settings
+            setTimeout(() => {
+                if (window.applyAvatarSettings) {
+                    window.applyAvatarSettings();
+                }
+            }, 100);
+        } else {
+            console.warn('Cannot create user marker: map or L not available');
+        }
+
         const trackRef = ref(db, `onibus/${key}/${state.user.uid}`);
         set(trackRef, data).then(() => {
             console.log('GPS data written to Firebase successfully');
