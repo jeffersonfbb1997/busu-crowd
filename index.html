@@ -958,6 +958,205 @@
             border: none !important;
         }
         
+        /* MODERN MODAL STYLES */
+        .modal-lg {
+            max-width: 800px;
+        }
+        
+        .modal-search-container {
+            background: #f8fafc;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+        
+        .modal-search-container .input-group {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .modal-search-container .form-control:focus {
+            box-shadow: none;
+            background: #ffffff;
+        }
+        
+        .modal-search-container .btn-outline-secondary:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Modern line selection grid */
+        .line-selection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        
+        .line-selection-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .line-selection-grid::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 3px;
+        }
+        
+        .line-selection-grid::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+        }
+        
+        /* Modern line card */
+        .line-card {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 10px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .line-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            border-color: rgba(26, 115, 232, 0.3);
+        }
+        
+        .line-card.active {
+            background: rgba(26, 115, 232, 0.05);
+            border-color: #1a73e8;
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.15);
+        }
+        
+        .line-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .line-code {
+            font-weight: 800;
+            font-size: 16px;
+            color: #1a1a1a;
+            background: linear-gradient(90deg, #1a73e8, #34a853);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-right: 10px;
+            min-width: 50px;
+        }
+        
+        .line-destination {
+            font-weight: 700;
+            font-size: 14px;
+            color: #1a1a1a;
+            flex-grow: 1;
+        }
+        
+        .line-company-logo {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            object-fit: contain;
+        }
+        
+        .line-route {
+            font-size: 12px;
+            color: #70757a;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .line-features {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .feature-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.04);
+            border-radius: 6px;
+            font-size: 11px;
+            color: #5f6368;
+        }
+        
+        .feature-badge.ac {
+            background: rgba(66, 133, 244, 0.1);
+            color: #1a73e8;
+        }
+        
+        .feature-badge.accessibility {
+            background: rgba(52, 168, 83, 0.1);
+            color: #34a853;
+        }
+        
+        .line-status {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #34a853;
+            box-shadow: 0 0 0 2px rgba(52, 168, 83, 0.2);
+        }
+        
+        .line-status.inactive {
+            background: #dadce0;
+            box-shadow: 0 0 0 2px rgba(218, 220, 224, 0.2);
+        }
+        
+        .line-status.active {
+            background: #34a853;
+            box-shadow: 0 0 0 2px rgba(52, 168, 83, 0.2);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(52, 168, 83, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(52, 168, 83, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 168, 83, 0); }
+        }
+        
+        /* Empty state */
+        .line-selection-grid .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            color: #dadce0;
+            margin-bottom: 16px;
+        }
+        
+        .empty-state-text {
+            color: #70757a;
+            font-size: 14px;
+        }
+        
+        /* Form switch customization */
+        .form-check-input:checked {
+            background-color: #1a73e8;
+            border-color: #1a73e8;
+        }
+        
+        .form-check-input:focus {
+            box-shadow: 0 0 0 0.25rem rgba(26, 115, 232, 0.25);
+        }
+        
     </style>
 </head>
 <body>
@@ -1268,7 +1467,7 @@
     <div id="map"></div>
 
     <div class="modal fade" id="modalLine" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
             <div class="modal-content modern-modal">
                 <div class="modal-header modern-modal-header">
                     <div class="modal-header-content">
@@ -1277,21 +1476,56 @@
                         </div>
                         <div>
                             <h5 class="modal-title">Transmissão de GPS</h5>
-                            <p class="modal-subtitle">Selecione uma linha para iniciar a transmissão</p>
+                            <p class="modal-subtitle">Selecione uma linha para iniciar a transmissão em tempo real</p>
                         </div>
                     </div>
                     <button type="button" class="btn-close-modal" data-bs-dismiss="modal" aria-label="Close">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
-                <div class="modal-body modern-modal-body">
-                    <div id="line-selection-grid" class="line-selection-grid"></div>
+                
+                <div class="modal-body modern-modal-body p-0">
+                    <!-- Search and filter bar -->
+                    <div class="modal-search-container p-3 border-bottom">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light border-0">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input type="text" id="line-search-input" class="form-control border-0 bg-light"
+                                   placeholder="Buscar linha por código, destino ou via..."
+                                   style="font-size: 13px;">
+                            <button class="btn btn-outline-secondary border-0 bg-light" type="button" id="clear-search">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <small class="text-muted" id="line-count">0 linhas encontradas</small>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="show-active-only" style="cursor: pointer;">
+                                <label class="form-check-label small" for="show-active-only" style="cursor: pointer;">
+                                    Mostrar apenas ativas
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Lines grid - optimized for 80+ items -->
+                    <div id="line-selection-grid" class="line-selection-grid p-3">
+                        <!-- Lines will be dynamically populated here -->
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-bus-front display-6 opacity-25 mb-3"></i>
+                            <p class="small">Carregando linhas disponíveis...</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer modern-modal-footer">
-                    <button type="button" class="btn-modal-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <div class="modal-footer-info">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Sua localização será transmitida em tempo real
+                
+                <div class="modal-footer modern-modal-footer border-top-0">
+                    <div class="d-flex justify-content-between align-items-center w-100">
+                        <div class="modal-footer-info">
+                            <i class="bi bi-info-circle me-1"></i>
+                            <small>Sua localização será transmitida em tempo real para a linha selecionada</small>
+                        </div>
+                        <button type="button" class="btn-modal-secondary" data-bs-dismiss="modal">Cancelar</button>
                     </div>
                 </div>
             </div>

@@ -194,7 +194,31 @@ function setupDataListeners() {
             const c = data[key]; state.configLinhas[key] = c; countL++;
             const comp = COMPANIES[c.company || 'atlantico'];
             
-            grid.innerHTML += `<button class="list-group-item list-group-item-action d-flex align-items-center py-2" onclick="window.startTrack('${key}')"><img src="${comp.favicon}" class="bus-logo-mini"><div><div class="fw-bold small">${c.id} - ${c.nome}</div></div></button>`;
+            // Modern line card for modal
+            const isActive = state.activeLineKeys && state.activeLineKeys.includes(key);
+            // For demo purposes, simulate some lines having AC and accessibility features
+            // In production, these would come from line configuration
+            const hasAC = c.id.includes('2') || c.id.includes('7'); // Example logic
+            const hasAccessibility = c.id.includes('1') || c.id.includes('6'); // Example logic
+            
+            const acFeature = hasAC ? '<span class="feature-badge ac"><i class="bi bi-snow"></i> AR</span>' : '';
+            const accessibilityFeature = hasAccessibility ? '<span class="feature-badge accessibility"><i class="bi bi-wheelchair"></i> ACESS</span>' : '';
+            
+            grid.innerHTML += `
+                <div class="line-card" onclick="window.startTrack('${key}')" data-line-id="${c.id}" data-line-name="${c.nome}" data-line-route="${c.via}" data-line-key="${key}" data-line-active="${isActive}">
+                    <div class="line-status ${isActive ? 'active' : 'inactive'}"></div>
+                    <div class="line-card-header">
+                        <div class="line-code">${c.id}</div>
+                        <div class="line-destination">${c.nome}</div>
+                        <img src="${comp.favicon}" class="line-company-logo" alt="${c.company}">
+                    </div>
+                    <div class="line-route">${c.via || 'Via principal'}</div>
+                    <div class="line-features">
+                        ${acFeature}
+                        ${accessibilityFeature}
+                    </div>
+                </div>
+            `;
             
             admList.innerHTML += `
                 <div class="list-group-item bus-item border-bottom px-0" onclick="window.loadLineForEdit('${key}')">
@@ -216,6 +240,26 @@ function setupDataListeners() {
         const gpsData = snap.val() || {};
         const { statusH, drawerH, tU, activeLines } = renderBusList(gpsData, state.configLinhas);
         
+        // Store active line keys for modal filtering
+        state.activeLineKeys = [];
+        for (let key in state.configLinhas) {
+            if (gpsData[key]) {
+                let hasActive = false;
+                for (let uid in gpsData[key]) {
+                    const gpsPoint = gpsData[key][uid];
+                    const accuracy = gpsPoint.acc || gpsPoint.accuracy || 0;
+                    const now = Date.now();
+                    if (now - gpsPoint.timestamp < (state.systemTTL || 45000) && accuracy <= 200) {
+                        hasActive = true;
+                        break;
+                    }
+                }
+                if (hasActive) {
+                    state.activeLineKeys.push(key);
+                }
+            }
+        }
+        
         // Render bus markers on the map
         renderBusMarkers(gpsData, state.configLinhas);
         
@@ -231,6 +275,9 @@ function setupDataListeners() {
         document.getElementById('stat-users').innerText = tU;
         document.getElementById('global-counter').style.display = tU > 0 ? 'block' : 'none';
         document.getElementById('total-active-text').innerText = `${tU} COLABORADORES ATIVOS`;
+        
+        // Update modal line cards if modal is open
+        updateModalLineCards();
     });
 }
 
@@ -648,6 +695,137 @@ function applyAdminSecurity() {
     // Check admin status and update UI
     updateAdminPermissionsStatus();
 }
+
+// Update modal line cards with current active status
+function updateModalLineCards() {
+    const lineCards = document.querySelectorAll('.line-card');
+    lineCards.forEach(card => {
+        const lineKey = card.getAttribute('data-line-key');
+        const isActive = state.activeLineKeys && state.activeLineKeys.includes(lineKey);
+        
+        // Update status dot
+        const statusDot = card.querySelector('.line-status');
+        if (statusDot) {
+            statusDot.className = `line-status ${isActive ? 'active' : 'inactive'}`;
+        }
+        
+        // Update data attribute
+        card.setAttribute('data-line-active', isActive);
+    });
+    
+    // Trigger filter if modal is open to update visible count
+    if (document.getElementById('modalLine')?.classList.contains('show')) {
+        const filterLines = window.filterLines;
+        if (typeof filterLines === 'function') {
+            setTimeout(filterLines, 50);
+        }
+    }
+}
+
+// Modern modal search and filtering functionality
+function initModalSearch() {
+    const searchInput = document.getElementById('line-search-input');
+    const clearSearchBtn = document.getElementById('clear-search');
+    const showActiveOnlyCheckbox = document.getElementById('show-active-only');
+    const lineCountElement = document.getElementById('line-count');
+    
+    if (!searchInput) return;
+    
+    // Clear search button
+    clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        filterLines();
+        searchInput.focus();
+    });
+    
+    // Search input event
+    searchInput.addEventListener('input', () => {
+        filterLines();
+    });
+    
+    // Show active only checkbox
+    showActiveOnlyCheckbox.addEventListener('change', () => {
+        filterLines();
+    });
+    
+    // Filter lines based on search and active filter
+    function filterLines() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const showActiveOnly = showActiveOnlyCheckbox.checked;
+        const lineCards = document.querySelectorAll('.line-card');
+        
+        let visibleCount = 0;
+        
+        lineCards.forEach(card => {
+            const lineId = card.getAttribute('data-line-id') || '';
+            const lineName = card.getAttribute('data-line-name') || '';
+            const lineRoute = card.getAttribute('data-line-route') || '';
+            const isActive = card.getAttribute('data-line-active') === 'true';
+            
+            // Apply active filter
+            if (showActiveOnly && !isActive) {
+                card.style.display = 'none';
+                return;
+            }
+            
+            // Apply search filter
+            const matchesSearch = searchTerm === '' ||
+                lineId.toLowerCase().includes(searchTerm) ||
+                lineName.toLowerCase().includes(searchTerm) ||
+                lineRoute.toLowerCase().includes(searchTerm);
+            
+            if (matchesSearch) {
+                card.style.display = 'block';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        // Update line count
+        if (lineCountElement) {
+            lineCountElement.textContent = `${visibleCount} linha${visibleCount !== 1 ? 's' : ''} encontrada${visibleCount !== 1 ? 's' : ''}`;
+            
+            // Show empty state if no results
+            const grid = document.getElementById('line-selection-grid');
+            const existingEmptyState = grid.querySelector('.empty-state');
+            
+            if (visibleCount === 0) {
+                if (!existingEmptyState) {
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'empty-state';
+                    emptyState.innerHTML = `
+                        <div class="empty-state-icon">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <div class="empty-state-text">
+                            ${searchTerm ? `Nenhuma linha encontrada para "${searchTerm}"` : 'Nenhuma linha disponível'}
+                        </div>
+                    `;
+                    grid.appendChild(emptyState);
+                }
+            } else if (existingEmptyState) {
+                existingEmptyState.remove();
+            }
+        }
+    }
+    
+    // Initialize filter on modal show
+    const modalLine = document.getElementById('modalLine');
+    if (modalLine) {
+        modalLine.addEventListener('shown.bs.modal', () => {
+            setTimeout(filterLines, 100); // Small delay to ensure cards are rendered
+        });
+    }
+    
+    // Expose filterLines globally for updateModalLineCards
+    window.filterLines = filterLines;
+    
+    console.log('Modal search functionality initialized');
+}
+
+// Initialize modal search when app starts
+setTimeout(initModalSearch, 1000);
 
 // Expose functions to window
 window.saveSystemParameters = saveSystemParameters;
