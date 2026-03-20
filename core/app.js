@@ -2,7 +2,7 @@ import { db, auth, ADMIN_EMAIL } from '../services/firebaseService.js';
 import { login, logout, subscribeToAuthChanges, isUserAdmin } from '../services/authService.js';
 import { initParametersListener } from '../services/parametersService.js';
 import { initTimeService } from '../services/timeService.js';
-import { initAvatarService, loadAvatarSettings, applyAvatarSettings, applyNightMode } from '../services/avatarService.js';
+import { initAvatarService, loadAvatarSettings, applyAvatarSettings, applyNightMode, exposeToWindow } from '../services/avatarService.js';
 import { initMap } from '../modules/map/mapInit.js';
 import { state, updateState } from './stateManager.js';
 import { iniciarGPS, stopTrack } from '../modules/gps/gpsCollector.js';

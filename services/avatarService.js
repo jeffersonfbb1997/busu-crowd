@@ -229,14 +229,36 @@ export function applyAvatarSettingsUI() {
 }
 
 // Make functions available globally for HTML onclick handlers
-window.selectAvatarStyle = selectAvatarStyle;
-window.selectAvatarColor = selectAvatarColor;
-window.selectAvatarSize = selectAvatarSize;
-window.applyAvatarSettings = applyAvatarSettingsUI;
-window.resetAvatarSettings = () => {
-    resetAvatarSettings();
-    alert('Configurações do avatar restauradas para o padrão!');
-};
-window.toggleNightMode = toggleNightMode;
-window.toggleNightModeUI = toggleNightModeUI;
-window.applyNightModeTheme = applyNightModeTheme;
+// Expose functions to window immediately when module loads
+if (typeof window !== 'undefined') {
+    window.selectAvatarStyle = selectAvatarStyle;
+    window.selectAvatarColor = selectAvatarColor;
+    window.selectAvatarSize = selectAvatarSize;
+    window.applyAvatarSettings = applyAvatarSettingsUI;
+    window.resetAvatarSettings = () => {
+        resetAvatarSettings();
+        alert('Configurações do avatar restauradas para o padrão!');
+    };
+    window.toggleNightMode = toggleNightMode;
+    window.toggleNightModeUI = toggleNightModeUI;
+    window.applyNightModeTheme = applyNightModeTheme;
+    console.log('Avatar service functions exposed to window');
+}
+
+// Also export exposeToWindow for manual calling if needed
+export function exposeToWindow() {
+    if (typeof window !== 'undefined') {
+        window.selectAvatarStyle = selectAvatarStyle;
+        window.selectAvatarColor = selectAvatarColor;
+        window.selectAvatarSize = selectAvatarSize;
+        window.applyAvatarSettings = applyAvatarSettingsUI;
+        window.resetAvatarSettings = () => {
+            resetAvatarSettings();
+            alert('Configurações do avatar restauradas para o padrão!');
+        };
+        window.toggleNightMode = toggleNightMode;
+        window.toggleNightModeUI = toggleNightModeUI;
+        window.applyNightModeTheme = applyNightModeTheme;
+        console.log('Avatar service functions exposed to window (manual)');
+    }
+}

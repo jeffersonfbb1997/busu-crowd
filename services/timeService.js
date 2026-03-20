@@ -13,30 +13,39 @@ export async function calculateServerTimeOffset() {
     try {
         console.log('Calculating server time offset...');
         
-        // Create a temporary reference for time measurement
-        const tempRef = ref(db, '_serverTimeCheck/' + Date.now());
+        // Firebase Realtime Database doesn't have .info/serverTimeOffset
+        // We'll use a simpler approach: write a timestamp and read it back
+        // The server will replace serverTimestamp() with actual server time
         
-        // Write server timestamp
+        const tempRef = ref(db, '_timeCheck/' + Date.now());
+        
+        // Write with server timestamp
         const startTime = Date.now();
         await set(tempRef, {
-            clientTime: startTime,
-            serverTime: serverTimestamp()
+            clientStart: startTime,
+            timestamp: serverTimestamp()
         });
         
-        // Read back to get server time
+        // Immediately read back (Firebase will have replaced serverTimestamp)
         const snapshot = await get(tempRef);
         const data = snapshot.val();
         
-        if (data && data.serverTime) {
-            // Calculate offset: serverTime - clientTime
-            const serverTime = data.serverTime;
+        if (data && data.timestamp) {
+            // The timestamp field now contains the server time
+            const serverTime = data.timestamp;
             const endTime = Date.now();
-            const roundTripTime = endTime - startTime;
-            const estimatedServerTime = serverTime + (roundTripTime / 2);
-            serverTimeOffset = estimatedServerTime - startTime;
+            
+            // Simple offset calculation (server - client)
+            // Account for network latency with simple approximation
+            const latency = (endTime - startTime) / 2;
+            serverTimeOffset = (serverTime + latency) - startTime;
             
             isOffsetCalculated = true;
             console.log('Server time offset calculated:', serverTimeOffset, 'ms');
+            
+            // Clean up the temporary node
+            await remove(tempRef);
+            
             return serverTimeOffset;
         } else {
             console.warn('Could not get server time offset, using 0');
