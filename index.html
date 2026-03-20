@@ -382,7 +382,10 @@
             justify-content: center;
             color: white;
             box-shadow: 0 6px 20px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.3) inset;
-            background: linear-gradient(135deg, var(--bus-color, #1a73e8) 0%, color-mix(in srgb, var(--bus-color, #1a73e8) 80%, black) 100%);
+            /* Fallback for older browsers */
+            background: var(--bus-color, #1a73e8);
+            /* Modern gradient with color-mix */
+            background: linear-gradient(135deg, var(--bus-color, #1a73e8) 0%, color-mix(in srgb, var(--bus-color, #1a73e8) 80%, black) 100%) !important;
             position: relative;
             overflow: hidden;
             transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);

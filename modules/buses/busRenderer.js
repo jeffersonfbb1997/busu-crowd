@@ -27,6 +27,8 @@ export function renderBusMarkers(gpsData, configLinhas) {
         return;
     }
     
+    console.log(`renderBusMarkers called with ${Object.keys(configLinhas).length} lines, ${Object.keys(gpsData).length} active GPS datasets`);
+    
     const now = Date.now();
     
     // Clear old markers that are no longer active
@@ -89,9 +91,9 @@ export function renderBusMarkers(gpsData, configLinhas) {
             const mLng = lngA / cnt;
             const comp = COMPANIES[c.company || 'atlantico'];
             
-            // Create bus pin HTML
+            // Create bus pin HTML with CSS variable for color
             const busPinHtml = `
-                <div class="bus-pin" style="background: ${c.cor};">
+                <div class="bus-pin" style="--bus-color: ${c.cor};">
                     <span>${c.id}</span>
                 </div>
             `;
@@ -108,12 +110,15 @@ export function renderBusMarkers(gpsData, configLinhas) {
             if (state.markers[key]) {
                 // Update existing marker position
                 state.markers[key].setLatLng([mLat, mLng]);
+                console.log(`Updated bus marker for line ${c.id} at ${mLat.toFixed(6)}, ${mLng.toFixed(6)}`);
             } else {
                 // Create new marker
                 const marker = L.marker([mLat, mLng], {
                     icon: busIcon,
                     zIndexOffset: 3000
                 }).addTo(state.map);
+                
+                console.log(`Created new bus marker for line ${c.id} at ${mLat.toFixed(6)}, ${mLng.toFixed(6)} with color ${c.cor}`);
                 
                 // Add popup with bus info
                 marker.bindPopup(`
