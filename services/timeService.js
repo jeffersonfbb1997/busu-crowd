@@ -54,7 +54,7 @@ export async function calculateServerTimeOffset() {
             return 0;
         }
     } catch (error) {
-        console.error('Error calculating server time offset:', error);
+        console.warn('Error calculating server time offset (using client time):', error.message);
         serverTimeOffset = 0;
         isOffsetCalculated = true;
         return 0;

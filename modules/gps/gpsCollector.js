@@ -28,15 +28,15 @@ export function iniciarGPS(key) {
         // Log raw coordinates for debugging
         console.log(`GPS raw coordinates: ${rawLat.toFixed(6)}, ${rawLng.toFixed(6)}`);
 
-        // ESSENTIAL: Filter by accuracy (max 100 meters as requested)
-        // Positions with accuracy > 100m are unreliable and cause oscillation
-        if (accuracy > 100) {
-            console.log(`GPS accuracy too low: ${accuracy}m > 100m threshold, skipping update`);
+        // Filter by accuracy - increased to 200m for desktop compatibility
+        // Desktop GPS typically has lower accuracy (100-200m) compared to mobile devices
+        if (accuracy > 200) {
+            console.log(`GPS accuracy too low: ${accuracy}m > 200m threshold, skipping update`);
             return; // Skip unreliable positions
         }
 
-        // Log accuracy for debugging (as requested)
-        console.log(`GPS accuracy: ${accuracy}m (${accuracy <= 30 ? 'High' : accuracy <= 70 ? 'Medium' : 'Low'})`);
+        // Log accuracy for debugging
+        console.log(`GPS accuracy: ${accuracy}m (${accuracy <= 50 ? 'High' : accuracy <= 150 ? 'Medium' : 'Low'}) - ${accuracy <= 200 ? 'ACCEPTED' : 'REJECTED'}`);
 
         if (icon) icon.className = 'bi bi-stop-circle-fill';
 
