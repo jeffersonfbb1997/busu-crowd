@@ -48,8 +48,8 @@ export function renderBusMarkers(gpsData, configLinhas) {
                     const gpsData = lineGps[uid];
                     const accuracy = gpsData.acc || gpsData.accuracy || 0;
                     
-                    // Check if data is fresh AND accurate (accuracy gate: <= 80 meters)
-                    if (now - gpsData.timestamp < (state.systemTTL || 45000) && accuracy <= 80) {
+                    // Check if data is fresh AND accurate (accuracy gate: <= 200 meters for desktop compatibility)
+                    if (now - gpsData.timestamp < (state.systemTTL || 45000) && accuracy <= 200) {
                         hasActive = true;
                         break;
                     }
