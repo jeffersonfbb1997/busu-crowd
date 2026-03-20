@@ -50,25 +50,24 @@ export function iniciarGPS(key) {
             state.userMarker.setLatLng([data.lat, data.lng]);
             console.log('User marker updated to GPS position:', data.lat, data.lng);
         } else if (state.map && window.L) {
-            // Create user marker if it doesn't exist
-            console.log('Creating user marker from GPS data');
-            const userIcon = window.L.divIcon({
-                className: 'user-marker-icon',
-                iconSize: [40, 40],
-                iconAnchor: [20, 20]
-            });
-            
-            state.userMarker = window.L.marker([data.lat, data.lng], {
-                icon: userIcon,
-                zIndexOffset: 4000
+            // Create simple user marker if it doesn't exist
+            console.log('Creating simple user marker from GPS data');
+            state.userMarker = window.L.circleMarker([data.lat, data.lng], {
+                radius: 10,
+                fillColor: '#1a73e8',
+                color: '#ffffff',
+                weight: 3,
+                opacity: 1,
+                fillOpacity: 0.8,
+                className: 'simple-user-marker'
             }).addTo(state.map);
             
-            // Apply avatar settings
-            setTimeout(() => {
-                if (window.applyAvatarSettings) {
-                    window.applyAvatarSettings();
-                }
-            }, 100);
+            // Add pulsing effect
+            const element = state.userMarker.getElement();
+            if (element) {
+                element.style.animation = 'simple-pulse 2s infinite';
+            }
+            
         } else {
             console.warn('Cannot create user marker: map or L not available');
         }

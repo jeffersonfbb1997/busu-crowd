@@ -1221,6 +1221,26 @@
             opacity: 0.5;
             pointer-events: none;
         }
+        
+        /* Simple pulse animation for user marker */
+        @keyframes simple-pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .simple-user-marker {
+            animation: simple-pulse 2s infinite;
+        }
     </style>
 </head>
 <body>

@@ -2,7 +2,6 @@ import { db, auth, ADMIN_EMAIL } from '../services/firebaseService.js';
 import { login, logout, subscribeToAuthChanges, isUserAdmin } from '../services/authService.js';
 import { initParametersListener } from '../services/parametersService.js';
 import { initTimeService } from '../services/timeService.js';
-import { initAvatarService, loadAvatarSettings, applyAvatarSettings, applyNightMode, exposeToWindow } from '../services/avatarService.js';
 import { initMap } from '../modules/map/mapInit.js';
 import { state, updateState } from './stateManager.js';
 import { iniciarGPS, stopTrack } from '../modules/gps/gpsCollector.js';
@@ -56,10 +55,6 @@ export function initApp() {
         console.log('Time service initialized with offset:', offset, 'ms');
     });
     
-    // Initialize avatar service (user marker customization and night mode)
-    initAvatarService();
-    applyNightMode(); // Apply saved night mode settings
-    
     // Initialize system parameters listener
     initParametersListener();
     
@@ -89,51 +84,40 @@ function geoCenter() {
         // Fly to the location
         state.map.flyTo([lat, lng], 17);
         
+        // Check if GPS tracking is active
+        const isGPSTrackingActive = state.watchID !== null && state.watchID !== undefined;
+        
+        if (isGPSTrackingActive) {
+            console.log('GPS tracking is active - skipping marker update in geoCenter()');
+            console.log('Marker updates are handled by gpsCollector.js');
+            return;
+        }
+        
         if (state.userMarker) {
             console.log('Updating existing user marker to:', [lat, lng]);
             state.userMarker.setLatLng([lat, lng]);
-            state.userMarker.setZIndexOffset(4000);
         } else {
             console.log('Creating new user marker at:', [lat, lng]);
             
-            // Create user marker with corrected sizing
-            const userIcon = L.divIcon({
-                className: 'user-marker-icon',
-                iconSize: [40, 40], // Larger size to account for CSS pseudo-elements
-                iconAnchor: [20, 20], // Center the icon
-                html: '<div class="user-marker-inner"></div>'
-            });
-            
-            state.userMarker = L.marker([lat, lng], {
-                icon: userIcon,
-                zIndexOffset: 4000,
-                title: 'Sua localização',
-                alt: 'Marcador do usuário'
+            // Create SIMPLE user marker - blue circle with white border
+            state.userMarker = L.circleMarker([lat, lng], {
+                radius: 10,
+                fillColor: '#1a73e8',
+                color: '#ffffff',
+                weight: 3,
+                opacity: 1,
+                fillOpacity: 0.8,
+                className: 'simple-user-marker'
             }).addTo(state.map);
             
-            console.log('User marker created at:', lat, lng);
+            // Add a pulsing effect with CSS animation
+            const element = state.userMarker.getElement();
+            if (element) {
+                element.style.animation = 'simple-pulse 2s infinite';
+            }
             
-            // Apply avatar settings after marker is created
-            setTimeout(() => {
-                if (window.applyAvatarSettings) {
-                    window.applyAvatarSettings();
-                }
-            }, 100);
+            console.log('Simple user marker created at:', lat, lng);
         }
-        
-        // Add a small circle to show accuracy (for debugging)
-        if (state.accuracyCircle) {
-            state.map.removeLayer(state.accuracyCircle);
-        }
-        state.accuracyCircle = L.circle([lat, lng], {
-            radius: accuracy,
-            color: '#1a73e8',
-            fillColor: '#1a73e8',
-            fillOpacity: 0.1,
-            weight: 1
-        }).addTo(state.map);
-        
-        console.log('Accuracy circle added with radius:', accuracy + 'm');
         
     }, (error) => {
         console.warn('Geolocation error:', error);
@@ -142,26 +126,27 @@ function geoCenter() {
         const defaultLat = -14.81929, defaultLng = -39.036015;
         state.map.flyTo([defaultLat, defaultLng], 15);
         
+        // Check if GPS tracking is active
+        const isGPSTrackingActive = state.watchID !== null && state.watchID !== undefined;
+        
+        if (isGPSTrackingActive) {
+            console.log('GPS tracking is active - skipping marker update in geoCenter() error handler');
+            return;
+        }
+        
         if (!state.userMarker) {
-            const userIcon = L.divIcon({
-                className: 'user-marker-icon',
-                iconSize: [40, 40],
-                iconAnchor: [20, 20]
-            });
-            
-            state.userMarker = L.marker([defaultLat, defaultLng], {
-                icon: userIcon,
-                zIndexOffset: 4000
+            // Create simple default marker
+            state.userMarker = L.circleMarker([defaultLat, defaultLng], {
+                radius: 10,
+                fillColor: '#1a73e8',
+                color: '#ffffff',
+                weight: 3,
+                opacity: 1,
+                fillOpacity: 0.8,
+                className: 'simple-user-marker'
             }).addTo(state.map);
             
             console.log('Default user marker created');
-            
-            // Apply avatar settings after marker is created
-            setTimeout(() => {
-                if (window.applyAvatarSettings) {
-                    window.applyAvatarSettings();
-                }
-            }, 100);
         } else {
             // Update existing marker to default location
             state.userMarker.setLatLng([defaultLat, defaultLng]);
