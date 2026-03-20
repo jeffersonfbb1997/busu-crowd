@@ -1147,6 +1147,175 @@
             font-size: 14px;
         }
         
+        /* Modern bus card styling */
+        .modern-bus-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            backdrop-filter: blur(10px);
+        }
+        
+        .bus-card-header {
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+        
+        .bus-line-badge {
+            background: linear-gradient(135deg, #1a73e8, #34a853);
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+        }
+        
+        .bus-destination {
+            font-weight: 700;
+            font-size: 16px;
+            color: #1a1a1a;
+            line-height: 1.3;
+        }
+        
+        .company-logo-xs {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            object-fit: contain;
+        }
+        
+        .company-name {
+            font-size: 11px;
+            color: #70757a;
+        }
+        
+        .bus-status-indicator {
+            margin-left: auto;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #34a853;
+            box-shadow: 0 0 0 3px rgba(52, 168, 83, 0.2);
+        }
+        
+        .status-dot.active {
+            background: #34a853;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.inactive {
+            background: #dadce0;
+            box-shadow: 0 0 0 3px rgba(218, 220, 224, 0.2);
+        }
+        
+        .bus-card-section {
+            padding: 8px 0;
+        }
+        
+        .section-label {
+            font-size: 11px;
+            color: #70757a;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-content {
+            font-size: 13px;
+            color: #1a1a1a;
+            line-height: 1.4;
+        }
+        
+        .delay-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #fbbc05, #f9ab00);
+            color: #1a1a1a;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(251, 188, 5, 0.2);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .feature-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .feature-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 16px;
+            color: white;
+        }
+        
+        .feature-icon.ac {
+            background: linear-gradient(135deg, #1a73e8, #66aaff);
+        }
+        
+        .feature-icon.accessibility {
+            background: linear-gradient(135deg, #34a853, #81c995);
+        }
+        
+        .feature-label {
+            font-size: 12px;
+            color: #5f6368;
+            flex-grow: 1;
+        }
+        
+        .feature-status {
+            font-size: 11px;
+            font-weight: 700;
+        }
+        
+        .feature-status.text-success {
+            color: #34a853;
+        }
+        
+        .feature-status.text-warning {
+            color: #fbbc05;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(52, 168, 83, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(52, 168, 83, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 168, 83, 0); }
+        }
+
         /* Form switch customization */
         .form-check-input:checked {
             background-color: #1a73e8;
@@ -1457,7 +1626,86 @@
                 <span class="active-label">EM TEMPO REAL • 5KM</span>
                 <i class="bi bi-chevron-up text-muted" style="font-size:12px" id="bottom-card-icon"></i>
             </div>
+            
+            <!-- Modern bus details container -->
+            <div id="bus-details-container" class="mt-3" style="display: none;">
+                <div class="modern-bus-card">
+                    <!-- Header with line info -->
+                    <div class="bus-card-header">
+                        <div class="d-flex align-items-center">
+                            <div class="bus-line-badge" id="bus-line-badge">
+                                <span id="bus-line-code">L000</span>
+                            </div>
+                            <div class="ms-3 flex-grow-1">
+                                <div class="bus-destination" id="bus-destination">Destino</div>
+                                <div class="bus-company d-flex align-items-center mt-1">
+                                    <img id="bus-company-logo" src="" class="company-logo-xs me-2">
+                                    <span class="company-name small text-muted" id="bus-company-name">Companhia</span>
+                                </div>
+                            </div>
+                            <div class="bus-status-indicator" id="bus-status-indicator">
+                                <div class="status-dot active"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Street location -->
+                    <div class="bus-card-section mt-3">
+                        <div class="section-label">
+                            <i class="bi bi-geo-alt me-2"></i>
+                            <span>Localização atual</span>
+                        </div>
+                        <div class="section-content" id="bus-street-location">
+                            Aguardando dados de localização...
+                        </div>
+                    </div>
+                    
+                    <!-- Delay status (conditional) -->
+                    <div class="bus-card-section mt-2" id="bus-delay-section" style="display: none;">
+                        <div class="section-label">
+                            <i class="bi bi-clock-history me-2"></i>
+                            <span>Status</span>
+                        </div>
+                        <div class="section-content">
+                            <span class="delay-badge" id="bus-delay-badge">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                <span id="bus-delay-text">Atrasado</span>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Features -->
+                    <div class="bus-card-section mt-3">
+                        <div class="section-label">
+                            <i class="bi bi-star me-2"></i>
+                            <span>Recursos</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="features-grid">
+                                <div class="feature-item" id="ac-feature" style="display: none;">
+                                    <div class="feature-icon ac">
+                                        <i class="bi bi-snow"></i>
+                                    </div>
+                                    <div class="feature-label">Ar Condicionado</div>
+                                    <div class="feature-status text-success" id="ac-status">OK</div>
+                                </div>
+                                <div class="feature-item" id="accessibility-feature" style="display: none;">
+                                    <div class="feature-icon accessibility">
+                                        <i class="bi bi-wheelchair"></i>
+                                    </div>
+                                    <div class="feature-label">Acessibilidade</div>
+                                    <div class="feature-status text-success" id="accessibility-status">OK</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Legacy status display (for multiple buses) -->
             <div id="status-display" class="mt-3"></div>
+            
+            <!-- Admin-only collaborator count (hidden by default) -->
             <div id="global-counter" class="mt-2 pt-2 border-top text-center" style="display:none;">
                 <span id="total-active-text" style="font-size:9px; font-weight:800; color:var(--blue); letter-spacing:1px"></span>
             </div>
@@ -1475,8 +1723,14 @@
                             <i class="bi bi-satellite"></i>
                         </div>
                         <div>
-                            <h5 class="modal-title">Transmissão de GPS</h5>
-                            <p class="modal-subtitle">Selecione uma linha para iniciar a transmissão em tempo real</p>
+                            <h5 class="modal-title">
+                                <i class="bi bi-broadcast me-2 text-primary"></i>
+                                Transmissão de GPS
+                            </h5>
+                            <p class="modal-subtitle">
+                                <i class="bi bi-dot me-1 text-success"></i>
+                                Selecione uma linha para iniciar a transmissão em tempo real
+                            </p>
                         </div>
                     </div>
                     <button type="button" class="btn-close-modal" data-bs-dismiss="modal" aria-label="Close">
@@ -1513,8 +1767,8 @@
                     <div id="line-selection-grid" class="line-selection-grid p-3">
                         <!-- Lines will be dynamically populated here -->
                         <div class="text-center py-5 text-muted">
-                            <i class="bi bi-bus-front display-6 opacity-25 mb-3"></i>
-                            <p class="small">Carregando linhas disponíveis...</p>
+                            <i class="bi bi-satellite display-6 opacity-25 mb-3"></i>
+                            <p class="small">Buscando linhas para transmissão GPS...</p>
                         </div>
                     </div>
                 </div>

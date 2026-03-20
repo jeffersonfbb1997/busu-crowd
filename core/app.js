@@ -30,6 +30,34 @@ export function initApp() {
     window.toggleDrawer = toggleDrawer;
     window.toggleBottomCard = toggleBottomCard;
     window.geoCenter = geoCenter;
+    
+    // Bus details card functions
+    window.closeBusDetailsCard = function() {
+        try {
+            // Hide bus details container
+            const container = document.getElementById('bus-details-container');
+            if (container) {
+                container.style.display = 'none';
+            }
+            
+            // Show the legacy status display
+            const statusDisplay = document.getElementById('status-display');
+            if (statusDisplay) {
+                statusDisplay.style.display = 'block';
+            }
+            
+            // Remove bus selected attribute
+            const bottomCard = document.getElementById('bottom-info-card');
+            if (bottomCard) {
+                bottomCard.removeAttribute('data-bus-selected');
+            }
+            
+            console.log('Bus details card closed, restored default display');
+            
+        } catch (error) {
+            console.error('Error closing bus details card:', error);
+        }
+    };
     window.fazerLogin = login;
     window.fazerLogout = logout;
     window.startTrack = startTrack;
@@ -60,6 +88,13 @@ export function initApp() {
     
     // Initialize pointer service
     initPointerService();
+    
+    // Add map click listener to close bus details card when clicking on empty map
+    map.on('click', function(e) {
+        // Check if the click is not on a marker
+        // We'll close the bus details card on any map click for simplicity
+        window.closeBusDetailsCard();
+    });
     
     // Update bottom card with initial radius after a short delay
     setTimeout(() => {
@@ -796,10 +831,10 @@ function initModalSearch() {
                     emptyState.className = 'empty-state';
                     emptyState.innerHTML = `
                         <div class="empty-state-icon">
-                            <i class="bi bi-search"></i>
+                            <i class="bi bi-satellite"></i>
                         </div>
                         <div class="empty-state-text">
-                            ${searchTerm ? `Nenhuma linha encontrada para "${searchTerm}"` : 'Nenhuma linha disponível'}
+                            ${searchTerm ? `Nenhuma linha encontrada para "${searchTerm}"` : 'Nenhuma linha disponível para transmissão GPS'}
                         </div>
                     `;
                     grid.appendChild(emptyState);

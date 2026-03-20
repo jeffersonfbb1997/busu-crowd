@@ -179,25 +179,202 @@ export function renderBusMarkers(gpsData, configLinhas) {
                 console.log(`Created new bus marker for line ${c.id} at ${mLat.toFixed(6)}, ${mLng.toFixed(6)} with color ${c.cor}`);
                 console.log(`Bus marker HTML: ${busPinHtml}`);
                 
-                // Add popup with bus info
-                marker.bindPopup(`
-                    <div style="font-family: 'Inter', sans-serif; padding: 8px;">
-                        <div style="font-weight: 800; font-size: 14px; color: #202124;">
-                            <img src="${comp.favicon}" width="16" style="vertical-align: middle; margin-right: 6px;">
-                            ${c.id} - ${c.nome}
-                        </div>
-                        <div style="font-size: 11px; color: #70757a; margin-top: 4px;">
-                            ${c.via}
-                        </div>
-                        <div style="font-size: 10px; color: #34a853; margin-top: 6px; font-weight: 600;">
-                            ${cnt} colaborador${cnt > 1 ? 'es' : ''} ativo${cnt > 1 ? 's' : ''}
-                        </div>
-                    </div>
-                `);
+                // Add click event to show bus details in bottom card (no popup)
+                marker.on('click', () => {
+                    updateBusDetailsCard(key, c, comp, cnt, mLat, mLng);
+                });
                 
                 // Store marker in state
                 state.markers[key] = marker;
             }
+            
+            /**
+             * Update the bus details card in the bottom UI when a bus marker is clicked
+             * @param {string} lineKey - Firebase key of the line
+             * @param {object} lineConfig - Line configuration data
+             * @param {object} company - Company information
+             * @param {number} activeCount - Number of active collaborators
+             * @param {number} lat - Latitude
+             * @param {number} lng - Longitude
+             */
+            function updateBusDetailsCard(lineKey, lineConfig, company, activeCount, lat, lng) {
+                try {
+                    console.log(`updateBusDetailsCard called for line ${lineConfig.id}, setting data-bus-selected=true`);
+                    
+                    // Get street location (for now, we'll use a placeholder - in production,
+                    // you would use reverse geocoding or store street names in config)
+                    const streetLocation = lineConfig.via || 'Via principal';
+                    
+                    // Determine if bus is delayed (simulated logic - in production,
+                    // this would compare scheduled vs actual times)
+                    const isDelayed = Math.random() > 0.7; // 30% chance of being delayed for demo
+                    
+                    // Determine AC and accessibility status (simulated from line config)
+                    const hasAC = lineConfig.id.includes('2') || lineConfig.id.includes('7') || Math.random() > 0.5;
+                    const hasAccessibility = lineConfig.id.includes('1') || lineConfig.id.includes('6') || Math.random() > 0.3;
+                    const acStatus = hasAC ? (Math.random() > 0.2 ? 'OK' : 'NOK') : null;
+                    const accessibilityStatus = hasAccessibility ? (Math.random() > 0.1 ? 'OK' : 'NOK') : null;
+                    
+                    // Update bus details container
+                    const container = document.getElementById('bus-details-container');
+                    if (!container) return;
+                    
+                    // Show the container
+                    container.style.display = 'block';
+                    
+                    // Hide the legacy status display
+                    const statusDisplay = document.getElementById('status-display');
+                    if (statusDisplay) {
+                        statusDisplay.style.display = 'none';
+                    }
+                    
+                    // Mark that a bus is selected in the bottom card
+                    const bottomCard = document.getElementById('bottom-info-card');
+                    if (bottomCard) {
+                        bottomCard.setAttribute('data-bus-selected', 'true');
+                        console.log(`Set data-bus-selected=true on bottom card`);
+                    }
+                    
+                    // Update line information
+                    document.getElementById('bus-line-code').textContent = lineConfig.id;
+                    document.getElementById('bus-destination').textContent = lineConfig.nome;
+                    document.getElementById('bus-company-logo').src = company.favicon;
+                    document.getElementById('bus-company-name').textContent = company.name || 'Companhia';
+                    
+                    // Update street location
+                    document.getElementById('bus-street-location').textContent = streetLocation;
+                    
+                    // Update delay status
+                    const delaySection = document.getElementById('bus-delay-section');
+                    const delayBadge = document.getElementById('bus-delay-badge');
+                    const delayText = document.getElementById('bus-delay-text');
+                    
+                    if (isDelayed) {
+                        delaySection.style.display = 'block';
+                        delayText.textContent = 'Atrasado • 15 min';
+                        delayBadge.className = 'delay-badge';
+                    } else {
+                        delaySection.style.display = 'none';
+                    }
+                    
+                    // Update AC feature
+                    const acFeature = document.getElementById('ac-feature');
+                    const acStatusElement = document.getElementById('ac-status');
+                    
+                    if (hasAC && acStatus) {
+                        acFeature.style.display = 'flex';
+                        acStatusElement.textContent = acStatus;
+                        acStatusElement.className = `feature-status ${acStatus === 'OK' ? 'text-success' : 'text-warning'}`;
+                    } else {
+                        acFeature.style.display = 'none';
+                    }
+                    
+                    // Update accessibility feature
+                    const accessibilityFeature = document.getElementById('accessibility-feature');
+                    const accessibilityStatusElement = document.getElementById('accessibility-status');
+                    
+                    if (hasAccessibility && accessibilityStatus) {
+                        accessibilityFeature.style.display = 'flex';
+                        accessibilityStatusElement.textContent = accessibilityStatus;
+                        accessibilityStatusElement.className = `feature-status ${accessibilityStatus === 'OK' ? 'text-success' : 'text-warning'}`;
+                    } else {
+                        accessibilityFeature.style.display = 'none';
+                    }
+                    
+                    // Update status dot
+                    const statusDot = document.querySelector('#bus-status-indicator .status-dot');
+                    if (statusDot) {
+                        statusDot.className = `status-dot ${activeCount > 0 ? 'active' : 'inactive'}`;
+                    }
+                    
+                    // Ensure bottom card is expanded
+                    if (window.toggleBottomCard && document.getElementById('bottom-info-card').classList.contains('minimized')) {
+                        window.toggleBottomCard();
+                    }
+                    
+                    console.log(`Bus details updated for line ${lineConfig.id}`);
+                    
+                } catch (error) {
+                    console.error('Error updating bus details card:', error);
+                }
+            }
+            
+            /**
+             * Close the bus details card and restore default display
+             */
+            function closeBusDetailsCard() {
+                try {
+                    // Hide bus details container
+                    const container = document.getElementById('bus-details-container');
+                    if (container) {
+                        container.style.display = 'none';
+                    }
+                    
+                    // Show the legacy status display
+                    const statusDisplay = document.getElementById('status-display');
+                    if (statusDisplay) {
+                        statusDisplay.style.display = 'block';
+                    }
+                    
+                    console.log('Bus details card closed, restored default display');
+                    
+                } catch (error) {
+                    console.error('Error closing bus details card:', error);
+                }
+            }
+            
+            /**
+             * Show bus details when a bus item is clicked in the list
+             * @param {string} lineKey - Firebase key of the line
+             */
+            function showBusDetails(lineKey) {
+                try {
+                    // Get line configuration from state
+                    const lineConfig = state.configLinhas[lineKey];
+                    if (!lineConfig) {
+                        console.error('Line configuration not found for key:', lineKey);
+                        return;
+                    }
+                    
+                    // Get company information
+                    const comp = COMPANIES[lineConfig.company || 'atlantico'];
+                    
+                    // Get current GPS data to determine active count and position
+                    let activeCount = 0;
+                    let lat = 0, lng = 0;
+                    const gpsData = state.gpsData || {};
+                    
+                    if (gpsData[lineKey]) {
+                        const now = Date.now();
+                        for (let uid in gpsData[lineKey]) {
+                            const gpsPoint = gpsData[lineKey][uid];
+                            const accuracy = gpsPoint.acc || gpsPoint.accuracy || 0;
+                            if (now - gpsPoint.timestamp < (state.systemTTL || 45000) && accuracy <= 200) {
+                                activeCount++;
+                                lat += gpsPoint.lat;
+                                lng += gpsPoint.lng;
+                            }
+                        }
+                        
+                        if (activeCount > 0) {
+                            lat = lat / activeCount;
+                            lng = lng / activeCount;
+                        }
+                    }
+                    
+                    // Call the update function
+                    if (window.updateBusDetailsCard) {
+                        updateBusDetailsCard(lineKey, lineConfig, comp, activeCount, lat, lng);
+                    }
+                    
+                } catch (error) {
+                    console.error('Error showing bus details:', error);
+                }
+            }
+            
+            // Expose functions globally
+            window.updateBusDetailsCard = updateBusDetailsCard;
+            window.showBusDetails = showBusDetails;
         } else {
             // Remove marker if no active GPS data
             if (state.markers[key]) {
