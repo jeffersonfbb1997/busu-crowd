@@ -1,64 +1,65 @@
 import { db } from "./firebaseService.js";
-import { ref, serverTimestamp, set, onValue, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+import { ref, serverTimestamp, onValue } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
 // Server time offset in milliseconds (client time - server time)
 let serverTimeOffset = 0;
-let isOffsetCalculated = false;
+let isOffsetAvailable = false;
+let isListening = false;
 
 /**
- * Calculate server time offset by comparing client time with Firebase server timestamp
- * @returns {Promise<number>} Server time offset in milliseconds
+ * Initialize time service using Firebase's native .info/serverTimeOffset
+ * This approach doesn't require any write permissions, only read access to .info
  */
-export async function calculateServerTimeOffset() {
+export function initTimeService() {
+    if (isListening) {
+        console.debug('Time service already initialized');
+        return serverTimeOffset;
+    }
+    
+    console.log('Initializing time service using Firebase .info/serverTimeOffset');
+    
     try {
-        console.log('Calculating server time offset...');
+        // Firebase Realtime Database provides .info/serverTimeOffset natively
+        // This is a special location that returns the server's time offset
+        const serverTimeOffsetRef = ref(db, ".info/serverTimeOffset");
         
-        // Firebase Realtime Database doesn't have .info/serverTimeOffset
-        // We'll use a simpler approach: write a timestamp and read it back
-        // The server will replace serverTimestamp() with actual server time
-        
-        const tempRef = ref(db, '_timeCheck/' + Date.now());
-        
-        // Write with server timestamp
-        const startTime = Date.now();
-        await set(tempRef, {
-            clientStart: startTime,
-            timestamp: serverTimestamp()
+        // Listen for changes to the server time offset
+        onValue(serverTimeOffsetRef, (snapshot) => {
+            const offset = snapshot.val();
+            if (offset !== null) {
+                serverTimeOffset = offset;
+                isOffsetAvailable = true;
+                console.debug('Server time offset updated:', serverTimeOffset, 'ms');
+            } else {
+                console.debug('Server time offset not available, using client time');
+                isOffsetAvailable = false;
+                serverTimeOffset = 0;
+            }
+        }, (error) => {
+            console.warn('Error listening to server time offset:', error.message);
+            console.warn('Falling back to client time');
+            isOffsetAvailable = false;
+            serverTimeOffset = 0;
         });
         
-        // Immediately read back (Firebase will have replaced serverTimestamp)
-        const snapshot = await get(tempRef);
-        const data = snapshot.val();
+        isListening = true;
         
-        if (data && data.timestamp) {
-            // The timestamp field now contains the server time
-            const serverTime = data.timestamp;
-            const endTime = Date.now();
-            
-            // Simple offset calculation (server - client)
-            // Account for network latency with simple approximation
-            const latency = (endTime - startTime) / 2;
-            serverTimeOffset = (serverTime + latency) - startTime;
-            
-            isOffsetCalculated = true;
-            console.log('Server time offset calculated:', serverTimeOffset, 'ms');
-            
-            // Clean up the temporary node
-            await remove(tempRef);
-            
-            return serverTimeOffset;
-        } else {
-            console.warn('Could not get server time offset, using 0');
-            serverTimeOffset = 0;
-            isOffsetCalculated = true;
-            return 0;
-        }
+        // Mark as available immediately (will be updated when Firebase responds)
+        // This prevents blocking while waiting for Firebase response
+        setTimeout(() => {
+            if (!isOffsetAvailable) {
+                console.debug('Server time offset not received yet, continuing with client time');
+            }
+        }, 1000);
+        
     } catch (error) {
-        console.warn('Error calculating server time offset (using client time):', error.message);
+        console.warn('Failed to initialize time service:', error.message);
+        console.warn('Application will use client time');
+        isOffsetAvailable = false;
         serverTimeOffset = 0;
-        isOffsetCalculated = true;
-        return 0;
     }
+    
+    return serverTimeOffset;
 }
 
 /**
@@ -66,12 +67,20 @@ export async function calculateServerTimeOffset() {
  * @returns {number} Current server time in milliseconds
  */
 export function getServerTime() {
-    if (!isOffsetCalculated) {
-        console.warn('Server time offset not calculated yet, using client time');
+    if (!isOffsetAvailable) {
+        // Fallback to client time if server offset is not available
         return Date.now();
     }
     
     return Date.now() + serverTimeOffset;
+}
+
+/**
+ * Get server timestamp for Firebase operations
+ * @returns {Object} Firebase serverTimestamp placeholder
+ */
+export function getServerTimestamp() {
+    return serverTimestamp();
 }
 
 /**
@@ -80,7 +89,7 @@ export function getServerTime() {
  * @returns {number} Adjusted server timestamp
  */
 export function adjustToServerTime(clientTimestamp) {
-    if (!isOffsetCalculated) {
+    if (!isOffsetAvailable) {
         return clientTimestamp;
     }
     
@@ -101,46 +110,23 @@ export function calculatePacketDelay(dataTimestamp, isClientTime = true) {
 }
 
 /**
- * Initialize time service and calculate offset (non-blocking)
+ * Check if time service is initialized and server time is available
+ * @returns {boolean} True if server time offset is available
  */
-export async function initTimeService() {
-    // Mark as calculated immediately to avoid blocking
-    isOffsetCalculated = true;
-    serverTimeOffset = 0;
-    
-    // Calculate offset in background without blocking initialization
-    setTimeout(async () => {
-        try {
-            await calculateServerTimeOffset();
-            
-            // Set up periodic recalculation if the first attempt succeeded
-            setInterval(async () => {
-                await calculateServerTimeOffset();
-            }, 5 * 60 * 1000);
-        } catch (error) {
-            // Already using client time, no need to log as error
-            console.debug('Background time offset calculation failed, continuing with client time');
-        }
-    }, 0);
-    
+export function isTimeServiceReady() {
+    return isOffsetAvailable;
+}
+
+/**
+ * Get current server time offset (for debugging/monitoring)
+ * @returns {number} Current server time offset in milliseconds
+ */
+export function getServerTimeOffset() {
     return serverTimeOffset;
 }
 
-/**
- * Get server timestamp for Firebase operations
- * @returns {Object} Firebase serverTimestamp placeholder
- */
-export function getServerTimestamp() {
-    return serverTimestamp();
+// Legacy function for backward compatibility (no longer does calculation)
+export async function calculateServerTimeOffset() {
+    console.debug('calculateServerTimeOffset() is deprecated - using Firebase .info/serverTimeOffset');
+    return serverTimeOffset;
 }
-
-/**
- * Check if time service is initialized
- * @returns {boolean} True if time service is ready
- */
-export function isTimeServiceReady() {
-    return isOffsetCalculated;
-}
-
-// Export current offset for debugging
-export { serverTimeOffset, isOffsetCalculated };

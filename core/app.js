@@ -52,9 +52,8 @@ export function initApp() {
     subscribeToAuthChanges(handleAuthChange);
     
     // Initialize time service (server clock synchronization)
-    initTimeService().then(offset => {
-        console.log('Time service initialized with offset:', offset, 'ms');
-    });
+    const timeOffset = initTimeService();
+    console.log('Time service initialized, offset:', timeOffset, 'ms');
     
     // Initialize system parameters listener
     initParametersListener();
