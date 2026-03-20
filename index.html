@@ -285,6 +285,33 @@
             color: var(--blue);
         }
         
+        /* Click animation for nav items */
+        .nav-item-custom:active {
+            transform: scale(0.97);
+            transition: transform 0.1s ease;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+        }
+        
+        /* Pulse animation for dashboard button feedback */
+        .nav-item-custom.pulse {
+            animation: pulse-feedback 0.5s ease;
+        }
+        
+        @keyframes pulse-feedback {
+            0% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.5); }
+            70% { box-shadow: 0 0 0 10px rgba(26, 115, 232, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0); }
+        }
+        
+        .nav-item-custom.loading i {
+            animation: spin 0.6s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         /* STANDBY BADGE - FUTURE FEATURES */
         .standby-badge {
             font-size: 9px;
