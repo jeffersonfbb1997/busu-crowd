@@ -2,7 +2,6 @@ export const state = {
     user: null,
     watchID: null,
     currentLineKey: null,
-    userMarker: null,
     adminSelectedCompany: 'atlantico',
     map: null,
     markers: {},

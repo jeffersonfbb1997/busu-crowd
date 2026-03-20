@@ -11,6 +11,7 @@ import { toggleSidebar, switchView, toggleDrawer, toggleBottomCard } from '../ui
 import { onMapClickForRoute, selectLineForRoute, saveRouteData, clearCurrentDraft } from '../admin/mapEditor/routeEditor.js';
 import { COMPANIES } from '../config/systemConfig.js';
 import { calcDist } from '../utils/geoUtils.js';
+import { updateUserPointer, centerMapOnPointer, initPointerService } from '../services/pointerService.js';
 
 import { ref, set, onValue, onDisconnect, remove, push } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
@@ -58,6 +59,9 @@ export function initApp() {
     // Initialize system parameters listener
     initParametersListener();
     
+    // Initialize pointer service
+    initPointerService();
+    
     // Data listeners
     setupDataListeners();
     
@@ -81,76 +85,20 @@ function geoCenter() {
         
         console.log('Geolocation success:', { lat, lng, accuracy: accuracy + 'm' });
         
-        // Fly to the location
-        state.map.flyTo([lat, lng], 17);
+        // Center map on location (NO MARKER CREATED)
+        centerMapOnPointer(lat, lng, 17);
         
-        // Check if GPS tracking is active
-        const isGPSTrackingActive = state.watchID !== null && state.watchID !== undefined;
-        
-        if (isGPSTrackingActive) {
-            console.log('GPS tracking is active - skipping marker update in geoCenter()');
-            console.log('Marker updates are handled by gpsCollector.js');
-            return;
-        }
-        
-        if (state.userMarker) {
-            console.log('Updating existing user marker to:', [lat, lng]);
-            state.userMarker.setLatLng([lat, lng]);
-        } else {
-            console.log('Creating new user marker at:', [lat, lng]);
-            
-            // Create SIMPLE user marker - blue circle with white border
-            state.userMarker = L.circleMarker([lat, lng], {
-                radius: 10,
-                fillColor: '#1a73e8',
-                color: '#ffffff',
-                weight: 3,
-                opacity: 1,
-                fillOpacity: 0.8,
-                className: 'simple-user-marker'
-            }).addTo(state.map);
-            
-            // Add a pulsing effect with CSS animation
-            const element = state.userMarker.getElement();
-            if (element) {
-                element.style.animation = 'simple-pulse 2s infinite';
-            }
-            
-            console.log('Simple user marker created at:', lat, lng);
-        }
+        // Note: No pointer/marker is created - only map centering
         
     }, (error) => {
         console.warn('Geolocation error:', error);
         
         // Fallback to default location if geolocation fails
         const defaultLat = -14.81929, defaultLng = -39.036015;
-        state.map.flyTo([defaultLat, defaultLng], 15);
+        centerMapOnPointer(defaultLat, defaultLng, 15);
         
-        // Check if GPS tracking is active
-        const isGPSTrackingActive = state.watchID !== null && state.watchID !== undefined;
+        // Note: No pointer/marker is created at default location
         
-        if (isGPSTrackingActive) {
-            console.log('GPS tracking is active - skipping marker update in geoCenter() error handler');
-            return;
-        }
-        
-        if (!state.userMarker) {
-            // Create simple default marker
-            state.userMarker = L.circleMarker([defaultLat, defaultLng], {
-                radius: 10,
-                fillColor: '#1a73e8',
-                color: '#ffffff',
-                weight: 3,
-                opacity: 1,
-                fillOpacity: 0.8,
-                className: 'simple-user-marker'
-            }).addTo(state.map);
-            
-            console.log('Default user marker created');
-        } else {
-            // Update existing marker to default location
-            state.userMarker.setLatLng([defaultLat, defaultLng]);
-        }
     }, {enableHighAccuracy: true, timeout: 10000, maximumAge: 0});
 }
 

@@ -2,6 +2,7 @@ import { db } from "../../services/firebaseService.js";
 import { ref, set, onDisconnect, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 import { state, updateState } from "../../core/stateManager.js";
 import { getServerTime } from "../../services/timeService.js";
+import { updateUserPointer } from "../../services/pointerService.js";
 
 /**
  * Enhanced GPS data collector with refined data structure
@@ -21,13 +22,21 @@ export function iniciarGPS(key) {
     const watchID = navigator.geolocation.watchPosition(p => {
         const speedKmh = (p.coords.speed || 0) * 3.6;
         const accuracy = p.coords.accuracy || 0;
+        const rawLat = p.coords.latitude;
+        const rawLng = p.coords.longitude;
 
-        // Filter by accuracy (max 80 meters for quality data, but still accept up to 200 for backup)
-        // Data with accuracy > 80m will be filtered out in rendering and processing
-        if (accuracy > 200) {
-            console.log(`GPS accuracy too low: ${accuracy}m, skipping update`);
-            return; // Extreme accuracy issues
+        // Log raw coordinates for debugging
+        console.log(`GPS raw coordinates: ${rawLat.toFixed(6)}, ${rawLng.toFixed(6)}`);
+
+        // ESSENTIAL: Filter by accuracy (max 100 meters as requested)
+        // Positions with accuracy > 100m are unreliable and cause oscillation
+        if (accuracy > 100) {
+            console.log(`GPS accuracy too low: ${accuracy}m > 100m threshold, skipping update`);
+            return; // Skip unreliable positions
         }
+
+        // Log accuracy for debugging (as requested)
+        console.log(`GPS accuracy: ${accuracy}m (${accuracy <= 30 ? 'High' : accuracy <= 70 ? 'Medium' : 'Low'})`);
 
         if (icon) icon.className = 'bi bi-stop-circle-fill';
 
@@ -45,32 +54,11 @@ export function iniciarGPS(key) {
 
         console.log(`GPS data received: ${data.lat}, ${data.lng}, accuracy: ${data.acc}m`);
 
-        // Update user marker on map if it exists
-        if (state.userMarker && typeof state.userMarker.setLatLng === 'function') {
-            state.userMarker.setLatLng([data.lat, data.lng]);
-            console.log('User marker updated to GPS position:', data.lat, data.lng);
-        } else if (state.map && window.L) {
-            // Create simple user marker if it doesn't exist
-            console.log('Creating simple user marker from GPS data');
-            state.userMarker = window.L.circleMarker([data.lat, data.lng], {
-                radius: 10,
-                fillColor: '#1a73e8',
-                color: '#ffffff',
-                weight: 3,
-                opacity: 1,
-                fillOpacity: 0.8,
-                className: 'simple-user-marker'
-            }).addTo(state.map);
-            
-            // Add pulsing effect
-            const element = state.userMarker.getElement();
-            if (element) {
-                element.style.animation = 'simple-pulse 2s infinite';
-            }
-            
-        } else {
-            console.warn('Cannot create user marker: map or L not available');
-        }
+        // Track user position using the pointer service with accuracy parameter
+        // The service handles smoothing and validation (no marker creation)
+        console.log(`Calling updateUserPointer with accuracy=${accuracy}m`);
+        const updateResult = updateUserPointer(data.lat, data.lng, accuracy);
+        console.log(`updateUserPointer returned: ${updateResult ? 'SUCCESS' : 'FAILED'}`);
 
         const trackRef = ref(db, `onibus/${key}/${state.user.uid}`);
         set(trackRef, data).then(() => {

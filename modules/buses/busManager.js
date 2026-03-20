@@ -1,12 +1,14 @@
 import { COMPANIES } from "../../config/systemConfig.js";
 import { calcDist } from "../../utils/geoUtils.js";
 import { state, updateState } from "../../core/stateManager.js";
+import { getPointerPosition } from "../../services/pointerService.js";
 
 export function renderBusList(gpsData, configLinhas) {
     const now = Date.now();
     let statusH = "", drawerH = "", tU = 0;
-    const uLat = state.userMarker ? state.userMarker.getLatLng().lat : null;
-    const uLng = state.userMarker ? state.userMarker.getLatLng().lng : null;
+    const userPosition = getPointerPosition();
+    const uLat = userPosition ? userPosition.lat : null;
+    const uLng = userPosition ? userPosition.lng : null;
 
     for (let key in configLinhas) {
         const c = configLinhas[key];
