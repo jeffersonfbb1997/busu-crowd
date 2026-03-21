@@ -294,13 +294,15 @@ export function renderBusMarkers(gpsData, configLinhas) {
                     
                     // Determine if bus is delayed (simulated logic - in production,
                     // this would compare scheduled vs actual times)
-                    const isDelayed = Math.random() > 0.7; // 30% chance of being delayed for demo
+                    const isDelayed = true; // Always delayed to show the status permanently
                     
-                    // Determine AC and accessibility status (simulated from line config)
+                    // Determine AC, accessibility, and WiFi status (simulated from line config)
                     const hasAC = lineConfig.id.includes('2') || lineConfig.id.includes('7') || Math.random() > 0.5;
                     const hasAccessibility = lineConfig.id.includes('1') || lineConfig.id.includes('6') || Math.random() > 0.3;
+                    const hasWiFi = lineConfig.id.includes('3') || lineConfig.id.includes('8') || Math.random() > 0.4;
                     const acStatus = hasAC ? (Math.random() > 0.2 ? 'OK' : 'NOK') : null;
-                    const accessibilityStatus = hasAccessibility ? (Math.random() > 0.1 ? 'OK' : 'NOK') : null;
+                    const accessibilityStatus = hasAccessibility ? 'OK' : null;
+                    const wifiStatus = hasWiFi ? 'OK' : null;
                     
                     // Update bus details container
                     const container = document.getElementById('bus-details-container');
@@ -326,7 +328,7 @@ export function renderBusMarkers(gpsData, configLinhas) {
                     document.getElementById('bus-line-code').textContent = lineConfig.id;
                     document.getElementById('bus-destination').textContent = lineConfig.nome;
                     document.getElementById('bus-company-logo').src = company.favicon;
-                    document.getElementById('bus-company-name').textContent = company.name || 'Companhia';
+                    document.getElementById('bus-subtitle').textContent = routeInfo;
                     
                     // Update bus line badge color to match the globe marker
                     const busLineBadge = document.getElementById('bus-line-badge');
@@ -342,7 +344,7 @@ export function renderBusMarkers(gpsData, configLinhas) {
                     // Update street location with route info as subtitle
                     const streetLocationElement = document.getElementById('bus-street-location');
                     if (streetLocationElement) {
-                        streetLocationElement.innerHTML = `${streetLocation}<br><small class="text-muted">${routeInfo}</small>`;
+                        streetLocationElement.innerHTML = `${streetLocation}`;
                     }
                     
                     // Update delay status
@@ -382,10 +384,22 @@ export function renderBusMarkers(gpsData, configLinhas) {
                         accessibilityFeature.style.display = 'none';
                     }
                     
+                    // Update WiFi feature
+                    const wifiFeature = document.getElementById('wifi-feature');
+                    const wifiStatusElement = document.getElementById('wifi-status');
+                    
+                    if (hasWiFi && wifiStatus) {
+                        wifiFeature.style.display = 'flex';
+                        wifiStatusElement.textContent = wifiStatus;
+                        wifiStatusElement.className = `feature-status ${wifiStatus === 'OK' ? 'text-success' : 'text-warning'}`;
+                    } else {
+                        wifiFeature.style.display = 'none';
+                    }
+                    
                     // Show/hide entire features section based on whether any features are available
                     const featuresSection = document.getElementById('features-section');
                     if (featuresSection) {
-                        if ((hasAC && acStatus) || (hasAccessibility && accessibilityStatus)) {
+                        if ((hasAC && acStatus) || (hasAccessibility && accessibilityStatus) || (hasWiFi && wifiStatus)) {
                             featuresSection.style.display = 'block';
                         } else {
                             featuresSection.style.display = 'none';

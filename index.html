@@ -159,11 +159,11 @@
         
         @media (max-width: 360px) {
             .bottom-ui { bottom: 8px; }
-            .info-card { width: 98%; border-radius: 18px; padding: 12px; }
-            .info-card.minimized { height: 44px; padding: 10px 12px; }
-            .modern-bus-card { padding: 12px; }
-            .bus-destination { font-size: 15px; }
-            .section-content { font-size: 12.5px; }
+            .info-card { width: 98%; border-radius: 14px; padding: 8px; }
+            .info-card.minimized { height: 32px; padding: 6px 8px; }
+            .modern-bus-card { padding: 8px; }
+            .bus-destination { font-size: 13px; }
+            .section-content { font-size: 11px; }
         }
 
         .bus-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
@@ -1170,12 +1170,12 @@
             border-radius: 12px;
             padding: 16px;
             border: 1px solid rgba(0, 0, 0, 0.08);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.06);
             backdrop-filter: blur(10px);
         }
         
         .bus-card-header {
-            padding-bottom: 12px;
+            padding-bottom: 8px;
             border-bottom: 1px solid rgba(0, 0, 0, 0.06);
         }
         
@@ -1184,13 +1184,13 @@
             color: white;
             width: 48px;
             height: 48px;
-            border-radius: 10px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 18px;
-            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+            font-size: 14px;
+            box-shadow: 0 3px 8px rgba(26, 115, 232, 0.3);
         }
         
         .bus-destination {
@@ -1198,7 +1198,7 @@
             font-size: 16px;
             color: #1a1a1a;
             line-height: 1.2;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
         
         .bus-company {
@@ -1206,14 +1206,14 @@
         }
         
         .company-logo-xs {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border-radius: 3px;
             object-fit: contain;
         }
         
         .company-name {
-            font-size: 11px;
+            font-size: 10px;
             color: #70757a;
             line-height: 1.2;
         }
@@ -1223,11 +1223,11 @@
         }
         
         .status-dot {
-            width: 10px;
-            height: 10px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background: #34a853;
-            box-shadow: 0 0 0 3px rgba(52, 168, 83, 0.2);
+            box-shadow: 0 0 0 2px rgba(52, 168, 83, 0.2);
         }
         
         .status-dot.active {
@@ -1237,20 +1237,20 @@
         
         .status-dot.inactive {
             background: #dadce0;
-            box-shadow: 0 0 0 3px rgba(218, 220, 224, 0.2);
+            box-shadow: 0 0 0 2px rgba(218, 220, 224, 0.2);
         }
         
         .bus-card-section {
-            padding: 8px 0;
+            padding: 6px 0;
         }
         
         .section-label {
-            font-size: 11px;
+            font-size: 10px;
             color: #70757a;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
+            letter-spacing: 0.3px;
+            margin-bottom: 3px;
             display: flex;
             align-items: center;
         }
@@ -1265,7 +1265,7 @@
         
         /* Special styling for location section */
         .bus-card-section.location-section .section-content {
-            padding-left: 0;
+            padding-left: 24px;
             margin-top: 4px;
             font-size: 13.5px;
             font-weight: 500;
@@ -1312,12 +1312,12 @@
         .feature-icon {
             width: 32px;
             height: 32px;
-            border-radius: 8px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 10px;
-            font-size: 16px;
+            margin-right: 8px;
+            font-size: 12px;
             color: white;
         }
         
@@ -1327,6 +1327,10 @@
         
         .feature-icon.accessibility {
             background: linear-gradient(135deg, #34a853, #81c995);
+        }
+        
+        .feature-icon.wifi {
+            background: linear-gradient(135deg, #fbbc05, #fdd663);
         }
         
         .feature-label {
@@ -1676,10 +1680,10 @@
                             </div>
                             <div class="ms-3 flex-grow-1">
                                 <div class="bus-destination" id="bus-destination">Destino</div>
-                                <div class="bus-company d-flex align-items-center mt-1">
-                                    <img id="bus-company-logo" src="" class="company-logo-xs me-2">
-                                    <span class="company-name small text-muted" id="bus-company-name">Companhia</span>
-                                </div>
+                                <div class="bus-subtitle" id="bus-subtitle">Via principal</div>
+                            </div>
+                            <div class="bus-company d-flex align-items-center ms-0 me-3">
+                                <img id="bus-company-logo" src="" class="company-logo-xs">
                             </div>
                             <div class="bus-status-indicator" id="bus-status-indicator">
                                 <div class="status-dot active"></div>
@@ -1699,7 +1703,7 @@
                     </div>
                     
                     <!-- Delay status (conditional) -->
-                    <div class="bus-card-section mt-2" id="bus-delay-section" style="display: none;">
+                    <div class="bus-card-section mt-2" id="bus-delay-section">
                         <div class="section-label">
                             <i class="bi bi-clock-history me-2"></i>
                             <span>Status</span>
@@ -1713,26 +1717,33 @@
                     </div>
                     
                     <!-- Features (Hidden by default - only show when line management modal supports configuration) -->
-                    <div class="bus-card-section mt-3" id="features-section" style="display: none;">
+                    <div class="bus-card-section mt-3" id="features-section">
                         <div class="section-label">
                             <i class="bi bi-star me-2"></i>
                             <span>Recursos</span>
                         </div>
                         <div class="section-content">
                             <div class="features-grid">
-                                <div class="feature-item" id="ac-feature" style="display: none;">
+                                <div class="feature-item" id="ac-feature" style="display: flex;">
                                     <div class="feature-icon ac">
                                         <i class="bi bi-snow"></i>
                                     </div>
                                     <div class="feature-label">Ar Condicionado</div>
                                     <div class="feature-status text-success" id="ac-status">OK</div>
                                 </div>
-                                <div class="feature-item" id="accessibility-feature" style="display: none;">
+                                <div class="feature-item" id="accessibility-feature" style="display: flex;">
                                     <div class="feature-icon accessibility">
-                                        <i class="bi bi-wheelchair"></i>
+                                        <i class="bi bi-universal-access"></i>
                                     </div>
                                     <div class="feature-label">Acessibilidade</div>
                                     <div class="feature-status text-success" id="accessibility-status">OK</div>
+                                </div>
+                                <div class="feature-item" id="wifi-feature" style="display: flex;">
+                                    <div class="feature-icon wifi">
+                                        <i class="bi bi-wifi"></i>
+                                    </div>
+                                    <div class="feature-label">Wi-Fi</div>
+                                    <div class="feature-status text-success" id="wifi-status">OK</div>
                                 </div>
                             </div>
                         </div>
