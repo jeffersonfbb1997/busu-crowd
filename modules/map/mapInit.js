@@ -1,9 +1,23 @@
-import { DEFAULT_VIEW, DEFAULT_ZOOM } from "../../config/systemConfig.js";
+import { getDefaultMapOptions, createTileLayer, DEFAULT_TILE_LAYER } from "../../config/mapConfig.js";
 
 export let map;
 
+/**
+ * Initialize a Leaflet map in the given container.
+ * Uses configuration from mapConfig.js for tile layer and map options.
+ * @param {string} containerId - HTML element ID
+ * @returns {L.Map} Leaflet map instance
+ */
 export const initMap = (containerId) => {
-    map = L.map(containerId, { zoomControl: false }).setView(DEFAULT_VIEW, DEFAULT_ZOOM);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    const options = getDefaultMapOptions();
+    // Ensure zoomControl is false (we add it via mapControls)
+    options.zoomControl = false;
+    
+    map = L.map(containerId, options);
+    
+    // Add default tile layer
+    const tileLayer = createTileLayer(DEFAULT_TILE_LAYER);
+    tileLayer.addTo(map);
+    
     return map;
 };

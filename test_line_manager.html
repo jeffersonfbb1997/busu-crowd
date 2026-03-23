@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Line Manager</title>
+</head>
+<body>
+    <h1>Test Line Manager Module</h1>
+    <div id="status">Loading...</div>
+    
+    <script type="module">
+        import { initLineManager, loadLinesList, saveLineToFirestore } from './modules/lineManager.js';
+        
+        document.getElementById('status').textContent = 'Module loaded successfully!';
+        
+        // Test if functions are available
+        console.log('initLineManager:', typeof initLineManager);
+        console.log('loadLinesList:', typeof loadLinesList);
+        console.log('saveLineToFirestore:', typeof saveLineToFirestore);
+        
+        // Test if functions are available on window
+        console.log('window.initLineManager:', typeof window.initLineManager);
+        console.log('window.loadLinesList:', typeof window.loadLinesList);
+        console.log('window.saveLineToFirestore:', typeof window.saveLineToFirestore);
+        
+        if (typeof initLineManager === 'function' && 
+            typeof loadLinesList === 'function' && 
+            typeof saveLineToFirestore === 'function') {
+            document.getElementById('status').textContent = 'All functions available!';
+        } else {
+            document.getElementById('status').textContent = 'Some functions missing!';
+        }
+    </script>
+</body>
+</html>

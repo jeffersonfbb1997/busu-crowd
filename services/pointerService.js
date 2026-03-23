@@ -11,6 +11,7 @@
 
 import { state } from '../core/stateManager.js';
 import { getDistanceMeters } from '../utils/geoUtils.js';
+import { LAYER, addLayer, removeLayer, ensureLayerGroup } from '../modules/map/mapLayers.js';
 
 // Position tracking for stabilization
 let lastValidPosition = null;
@@ -103,6 +104,9 @@ export function updateUserPointer(lat, lng, accuracy = null, forceUpdate = false
         return false;
     }
     
+    // Ensure user layer group exists
+    ensureLayerGroup(LAYER.USER);
+    
     // Log incoming position with accuracy
     console.log(`GPS Position received: lat=${lat.toFixed(6)}, lng=${lng.toFixed(6)}, accuracy=${accuracy !== null ? accuracy + 'm' : 'unknown'}`);
     
@@ -137,7 +141,8 @@ export function updateUserPointer(lat, lng, accuracy = null, forceUpdate = false
         userMarker = L.marker([smoothedPosition.lat, smoothedPosition.lng], {
             icon: userIcon,
             zIndexOffset: 1000 // Ensure marker appears above bus markers
-        }).addTo(state.map);
+        });
+        addLayer(LAYER.USER, userMarker);
         
         // Add popup with user info
         userMarker.bindPopup(`
@@ -181,7 +186,7 @@ export function updateUserPointer(lat, lng, accuracy = null, forceUpdate = false
 export function removeUserPointer() {
     // Remove marker from map if it exists
     if (userMarker && state.map) {
-        state.map.removeLayer(userMarker);
+        removeLayer(LAYER.USER, userMarker);
         console.log('User marker removed from map');
     }
     

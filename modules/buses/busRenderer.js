@@ -1,6 +1,9 @@
 import { state, updateState } from "../../core/stateManager.js";
 import { COMPANIES } from "../../config/systemConfig.js";
 import { getDistanceMeters } from "../../utils/geoUtils.js";
+import { LAYER, addLayer, removeLayer, ensureLayerGroup } from "../../modules/map/mapLayers.js";
+import { createBusMarker } from "../../ui/mapUI/mapMarkers.js";
+import { createBusPopup } from "../../ui/mapUI/mapPopups.js";
 
 /**
  * Force cleanup of markers for deleted lines
@@ -15,7 +18,7 @@ export function cleanupDeletedLineMarkers(configLinhas) {
         if (!configLinhas[key]) {
             // Line no longer exists in config, remove marker immediately
             console.log('Removing marker for deleted line:', key);
-            state.map.removeLayer(state.markers[key]);
+            removeLayer(LAYER.BUS, state.markers[key]);
             delete state.markers[key];
         }
     }
@@ -27,6 +30,9 @@ export function renderBusMarkers(gpsData, configLinhas) {
         console.warn('Map not initialized yet');
         return;
     }
+    
+    // Ensure bus layer group exists
+    ensureLayerGroup(LAYER.BUS);
     
     console.log(`renderBusMarkers called with ${Object.keys(configLinhas).length} lines, ${Object.keys(gpsData).length} active GPS datasets`);
     console.log(`Current systemTTL: ${state.systemTTL}ms, systemRadius: ${state.systemRadius || 5}km`);
@@ -80,7 +86,7 @@ export function renderBusMarkers(gpsData, configLinhas) {
         }
         
         if (shouldRemove) {
-            state.map.removeLayer(state.markers[key]);
+            removeLayer(LAYER.BUS, state.markers[key]);
             delete state.markers[key];
             console.log(`Removed marker for line ${key}`);
         }
@@ -139,7 +145,7 @@ export function renderBusMarkers(gpsData, configLinhas) {
                     console.log(`Line ${c.id} is outside ${radiusKm}km radius, skipping marker`);
                     // Remove marker if it exists and is outside radius
                     if (state.markers[key]) {
-                        state.map.removeLayer(state.markers[key]);
+                        removeLayer(LAYER.BUS, state.markers[key]);
                         delete state.markers[key];
                         console.log(`Removed marker for line ${key} (outside radius)`);
                     }
@@ -149,41 +155,53 @@ export function renderBusMarkers(gpsData, configLinhas) {
             
             console.log(`Line ${c.id}: ${cnt} active GPS points, average position ${mLat.toFixed(6)}, ${mLng.toFixed(6)}`);
             
-            // Create bus pin HTML with CSS variable for color
-            const busPinHtml = `
-                <div class="bus-pin" style="--bus-color: ${c.cor};">
-                    <span>${c.id}</span>
-                </div>
-            `;
-            
-            // Create custom icon
-            const busIcon = L.divIcon({
-                html: busPinHtml,
-                className: 'bus-marker-icon',
-                iconSize: [42, 42],
-                iconAnchor: [21, 42],
-                popupAnchor: [0, -42]
-            });
+            // Create bus marker using factory (icon is created inside)
+            const busIcon = null; // placeholder, not used
             
             if (state.markers[key]) {
                 // Update existing marker position
                 state.markers[key].setLatLng([mLat, mLng]);
                 console.log(`Updated bus marker for line ${c.id} at ${mLat.toFixed(6)}, ${mLng.toFixed(6)}`);
             } else {
-                // Create new marker
-                const marker = L.marker([mLat, mLng], {
-                    icon: busIcon,
-                    zIndexOffset: 3000
-                }).addTo(state.map);
-                
+                // Find first valid GPS data for popup
+                let firstGps = null;
+                if (gpsData[key]) {
+                    const entries = Object.values(gpsData[key]);
+                    for (const gps of entries) {
+                        if (gps.acc <= 200 && (now - gps.timestamp) < (state.systemTTL || 45000)) {
+                            firstGps = gps;
+                            break;
+                        }
+                    }
+                }
+
+                // Create bus object for popup
+                const bus = {
+                    lineId: c.id,
+                    lineName: c.nome,
+                    via: c.via,
+                    company: c.company,
+                    speed: firstGps ? firstGps.speed : undefined,
+                    direction: firstGps ? firstGps.heading : undefined,
+                    lineKey: key
+                };
+                const gps = firstGps ? { accuracy: firstGps.acc, timestamp: firstGps.timestamp } : {};
+
+                // Create new marker using factory
+                const marker = createBusMarker(mLat, mLng, c, true);
+                marker.zIndexOffset = 3000; // ensure same offset
+                addLayer(LAYER.BUS, marker);
+
                 console.log(`Created new bus marker for line ${c.id} at ${mLat.toFixed(6)}, ${mLng.toFixed(6)} with color ${c.cor}`);
-                console.log(`Bus marker HTML: ${busPinHtml}`);
-                
+
+                // Add popup with bus information
+                marker.bindPopup(createBusPopup(bus, gps));
+
                 // Add click event to show bus details in bottom card (no popup)
                 marker.on('click', () => {
                     updateBusDetailsCard(key, c, comp, cnt, mLat, mLng);
                 });
-                
+
                 // Store marker in state
                 state.markers[key] = marker;
             }
@@ -345,6 +363,44 @@ export function renderBusMarkers(gpsData, configLinhas) {
                     const streetLocationElement = document.getElementById('bus-street-location');
                     if (streetLocationElement) {
                         streetLocationElement.innerHTML = `${streetLocation}`;
+                    }
+
+                    // Update transmission data
+                    const lastTransmissionElement = document.getElementById('bus-last-transmission');
+                    const accuracyElement = document.getElementById('bus-accuracy');
+                    const speedElement = document.getElementById('bus-speed');
+                    const directionElement = document.getElementById('bus-direction');
+                    
+                    if (lastTransmissionElement && accuracyElement && speedElement && directionElement) {
+                        // Find latest GPS data for transmission details
+                        let lastTransmission = 'Desconhecido';
+                        let accuracy = 'N/A';
+                        let speed = 'N/A';
+                        let direction = 'N/A';
+                        
+                        if (state.gpsData && state.gpsData[lineKey]) {
+                            const now = Date.now();
+                            const entries = Object.values(state.gpsData[lineKey]);
+                            let latestGps = null;
+                            let latestTimestamp = 0;
+                            for (const gps of entries) {
+                                if (gps.timestamp > latestTimestamp && gps.acc <= 200 && (now - gps.timestamp) < (state.systemTTL || 45000)) {
+                                    latestGps = gps;
+                                    latestTimestamp = gps.timestamp;
+                                }
+                            }
+                            if (latestGps) {
+                                lastTransmission = new Date(latestGps.timestamp).toLocaleTimeString('pt-BR');
+                                accuracy = `${latestGps.acc.toFixed(0)} m`;
+                                speed = latestGps.speed ? `${latestGps.speed.toFixed(1)} km/h` : 'N/A';
+                                direction = latestGps.heading ? `${latestGps.heading}°` : 'N/A';
+                            }
+                        }
+                        
+                        lastTransmissionElement.textContent = lastTransmission;
+                        accuracyElement.textContent = accuracy;
+                        speedElement.textContent = speed;
+                        directionElement.textContent = direction;
                     }
                     
                     // Update delay status

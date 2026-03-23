@@ -5,6 +5,7 @@ export const state = {
     adminSelectedCompany: 'atlantico',
     map: null,
     markers: {},
+    layerGroups: {},
     configLinhas: {},
     routeDraft: { lineKey: null, path: [], stops: [], terminals: [] },
     routeMode: 'path',

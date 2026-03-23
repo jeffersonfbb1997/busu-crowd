@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Regras para linhas
+    match /lines/{lineId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.email == 'jeffersonfbb1997@gmail.com'
+        || exists(/databases/$(database)/documents/config/admins/$(request.auth.uid));
+    }
+
+    // Regras para rotas (geometria)
+    match /routes/{routeId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.email == 'jeffersonfbb1997@gmail.com'
+        || exists(/databases/$(database)/documents/config/admins/$(request.auth.uid));
+    }
+
+    // Regras para paradas
+    match /stops/{stopId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.email == 'jeffersonfbb1997@gmail.com'
+        || exists(/databases/$(database)/documents/config/admins/$(request.auth.uid));
+    }
+
+    // Regras para parâmetros do sistema
+    match /parameters/{paramId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.email == 'jeffersonfbb1997@gmail.com'
+        || exists(/databases/$(database)/documents/config/admins/$(request.auth.uid));
+    }
+
+    // Regras para empresas
+    match /companies/{companyId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.email == 'jeffersonfbb1997@gmail.com'
+        || exists(/databases/$(database)/documents/config/admins/$(request.auth.uid));
+    }
+
+    // Regras para a lista de administradores (subcoleção config/admins)
+    match /config/admins/{adminId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.email == 'jeffersonfbb1997@gmail.com';
+    }
+  }
+}

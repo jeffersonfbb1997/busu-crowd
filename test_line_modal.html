@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Modal Linhas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .line-form-hidden { display: none !important; }
+        .company-option { cursor: pointer; padding: 10px; border: 2px solid #ddd; border-radius: 8px; }
+        .company-option.selected { border-color: #1a73e8; background: #e8f0fe; }
+        .resource-switch { transform: scale(0.8); }
+    </style>
+</head>
+<body class="p-4">
+    <h1>Teste do Modal de Linhas</h1>
+    <p>Este é um teste simplificado para verificar o comportamento do modal.</p>
+    
+    <button class="btn btn-primary" onclick="testOpenModal()">Abrir Modal (sem dados)</button>
+    <button class="btn btn-secondary" onclick="testOpenModalWithData()">Abrir Modal (com dados)</button>
+    <button class="btn btn-success" onclick="testNewLine()">Testar Botão Nova Linha</button>
+    
+    <div class="modal fade" id="lineModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content modern-modal">
+                <div class="modal-header modern-modal-header">
+                    <div class="modal-header-content">
+                        <div>
+                            <h5 class="modal-title">Linhas</h5>
+                            <p class="modal-subtitle">Visualize, edite ou crie novas linhas</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close-modal" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body modern-modal-body p-3">
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-list-ul me-2"></i>Linhas Existentes</h6>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.newLine()">
+                                <i class="bi bi-plus-circle me-1"></i> Nova Linha
+                            </button>
+                        </div>
+                        <div id="existingLinesList" class="list-group list-group-flush border rounded" style="max-height: 200px; overflow-y: auto;">
+                            <div class="list-group-item">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="testEditLine()">Editar Linha L26</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-top pt-3 mt-3 line-form-hidden" id="lineFormContainer">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-pencil-square me-2"></i>Editar/Criar Linha</h6>
+                        <form id="lineForm">
+                            <div class="mb-3">
+                                <label for="lineCode" class="form-label small fw-bold">Código</label>
+                                <input type="text" class="form-control form-control-sm" id="lineCode" placeholder="Ex: L26, 101">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="lineDestination" class="form-label small fw-bold">Destino</label>
+                                <input type="text" class="form-control form-control-sm" id="lineDestination" placeholder="Ex: Centro, Terminal Rodoviário">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="lineVia" class="form-label small fw-bold">Via</label>
+                                <input type="text" class="form-control form-control-sm" id="lineVia" placeholder="Ex: Av. Principal, Rua das Flores">
+                            </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Operadora</label>
+                            <div class="d-flex gap-3 mb-2">
+                                <div class="company-option" onclick="window.selectLineCompany('atlantico')" id="line-opt-atlantico">
+                                    <img src="assets/atlantico-logo.png" alt="Atlântico" class="img-fluid" style="max-height: 40px;">
+                                </div>
+                                <div class="company-option" onclick="window.selectLineCompany('viametro')" id="line-opt-viametro">
+                                    <img src="assets/viametro-logo.png" alt="Viametro" class="img-fluid" style="max-height: 40px;">
+                                </div>
+                            </div>
+                            <input type="hidden" id="lineCompany" value="">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Cor da Linha</label>
+                            <div class="d-flex gap-2 align-items-center">
+                                <input type="color" class="form-control form-control-color" id="lineColor" value="#1a73e8" style="width: 60px; height: 38px;">
+                                <input type="text" class="form-control form-control-sm" id="lineColorHex" value="#1a73e8" placeholder="#1a73e8" readonly style="flex: 1;">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.generateRandomColor()">
+                                    <i class="bi bi-shuffle"></i> Aleatória
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold">Recursos</label>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="resource-icon bg-info text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-snow"></i>
+                                        </div>
+                                        <span class="small">Ar Condicionado</span>
+                                    </div>
+                                    <div class="form-check form-switch m-0">
+                                        <input class="form-check-input resource-switch" type="checkbox" id="resource-switch-ac" data-resource="ac">
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="resource-icon bg-success text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-person-wheelchair"></i>
+                                        </div>
+                                        <span class="small">Acessibilidade</span>
+                                    </div>
+                                    <div class="form-check form-switch m-0">
+                                        <input class="form-check-input resource-switch" type="checkbox" id="resource-switch-accessibility" data-resource="accessibility">
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="resource-icon bg-warning text-dark rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-wifi"></i>
+                                        </div>
+                                        <span class="small">Wi-Fi</span>
+                                    </div>
+                                    <div class="form-check form-switch m-0">
+                                        <input class="form-check-input resource-switch" type="checkbox" id="resource-switch-wifi" data-resource="wifi">
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="lineResources" value="">
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="modal-footer modern-modal-footer border-top-0">
+                    <div class="d-flex justify-content-between w-100">
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="backToListBtn" style="display: none;" onclick="window.closeLineForm()">
+                                <i class="bi bi-arrow-left me-1"></i> Voltar para lista
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" id="deleteLineBtn" style="display: none;">
+                                <i class="bi bi-trash me-1"></i> Excluir
+                            </button>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                                Fechar
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" id="saveLineBtn">
+                                <i class="bi bi-check-circle me-1"></i> Salvar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="testResults" class="mt-4 p-3 border rounded bg-light"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Funções do modal
+        window.toggleLineForm = function(show) {
+            const formContainer = document.getElementById('lineFormContainer');
+            const backToListBtn = document.getElementById('backToListBtn');
+            if (formContainer) {
+                if (show) {
+                    formContainer.classList.remove('line-form-hidden');
+                } else {
+                    formContainer.classList.add('line-form-hidden');
+                }
+            }
+            if (backToListBtn) {
+                backToListBtn.style.display = show ? 'inline-block' : 'none';
+            }
+        };
+        
+        window.openLineModal = function(lineData, lineKey) {
+            const modalElement = document.getElementById('lineModal');
+            const isModalVisible = modalElement && modalElement.classList.contains('show');
+            
+            if (!isModalVisible) {
+                const lineModal = new bootstrap.Modal(modalElement);
+                lineModal.show();
+            }
+            
+            if (lineData) {
+                window.toggleLineForm(true);
+                document.getElementById('lineCode').value = lineData.code || '';
+                document.getElementById('lineDestination').value = lineData.destination || '';
+                document.getElementById('lineVia').value = lineData.via || '';
+                document.getElementById('lineCompany').value = lineData.company || '';
+                document.getElementById('lineColor').value = lineData.color || '#1a73e8';
+                document.getElementById('lineColorHex').value = lineData.color || '#1a73e8';
+                document.getElementById('lineResources').value = lineData.resources || '';
+                document.getElementById('lineModal').dataset.lineKey = lineKey || '';
+                
+                if (lineData.company) {
+                    const companyOpt = document.getElementById(`line-opt-${lineData.company}`);
+                    if (companyOpt) companyOpt.classList.add('selected');
+                }
+                
+                document.getElementById('deleteLineBtn').style.display = 'block';
+                logTest('Modal aberto com dados da linha (formulário VISÍVEL)');
+            } else {
+                window.toggleLineForm(false);
+                clearForm();
+                document.getElementById('deleteLineBtn').style.display = 'none';
+                logTest('Modal aberto sem dados (formulário ESCONDIDO)');
+            }
+        };
+        
+        window.newLine = function() {
+            window.toggleLineForm(true);
+            clearForm();
+            document.getElementById('deleteLineBtn').style.display = 'none';
+            logTest('Botão "Nova Linha" clicado (formulário VISÍVEL com campos limpos)');
+        };
+        
+        window.closeLineForm = function() {
+            window.toggleLineForm(false);
+            clearForm();
+            document.getElementById('deleteLineBtn').style.display = 'none';
+            logTest('Botão "Voltar para lista" clicado (formulário ESCONDIDO)');
+        };
+        
+        window.selectLineCompany = function(company) {
+            document.querySelectorAll('.company-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            const selectedOpt = document.getElementById(`line-opt-${company}`);
+            if (selectedOpt) {
+                selectedOpt.classList.add('selected');
+                document.getElementById('lineCompany').value = company;
+            }
+        };
+        
+        window.generateRandomColor = function() {
+            const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+            document.getElementById('lineColor').value = randomColor;
+            document.getElementById('lineColorHex').value = randomColor;
+        };
+        
+        function clearForm() {
+            document.getElementById('lineCode').value = '';
+            document.getElementById('lineDestination').value = '';
+            document.getElementById('lineVia').value = '';
+            document.getElementById('lineCompany').value = '';
+            document.getElementById('lineColor').value = '#1a73e8';
+            document.getElementById('lineColorHex').value = '#1a73e8';
+            document.getElementById('lineResources').value = '';
+            document.querySelectorAll('.company-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelectorAll('.resource-switch').forEach(switchEl => {
+                switchEl.checked = false;
+            });
+        }
+        
+        function logTest(message) {
+            const results = document.getElementById('testResults');
+            const time = new Date().toLocaleTimeString();
+            results.innerHTML += `<div class="mb-2"><strong>${time}:</strong> ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        // Funções de teste
+        function testOpenModal() {
+            logTest('Teste: Abrindo modal sem dados...');
+            window.openLineModal();
+        }
+        
+        function testOpenModalWithData() {
+            logTest('Teste: Abrindo modal com dados da linha L26...');
+            window.openLineModal({
+                code: 'L26',
+                destination: 'Centro',
+                via: 'Av. Principal',
+                company: 'atlantico',
+                color: '#ff0000',
+                resources: 'ac,wifi'
+            }, 'line_L26');
+        }
+        
+        function testNewLine() {
+            logTest('Teste: Clicando no botão "Nova Linha"...');
+            window.newLine();
+        }
+        
+        function testEditLine() {
+            logTest('Teste: Clicando no botão "Editar Linha L26"...');
+            window.openLineModal({
+                code: 'L26',
+                destination: 'Centro',
+                via: 'Av. Principal',
+                company: 'atlantico',
+                color: '#ff0000',
+                resources: 'ac,wifi'
+            }, 'line_L26');
+        }
+        
+        // Configurar eventos do modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const lineModalElement = document.getElementById('lineModal');
+            if (lineModalElement) {
+                const hideForm = function() {
+                    window.toggleLineForm(false);
+                    document.getElementById('backToListBtn').style.display = 'none';
+                    document.getElementById('deleteLineBtn').style.display = 'none';
+                    clearForm();
+                };
+                
+                hideForm();
+                lineModalElement.addEventListener('show.bs.modal', hideForm);
+                lineModalElement.addEventListener('hidden.bs.modal', hideForm);
+                
+                logTest('Página carregada. Formulário inicialmente ESCONDIDO.');
+            }
+        });
+    </script>
+</body>
+</html>

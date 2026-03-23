@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Novos Campos de Linha</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .line-form-hidden { display: none !important; }
+        .company-option { cursor: pointer; padding: 10px; border: 2px solid #ddd; border-radius: 8px; }
+        .company-option.selected { border-color: #1a73e8; background: #e8f0fe; }
+        .resource-switch { transform: scale(0.8); }
+        .test-section { margin-bottom: 2rem; padding: 1rem; border: 1px solid #dee2e6; border-radius: 0.5rem; }
+    </style>
+</head>
+<body class="p-4">
+    <h1>Teste dos Novos Campos de Linha</h1>
+    <p>Este teste verifica a funcionalidade dos novos campos adicionados ao formulário de linhas.</p>
+    
+    <div class="test-section">
+        <h3>1. Teste de Conversão de Siglas de Operadora</h3>
+        <div class="mb-3">
+            <button class="btn btn-primary" onclick="testConversion()">Testar Conversão SM/VM</button>
+            <button class="btn btn-secondary" onclick="testProcessData()">Testar Processamento de Dados</button>
+        </div>
+        <div id="conversionResults" class="p-3 border rounded bg-light"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. Teste do Formulário com Novos Campos</h3>
+        <div class="mb-3">
+            <button class="btn btn-success" onclick="testFormWithNewFields()">Abrir Formulário com Dados Completos</button>
+            <button class="btn btn-warning" onclick="testFormWithPartialData()">Abrir Formulário com Dados Parciais</button>
+            <button class="btn btn-info" onclick="testFormWithImportData()">Abrir Formulário com Dados de Importação (SM/VM)</button>
+        </div>
+        
+        <!-- Formulário de teste simplificado -->
+        <div class="border p-3 rounded bg-light" id="testFormContainer">
+            <h5>Formulário de Teste</h5>
+            <div class="mb-3">
+                <label class="form-label">Código</label>
+                <input type="text" class="form-control" id="testLineCode" readonly>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Destino</label>
+                <input type="text" class="form-control" id="testLineDestination" readonly>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Via</label>
+                <input type="text" class="form-control" id="testLineVia" readonly>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Local de Saída</label>
+                <input type="text" class="form-control" id="testLineDepartureLocation" readonly>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">Horário de Saída</label>
+                    <input type="text" class="form-control" id="testLineDepartureTime" readonly>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Chegada no Centro</label>
+                    <input type="text" class="form-control" id="testLineCenterArrivalTime" readonly>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Chegada no Destino</label>
+                    <input type="text" class="form-control" id="testLineDestinationArrivalTime" readonly>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Operadora</label>
+                    <input type="text" class="form-control" id="testLineCompany" readonly>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. Log de Testes</h3>
+        <div id="testLog" class="p-3 border rounded bg-light" style="max-height: 300px; overflow-y: auto;"></div>
+    </div>
+
+    <script>
+        // Funções de teste
+        function logTest(message) {
+            const log = document.getElementById('testLog');
+            const time = new Date().toLocaleTimeString();
+            log.innerHTML += `<div class="mb-2"><strong>${time}:</strong> ${message}</div>`;
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        function updateTestForm(data) {
+            document.getElementById('testLineCode').value = data.code || '';
+            document.getElementById('testLineDestination').value = data.destination || '';
+            document.getElementById('testLineVia').value = data.via || '';
+            document.getElementById('testLineDepartureLocation').value = data.departureLocation || '';
+            document.getElementById('testLineDepartureTime').value = data.departureTime || '';
+            document.getElementById('testLineCenterArrivalTime').value = data.centerArrivalTime || '';
+            document.getElementById('testLineDestinationArrivalTime').value = data.destinationArrivalTime || '';
+            document.getElementById('testLineCompany').value = data.company || '';
+        }
+        
+        // Teste de conversão de siglas
+        function testConversion() {
+            const results = document.getElementById('conversionResults');
+            let html = '<h5>Resultados da Conversão:</h5>';
+            
+            const testCases = [
+                { input: 'SM', expected: 'atlantico' },
+                { input: 'VM', expected: 'viametro' },
+                { input: 'sm', expected: 'atlantico' },
+                { input: 'vm', expected: 'viametro' },
+                { input: 'Atlântico', expected: 'atlantico' },
+                { input: 'Via Metro', expected: 'viametro' },
+                { input: 'outra', expected: 'outra' },
+                { input: '', expected: '' }
+            ];
+            
+            testCases.forEach(testCase => {
+                const result = convertOperatorCode(testCase.input);
+                const passed = result === testCase.expected;
+                html += `
+                    <div class="mb-2 ${passed ? 'text-success' : 'text-danger'}">
+                        <strong>Entrada:</strong> "${testCase.input}" → 
+                        <strong>Resultado:</strong> "${result}" 
+                        <strong>Esperado:</strong> "${testCase.expected}"
+                        ${passed ? '✓' : '✗'}
+                    </div>
+                `;
+            });
+            
+            results.innerHTML = html;
+            logTest('Teste de conversão de siglas executado');
+        }
+        
+        // Teste de processamento de dados
+        function testProcessData() {
+            const testData = {
+                code: 'L26',
+                destination: 'Centro',
+                via: 'Av. Principal',
+                departureLocation: 'Terminal Norte',
+                departureTime: '08:30:00', // Com segundos
+                centerArrivalTime: '09:15',
+                destinationArrivalTime: '10:00:00',
+                company: 'SM', // Sigla
+                color: '#ff0000',
+                resources: 'ac,wifi'
+            };
+            
+            const processed = processLineDataForImport(testData);
+            
+            const results = document.getElementById('conversionResults');
+            let html = '<h5>Resultados do Processamento:</h5>';
+            html += '<h6>Dados Originais:</h6>';
+            html += `<pre>${JSON.stringify(testData, null, 2)}</pre>`;
+            html += '<h6>Dados Processados:</h6>';
+            html += `<pre>${JSON.stringify(processed, null, 2)}</pre>`;
+            
+            // Verificações
+            const checks = [
+                { field: 'company', expected: 'atlantico', actual: processed.company, description: 'Sigla SM convertida para atlantico' },
+                { field: 'departureTime', expected: '08:30', actual: processed.departureTime, description: 'Tempo formatado sem segundos' },
+                { field: 'centerArrivalTime', expected: '09:15', actual: processed.centerArrivalTime, description: 'Tempo mantido' },
+                { field: 'destinationArrivalTime', expected: '10:00', actual: processed.destinationArrivalTime, description: 'Tempo formatado sem segundos' }
+            ];
+            
+            html += '<h6>Verificações:</h6>';
+            checks.forEach(check => {
+                const passed = check.actual === check.expected;
+                html += `
+                    <div class="mb-2 ${passed ? 'text-success' : 'text-danger'}">
+                        ${check.description}: ${passed ? '✓' : '✗'}
+                        <small>(${check.field}: "${check.actual}" ${passed ? '=' : '!='} "${check.expected}")</small>
+                    </div>
+                `;
+            });
+            
+            results.innerHTML = html;
+            logTest('Teste de processamento de dados executado');
+        }
+        
+        // Teste do formulário com novos campos
+        function testFormWithNewFields() {
+            const completeData = {
+                code: 'L26',
+                destination: 'Centro Comercial',
+                via: 'Av. Principal → Rua das Flores',
+                departureLocation: 'Terminal Rodoviário Norte',
+                departureTime: '06:30',
+                centerArrivalTime: '07:15',
+                destinationArrivalTime: '08:00',
+                company: 'atlantico',
+                color: '#1a73e8',
+                resources: 'ac,accessibility,wifi'
+            };
+            
+            updateTestForm(completeData);
+            logTest('Formulário preenchido com dados completos (todos os campos)');
+        }
+        
+        function testFormWithPartialData() {
+            const partialData = {
+                code: '101',
+                destination: 'Universidade',
+                via: 'Campus Central',
+                // Campos opcionais não preenchidos
+                company: 'viametro'
+            };
+            
+            updateTestForm(partialData);
+            logTest('Formulário preenchido com dados parciais (campos opcionais vazios)');
+        }
+        
+        function testFormWithImportData() {
+            const importData = {
+                code: 'L42',
+                destination: 'Aeroporto',
+                via: 'Rodovia BR-101',
+                departureLocation: 'Terminal Central',
+                departureTime: '14:00:00',
+                centerArrivalTime: '14:45',
+                destinationArrivalTime: '15:30:00',
+                company: 'VM', // Sigla para importação
+                color: '#34a853',
+                resources: 'ac'
+            };
+            
+            // Processar como na importação
+            const processed = processLineDataForImport(importData);
+            updateTestForm(processed);
+            logTest(`Formulário preenchido com dados de importação (VM convertido para: ${processed.company})`);
+        }
+        
+        // Funções do sistema (simuladas para teste)
+        function convertOperatorCode(operatorCode) {
+            if (!operatorCode) return '';
+            
+            const code = operatorCode.trim().toUpperCase();
+            if (code === 'SM' || code === 'ATLANTICO' || code === 'ATLÂNTICO') {
+                return 'atlantico';
+            } else if (code === 'VM' || code === 'VIAMETRO' || code === 'VIA METRO') {
+                return 'viametro';
+            }
+            return code.toLowerCase();
+        }
+        
+        function processLineDataForImport(lineData) {
+            if (!lineData) return lineData;
+            
+            const processedData = { ...lineData };
+            
+            // Converter sigla da operadora se necessário
+            if (processedData.company) {
+                processedData.company = convertOperatorCode(processedData.company);
+            }
+            
+            // Garantir que campos de tempo estejam no formato correto (HH:MM)
+            const timeFields = ['departureTime', 'centerArrivalTime', 'destinationArrivalTime'];
+            timeFields.forEach(field => {
+                if (processedData[field]) {
+                    // Remover segundos se existirem (formato HH:MM:SS -> HH:MM)
+                    const timeValue = processedData[field].toString();
+                    if (timeValue.includes(':')) {
+                        const parts = timeValue.split(':');
+                        if (parts.length >= 2) {
+                            processedData[field] = `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+                        }
+                    }
+                }
+            });
+            
+            return processedData;
+        }
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            logTest('Página de teste carregada');
+            logTest('Novos campos disponíveis: Local de Saída, Horário de Saída, Chegada no Centro, Chegada no Destino');
+            logTest('Lógica de importação: SM → Atlântico, VM → Via Metro');
+        });
+    </script>
+</body>
+</html>

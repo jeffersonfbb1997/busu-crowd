@@ -1,0 +1,194 @@
+﻿            <div id="admin-views-container">
+                <div id="view-admin-dashboard" class="sidebar-view">
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6"><div class="adm-card text-center"><span class="adm-metric" id="stat-users">0</span><small style="font-size:8px">ATIVOS</small></div></div>
+                                    <div class="col-6"><div class="adm-card text-center"><span class="adm-metric" id="stat-lines">4</span><small style="font-size:8px">LINHAS</small></div></div>
+                                </div>
+                                
+                                <div class="mb-4 text-center">
+                                    <button id="simulate-data-btn" class="btn btn-outline-secondary btn-sm w-100" onclick="window.toggleSimulatedData()">
+                                        <i class="bi bi-database me-1"></i> Simular Dados FictÃ­cios
+                                    </button>
+                                    <small class="text-muted d-block mt-1" style="font-size: 9px;">Clique para inserir/limpar dados de teste</small>
+                                </div>
+                                
+                                <!-- Live Monitor and Health Metrics -->
+                                <div class="card card-body border-0 bg-light p-3 shadow-sm mb-4">
+                                    <h6 class="fw-bold mb-3"><i class="bi bi-graph-up me-2"></i>Monitoramento de SaÃºde</h6>
+                                    
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <div class="card bg-success text-white text-center p-2">
+                                                <div class="card-body p-2">
+                                                    <h5 class="mb-0" id="health-active-users">0</h5>
+                                                    <small>UsuÃ¡rios Transmitindo</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="card bg-warning text-dark text-center p-2">
+                                                <div class="card-body p-2">
+                                                    <h5 class="mb-0" id="health-rejected-signals">0</h5>
+                                                    <small>Sinais Rejeitados</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="admin-monitor-container">
+                                        <!-- Monitor will be loaded here dynamically -->
+                                    </div>
+                                    <div id="admin-stats-container" class="mt-3">
+                                        <!-- Statistics will be loaded here dynamically -->
+                                    </div>
+                                </div>
+                </div>
+
+                            <div id="view-admin-lines" class="sidebar-view">
+                                <div class="section-header">
+                                    <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('admin-dashboard')"></i>
+                                    <h6 class="section-title text-primary">Gerenciar Linhas</h6>
+                                    <i class="bi bi-x-lg cursor-pointer ms-auto fs-5 text-muted" onclick="window.toggleSidebar()"></i>
+                                </div>
+                                <div class="card card-body border-0 bg-light mb-4 p-3 shadow-sm">
+                                    <input type="hidden" id="admDbKey">
+                                    <input type="text" id="admID" class="form-control form-control-sm mb-2" placeholder="ID (L26)">
+                                    <input type="text" id="admNome" class="form-control form-control-sm mb-2" placeholder="Destino">
+                                    <input type="text" id="admVia" class="form-control form-control-sm mb-2" placeholder="SubtÃ­tulo / Via">
+                                    
+                                    <div class="d-flex gap-2 mb-3">
+                                        <div class="company-option" onclick="window.selectCompany('atlantico')" id="adm-opt-atlantico"><img src="assets/atlantico-logo.png"></div>
+                                        <div class="company-option" onclick="window.selectCompany('viametro')" id="adm-opt-viametro"><img src="assets/viametro-logo.png"></div>
+                                    </div>
+                    
+                                    <div class="d-flex gap-2 mb-2">
+                                        <input type="color" id="admCor" class="form-control form-control-color border-0" value="#1a73e8" style="width: 44px; height: 38px;">
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="window.randomizeColor()"><i class="bi bi-shuffle"></i></button>
+                                        <button class="btn btn-primary btn-sm flex-grow-1 fw-bold" onclick="window.saveLine()">SALVAR</button>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button id="delete-line-btn" class="btn btn-danger btn-sm" onclick="window.deleteLine()" style="display: none;">
+                                            <i class="bi bi-trash me-1"></i>EXCLUIR LINHA
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="admin-lines-list-crud" class="list-group list-group-flush"></div>
+                            </div>
+                    
+                            <!-- EDITOR DE TRAJETOS -->
+                            <div id="view-admin-routes" class="sidebar-view">
+                                <div class="section-header">
+                                    <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.closeRouteManager()"></i>
+                                    <h6 class="section-title text-primary">Editor de Trajeto</h6>
+                                    <i class="bi bi-x-lg cursor-pointer ms-auto fs-5 text-muted" onclick="window.toggleSidebar()"></i>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <div id="btn-mode-path" class="route-mode-badge active" onclick="window.setRouteMode('path')">TraÃ§ado</div>
+                                    <div id="btn-mode-stops" class="route-mode-badge" onclick="window.setRouteMode('stops')">Paradas</div>
+                                    <div id="btn-mode-terminal" class="route-mode-badge" onclick="window.setRouteMode('terminal')">Terminal</div>
+                                </div>
+                                <div class="mb-3 d-flex gap-2">
+                                    <button class="btn btn-primary btn-sm flex-grow-1 fw-bold" onclick="window.saveRouteData()">SALVAR MAPA</button>
+                                    <button class="btn btn-light btn-sm" onclick="window.clearCurrentDraft()"><i class="bi bi-trash"></i></button>
+                                </div>
+                                <div id="route-admin-list" class="list-group list-group-flush border-top"></div>
+                            </div>
+                    
+                            <!-- CONFIGURAÃ‡Ã•ES DO SISTEMA -->
+                            <div id="view-admin-settings" class="sidebar-view">
+                                <div class="section-header">
+                                    <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('admin-dashboard')"></i>
+                                    <h6 class="section-title text-primary">ConfiguraÃ§Ãµes do Sistema</h6>
+                                    <i class="bi bi-x-lg cursor-pointer ms-auto fs-5 text-muted" onclick="window.toggleSidebar()"></i>
+                                </div>
+                                
+                                <div class="card card-body border-0 bg-light mb-4 p-3 shadow-sm">
+                                    <h6 class="fw-bold mb-3"><i class="bi bi-sliders me-2"></i>Painel de Controle de ParÃ¢metros</h6>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">EXPIRAÃ‡ÃƒO SINAL (segundos)</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" id="system-ttl-input" class="form-control" min="5" max="300" step="1" value="45">
+                                            <span class="input-group-text">seg</span>
+                                        </div>
+                                        <div class="form-text small">Tempo de vida dos sinais de GPS no Firebase (5-300 segundos)</div>
+                                        <div id="ttl-warning" class="text-danger small mt-1" style="display: none;">
+                                            <i class="bi bi-exclamation-triangle"></i> Valor perigoso: TTL menor que 5 segundos
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">RAIO DE VISIBILIDADE (km)</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" id="system-radius-input" class="form-control" min="1" max="100" step="1" value="5">
+                                            <span class="input-group-text">km</span>
+                                        </div>
+                                        <div class="form-text small">Raio mÃ¡ximo para exibiÃ§Ã£o de Ã´nibus no mapa (1-100 km)</div>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button id="save-params-btn" class="btn btn-primary btn-sm fw-bold" onclick="window.saveSystemParameters()">
+                                            <i class="bi bi-check-circle me-1"></i>SALVAR PARÃ‚METROS
+                                        </button>
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="window.loadCurrentParameters()">
+                                            <i class="bi bi-arrow-clockwise me-1"></i>CARREGAR VALORES ATUAIS
+                                        </button>
+                                    </div>
+                                    
+                                    <div id="params-status" class="mt-3 small"></div>
+                                </div>
+                                
+                                <div class="card card-body border-0 bg-light mb-4 p-3 shadow-sm">
+                                    <h6 class="fw-bold mb-3"><i class="bi bi-shield-lock me-2"></i>SeguranÃ§a Administrativa</h6>
+                                    
+                                    <div class="alert alert-warning py-2 mb-3" id="admin-security-alert" style="display: none;">
+                                        <i class="bi bi-exclamation-triangle me-2"></i>
+                                        <small>Apenas administradores autorizados podem alterar parÃ¢metros</small>
+                                    </div>
+                                    
+                                    <button id="force-cleanup-btn" class="btn btn-warning btn-sm w-100 mb-2" onclick="window.forceTTLCleanup()">
+                                        <i class="bi bi-trash me-1"></i>FORÃ‡AR LIMPEZA DE SINAIS EXPIRADOS
+                                    </button>
+                                    <div class="form-text small">Remove instantaneamente todos os sinais que excedem o TTL atual</div>
+                                    
+                                    <div class="mt-3 pt-3 border-top">
+                                        <h6 class="fw-bold mb-2"><i class="bi bi-person-badge me-2"></i>VerificaÃ§Ã£o de PermissÃµes</h6>
+                                        <div id="admin-permissions-status" class="small text-muted">
+                                            Verificando permissÃµes do usuÃ¡rio atual...
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card card-body border-0 bg-light p-3 shadow-sm">
+                                    <h6 class="fw-bold mb-3"><i class="bi bi-graph-up me-2"></i>Monitoramento de SaÃºde</h6>
+                                    
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <div class="card bg-success text-white text-center p-2">
+                                                <div class="card-body p-2">
+                                                    <h5 class="mb-0" id="health-active-users">0</h5>
+                                                    <small>UsuÃ¡rios Transmitindo</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="card bg-warning text-dark text-center p-2">
+                                                <div class="card-body p-2">
+                                                    <h5 class="mb-0" id="health-rejected-signals">0</h5>
+                                                    <small>Sinais Rejeitados</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="admin-monitor-container">
+                                        <!-- Monitor will be loaded here dynamically -->
+                                    </div>
+                                    <div id="admin-stats-container" class="mt-3">
+                                        <!-- Statistics will be loaded here dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+
+            </div>

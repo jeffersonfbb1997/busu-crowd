@@ -42,13 +42,13 @@ export function initAdminMonitor() {
         showMonitorError('Erro ao conectar com dados em tempo real');
     });
     
-    // Start periodic updates for UI
+    // Start periodic updates for UI (optimized: reduced frequency)
     monitorInterval = setInterval(() => {
         if (lastProcessedData.length > 0) {
             updateMonitorDisplay(lastProcessedData);
             updateStatisticsPanel();
         }
-    }, 5000); // Update every 5 seconds
+    }, 10000); // Update every 10 seconds (reduces CPU usage)
 }
 
 /**

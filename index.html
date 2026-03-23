@@ -8,11 +8,12 @@
     <!-- Bibliotecas -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        :root { --blue: #1a73e8; --sidebar-w: 310px; --z-ui: 4500; --green: #34a853; --neon: #39FF14; --gray: #70757a; --red: #ea4335; }
+        :root { --blue: #1a73e8; --sidebar-w: 310px; --z-ui: 4500; --z-modal: 7000; --green: #34a853; --neon: #39FF14; --gray: #70757a; --red: #ea4335; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Inter', sans-serif; overflow: hidden; background: #e5e3df; }
         #map { position: absolute; inset: 0; z-index: 1; }
 
@@ -122,7 +123,8 @@
         .app-brand {
             position: absolute;
             top: 20px;
-            right: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: var(--z-ui);
             transition: all 0.3s ease;
         }
@@ -147,23 +149,91 @@
 
         .bottom-ui { position: absolute; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; z-index: var(--z-ui); pointer-events: none; }
         .info-card { width: 92%; max-width: 360px; background: white; border-radius: 24px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); pointer-events: auto; transition: all 0.4s ease; overflow: hidden; }
-        .info-card.minimized { height: 50px; padding: 14px 16px; }
+        .info-card.minimized { height: 56px; padding: 14px 16px; }
         
         /* Responsive adjustments for smaller screens */
         @media (max-width: 480px) {
-            .bottom-ui { bottom: 10px; }
+            .bottom-ui { bottom: 20px; }
             .info-card { width: 96%; max-width: none; border-radius: 20px; padding: 14px; }
-            .info-card.minimized { height: 46px; padding: 12px 14px; }
+            .info-card.minimized { height: 52px; padding: 12px 14px; }
             .modern-bus-card { padding: 14px; }
+            .side-btns { bottom: 140px; }
+            .menu-trigger { top: 10px; left: 10px; }
+            #lines-drawer { top: 65px; left: 10px; width: 200px; }
+            .bus-line-badge { width: 40px; height: 40px; font-size: 12px; }
+            .section-label { font-size: 9px; }
+            .section-content { font-size: 12px; padding-left: 20px; }
+            .features-grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+            .app-brand { top: 15px; left: 50%; transform: translateX(-50%); }
+            .app-brand img { height: 24px; }
+            .line-status { top: 10px; right: 10px; }
         }
         
         @media (max-width: 360px) {
-            .bottom-ui { bottom: 8px; }
+            .bottom-ui { bottom: 16px; }
             .info-card { width: 98%; border-radius: 14px; padding: 8px; }
-            .info-card.minimized { height: 32px; padding: 6px 8px; }
+            .info-card.minimized { height: 44px; padding: 10px 12px; }
             .modern-bus-card { padding: 8px; }
             .bus-destination { font-size: 13px; }
-            .section-content { font-size: 11px; }
+            .section-content { font-size: 11px; padding-left: 18px; }
+            .side-btns { bottom: 120px; }
+            .menu-trigger { top: 8px; left: 8px; width: 40px; height: 40px; font-size: 20px; }
+            #lines-drawer.collapsed { width: 40px; height: 40px; }
+            #lines-drawer { top: 60px; left: 8px; width: 180px; }
+            .btn-circle { width: 40px; height: 40px; font-size: 18px; }
+            .bus-line-badge { width: 36px; height: 36px; font-size: 11px; }
+            .section-label { font-size: 8px; }
+            .features-grid { grid-template-columns: 1fr; gap: 8px; }
+            .delay-badge { padding: 4px 8px; font-size: 11px; }
+            .app-brand { top: 10px; left: 50%; transform: translateX(-50%); }
+            .app-brand img { height: 20px; }
+            .line-status { top: 8px; right: 8px; }
+        }
+
+        /* Responsive adjustments for line selection grid */
+        @media (max-width: 768px) {
+            .line-selection-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+            .line-card {
+                padding: 12px;
+            }
+        }
+        @media (max-width: 480px) {
+            .line-selection-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 10px;
+            }
+            .line-card {
+                padding: 10px;
+            }
+            .line-code {
+                font-size: 14px;
+            }
+            .line-destination {
+                font-size: 13px;
+                margin-right: 12px;
+            }
+            .line-route {
+                font-size: 11px;
+            }
+        }
+        @media (max-width: 360px) {
+            .line-selection-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 8px;
+            }
+            .line-card {
+                padding: 8px;
+            }
+            .line-code {
+                font-size: 13px;
+                min-width: 40px;
+            }
+            .line-destination {
+                font-size: 12px;
+                margin-right: 8px;
+            }
         }
 
         .bus-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
@@ -180,15 +250,15 @@
             position: absolute;
             right: 15px;
             bottom: 180px;
-            z-index: var(--z-ui);
+            z-index: calc(var(--z-ui) + 1);
             display: flex;
             flex-direction: column;
             gap: 14px;
         }
         
         .btn-circle {
-            width: 56px;
-            height: 56px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.95);
             border: none;
@@ -196,7 +266,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 22px;
             color: #5f6368;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -408,6 +478,15 @@
         .company-option.selected { border-color: var(--blue); background: #e8f0fe; }
         .company-option img { height: 25px; width: auto; max-width: 100px; object-fit: contain; display: block; margin: 0 auto; }
 
+        /* Estilos para recursos (ar condicionado, acessibilidade, wifi) */
+        .resource-option { cursor: pointer; transition: 0.2s; text-align: center; }
+        .resource-option.selected .resource-icon { border: 2px solid var(--blue); background: #e8f0fe !important; }
+        .resource-icon { width: 50px; height: 50px; border-radius: 50%; border: 2px solid transparent; transition: 0.2s; }
+        
+        /* Classe para esconder formulário de linha */
+        .line-form-hidden { display: none !important; }
+        .resource-icon i { font-size: 1.2rem; }
+
         /* MODERN BUS MARKER - Elegant teardrop shape with gradient and animation */
         .bus-pin {
             width: 48px;
@@ -609,7 +688,7 @@
         }
         
         .btn-admin-panel::before {
-            content: '⚙️';
+            content: '??';
             margin-right: 8px;
             filter: brightness(1.2);
         }
@@ -659,6 +738,13 @@
             display: flex;
             align-items: center;
             gap: 16px;
+        }
+        
+        .modal-header-content > div:last-child {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 48px;
         }
         
         .modal-icon {
@@ -774,6 +860,11 @@
         .modal-backdrop {
             backdrop-filter: blur(8px);
             background: rgba(0, 0, 0, 0.4) !important;
+            z-index: calc(var(--z-modal) - 1) !important;
+        }
+
+        .modal {
+            z-index: var(--z-modal) !important;
         }
 
         /* TECH-CARD STYLES FOR LIVE MONITOR */
@@ -1003,7 +1094,7 @@
         /* Modern line selection grid */
         .line-selection-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 12px;
             max-height: 400px;
             overflow-y: auto;
@@ -1034,6 +1125,10 @@
             transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
+        }
+
+        .line-selection-grid .line-card {
+            padding: 18px;
         }
         
         .line-card:hover {
@@ -1071,6 +1166,7 @@
             font-size: 14px;
             color: #1a1a1a;
             flex-grow: 1;
+            margin-right: 16px;
         }
         
         .line-company-logo {
@@ -1145,7 +1241,47 @@
             70% { box-shadow: 0 0 0 6px rgba(52, 168, 83, 0); }
             100% { box-shadow: 0 0 0 0 rgba(52, 168, 83, 0); }
         }
-        
+
+        .line-eta-badge {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--blue);
+            background: rgba(66, 133, 244, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        #status-display .line-card {
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        #status-display .line-card:last-child {
+            margin-bottom: 0;
+        }
+
+        #status-display .line-code {
+            font-size: 18px;
+        }
+
+        #status-display .line-destination {
+            font-size: 16px;
+        }
+
+        #status-display .line-company-logo {
+            width: 28px;
+            height: 28px;
+        }
+
+        #status-display {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
         /* Empty state */
         .line-selection-grid .empty-state {
             grid-column: 1 / -1;
@@ -1368,6 +1504,125 @@
             box-shadow: 0 0 0 0.25rem rgba(26, 115, 232, 0.25);
         }
         
+        /* Painel Administrativo em Tela Cheia */
+        #admin-panel {
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            color: #333333;
+            flex-direction: row;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        #admin-panel.active {
+            display: flex !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #admin-menu {
+            width: 280px;
+            background: #ffffff;
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+            overflow-y: auto;
+            padding: 20px;
+        }
+        #admin-content {
+            flex: 1;
+            background: #ffffff;
+            color: #1a1a1a;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        /* Menu lateral do painel administrativo */
+        .admin-menu-header {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .admin-menu-header h5 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333333;
+            margin-bottom: 12px;
+        }
+        .admin-menu-header button {
+            font-size: 13px;
+            padding: 6px 12px;
+        }
+        .menu-group {
+            margin-bottom: 16px;
+        }
+        .menu-group-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: #555555;
+            padding: 10px 12px;
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .menu-group-header:hover {
+            background: rgba(0, 0, 0, 0.06);
+        }
+        .menu-group-header i {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .menu-items {
+            padding-left: 24px;
+            padding-top: 8px;
+            display: none;
+        }
+        .menu-group.active .menu-items {
+            display: block;
+        }
+        .menu-items a {
+            display: block;
+            padding: 8px 12px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.2s;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .menu-items a:hover {
+            background-color: #e9ecef;
+            border-color: #ced4da;
+            color: #212529;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+       /* Responsividade do painel administrativo */
+       @media (max-width: 768px) {
+           #admin-panel {
+               flex-direction: column;
+           }
+           #admin-menu {
+               width: 100%;
+               border-right: none;
+               border-bottom: 1px solid rgba(0,0,0,0.05);
+               padding: 16px;
+           }
+           #admin-content {
+               padding: 16px;
+           }
+       }
+       
     </style>
 </head>
 <body>
@@ -1403,230 +1658,12 @@
                     </div>
                     <h6 class="fw-bold mb-2">Acesso Administrativo</h6>
                     <p class="small text-muted mb-3">Recursos avançados para gestão do sistema</p>
-                    <button class="btn-admin-panel w-100 py-3 fw-bold" onclick="window.switchView('admin-dashboard')">PAINEL ADMINISTRATIVO</button>
+                    <button class="btn-admin-panel w-100 py-3 fw-bold" onclick="window.openAdminPanel()">PAINEL ADMINISTRATIVO</button>
                 </div>
             </div>
         </div>
 
-        <!-- DASHBOARD ADMIN COMPLETO -->
-        <div id="view-admin-dashboard" class="sidebar-view">
-            <div class="section-header">
-                <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('main')"></i>
-                <div class="d-flex align-items-center">
-                    <img src="assets/logo-buzu.png" alt="BusU-Crowd Logo" class="me-2" style="height: 34px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
-                    <h6 class="section-title text-primary mb-0">Admin Dashboard</h6>
-                </div>
-                <i class="bi bi-x-lg cursor-pointer ms-auto fs-5 text-muted" onclick="window.toggleSidebar()"></i>
-            </div>
-            <div class="row g-2 mb-3">
-                <div class="col-6"><div class="adm-card text-center"><span class="adm-metric" id="stat-users">0</span><small style="font-size:8px">ATIVOS</small></div></div>
-                <div class="col-6"><div class="adm-card text-center"><span class="adm-metric" id="stat-lines">4</span><small style="font-size:8px">LINHAS</small></div></div>
-            </div>
-            
-            <div class="mb-4 text-center">
-                <button id="simulate-data-btn" class="btn btn-outline-secondary btn-sm w-100" onclick="window.toggleSimulatedData()">
-                    <i class="bi bi-database me-1"></i> Simular Dados Fictícios
-                </button>
-                <small class="text-muted d-block mt-1" style="font-size: 9px;">Clique para inserir/limpar dados de teste</small>
-            </div>
-            
-            <!-- Live Monitor and Health Metrics -->
-            <div class="card card-body border-0 bg-light p-3 shadow-sm mb-4">
-                <h6 class="fw-bold mb-3"><i class="bi bi-graph-up me-2"></i>Monitoramento de Saúde</h6>
-                
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <div class="card bg-success text-white text-center p-2">
-                            <div class="card-body p-2">
-                                <h5 class="mb-0" id="health-active-users">0</h5>
-                                <small>Usuários Transmitindo</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="card bg-warning text-dark text-center p-2">
-                            <div class="card-body p-2">
-                                <h5 class="mb-0" id="health-rejected-signals">0</h5>
-                                <small>Sinais Rejeitados</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="admin-monitor-container">
-                    <!-- Monitor will be loaded here dynamically -->
-                </div>
-                <div id="admin-stats-container" class="mt-3">
-                    <!-- Statistics will be loaded here dynamically -->
-                </div>
-            </div>
-            
-            <nav>
-                <button class="nav-item-custom active" onclick="window.switchView('admin-dashboard')"><i class="bi bi-speedometer2"></i> Dashboard Geral <span class="active-feature-badge">ATIVO</span></button>
-                <button class="nav-item-custom" onclick="window.switchView('admin-lines')"><i class="bi bi-signpost-2"></i> Gestão de Linhas <span class="active-feature-badge">ATIVO</span></button>
-                <button class="nav-item-custom" onclick="window.openRouteManager()"><i class="bi bi-map"></i> Gestão de Rotas <span class="active-feature-badge">ATIVO</span></button>
-                <button class="nav-item-custom" onclick="window.openRouteManager(); window.setRouteMode('stops');"><i class="bi bi-geo"></i> Gestão de Paradas <span class="active-feature-badge">ATIVO</span></button>
-                <button class="nav-item-custom" onclick="window.openRouteManager(); window.setRouteMode('terminal');"><i class="bi bi-building"></i> Gestão de Terminais <span class="active-feature-badge">ATIVO</span></button>
-                <button class="nav-item-custom"><i class="bi bi-broadcast"></i> Monitoramento em Tempo Real <span class="standby-badge">EM BREVE</span></button>
-                <button class="nav-item-custom"><i class="bi bi-people"></i> Usuários e Reputação <span class="standby-badge">EM BREVE</span></button>
-                <button class="nav-item-custom"><i class="bi bi-chat-dots"></i> Reports da Comunidade <span class="standby-badge">EM BREVE</span></button>
-                <button class="nav-item-custom"><i class="bi bi-magic"></i> Sugestões Automáticas <span class="standby-badge">EM BREVE</span></button>
-                <button class="nav-item-custom"><i class="bi bi-arrow-down-up"></i> Importação / Exportação <span class="standby-badge">EM BREVE</span></button>
-                <button class="nav-item-custom"><i class="bi bi-bar-chart"></i> Estatísticas e Análises <span class="standby-badge">EM BREVE</span></button>
-                <button class="nav-item-custom" onclick="window.switchView('admin-settings')"><i class="bi bi-sliders"></i> Configurações do Sistema <span class="active-feature-badge">ATIVO</span></button>
-                <button class="nav-item-custom"><i class="bi bi-journal-text"></i> Logs e Auditoria <span class="standby-badge">EM BREVE</span></button>
-                <button class="nav-item-custom"><i class="bi bi-megaphone"></i> Alertas e Comunicados <span class="standby-badge">EM BREVE</span></button>
-                <button class="nav-item-custom"><i class="bi bi-shield-lock"></i> Permissões e Administradores <span class="standby-badge">EM BREVE</span></button>
-            </nav>
-        </div>
-
-        <!-- CRUD LINHAS -->
-        <div id="view-admin-lines" class="sidebar-view">
-            <div class="section-header">
-                <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('admin-dashboard')"></i>
-                <h6 class="section-title text-primary">Gerenciar Linhas</h6>
-                <i class="bi bi-x-lg cursor-pointer ms-auto fs-5 text-muted" onclick="window.toggleSidebar()"></i>
-            </div>
-            <div class="card card-body border-0 bg-light mb-4 p-3 shadow-sm">
-                <input type="hidden" id="admDbKey">
-                <input type="text" id="admID" class="form-control form-control-sm mb-2" placeholder="ID (L26)">
-                <input type="text" id="admNome" class="form-control form-control-sm mb-2" placeholder="Destino">
-                <input type="text" id="admVia" class="form-control form-control-sm mb-2" placeholder="Subtítulo / Via">
-                
-                <div class="d-flex gap-2 mb-3">
-                    <div class="company-option" onclick="window.selectCompany('atlantico')" id="adm-opt-atlantico"><img src="assets/atlantico-logo.png"></div>
-                    <div class="company-option" onclick="window.selectCompany('viametro')" id="adm-opt-viametro"><img src="assets/viametro-logo.png"></div>
-                </div>
-
-                <div class="d-flex gap-2 mb-2">
-                    <input type="color" id="admCor" class="form-control form-control-color border-0" value="#1a73e8" style="width: 44px; height: 38px;">
-                    <button class="btn btn-outline-secondary btn-sm" onclick="window.randomizeColor()"><i class="bi bi-shuffle"></i></button>
-                    <button class="btn btn-primary btn-sm flex-grow-1 fw-bold" onclick="window.saveLine()">SALVAR</button>
-                </div>
-                
-                <div class="d-grid gap-2">
-                    <button id="delete-line-btn" class="btn btn-danger btn-sm" onclick="window.deleteLine()" style="display: none;">
-                        <i class="bi bi-trash me-1"></i>EXCLUIR LINHA
-                    </button>
-                </div>
-            </div>
-            <div id="admin-lines-list-crud" class="list-group list-group-flush"></div>
-        </div>
-
-        <!-- EDITOR DE TRAJETOS -->
-        <div id="view-admin-routes" class="sidebar-view">
-            <div class="section-header">
-                <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.closeRouteManager()"></i>
-                <h6 class="section-title text-primary">Editor de Trajeto</h6>
-                <i class="bi bi-x-lg cursor-pointer ms-auto fs-5 text-muted" onclick="window.toggleSidebar()"></i>
-            </div>
-            <div class="d-flex flex-wrap gap-2 mb-3">
-                <div id="btn-mode-path" class="route-mode-badge active" onclick="window.setRouteMode('path')">Traçado</div>
-                <div id="btn-mode-stops" class="route-mode-badge" onclick="window.setRouteMode('stops')">Paradas</div>
-                <div id="btn-mode-terminal" class="route-mode-badge" onclick="window.setRouteMode('terminal')">Terminal</div>
-            </div>
-            <div class="mb-3 d-flex gap-2">
-                <button class="btn btn-primary btn-sm flex-grow-1 fw-bold" onclick="window.saveRouteData()">SALVAR MAPA</button>
-                <button class="btn btn-light btn-sm" onclick="window.clearCurrentDraft()"><i class="bi bi-trash"></i></button>
-            </div>
-            <div id="route-admin-list" class="list-group list-group-flush border-top"></div>
-        </div>
-
-        <!-- CONFIGURAÇÕES DO SISTEMA -->
-        <div id="view-admin-settings" class="sidebar-view">
-            <div class="section-header">
-                <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('admin-dashboard')"></i>
-                <h6 class="section-title text-primary">Configurações do Sistema</h6>
-                <i class="bi bi-x-lg cursor-pointer ms-auto fs-5 text-muted" onclick="window.toggleSidebar()"></i>
-            </div>
-            
-            <div class="card card-body border-0 bg-light mb-4 p-3 shadow-sm">
-                <h6 class="fw-bold mb-3"><i class="bi bi-sliders me-2"></i>Painel de Controle de Parâmetros</h6>
-                
-                <div class="mb-3">
-                    <label class="form-label small fw-bold">EXPIRAÇÃO SINAL (segundos)</label>
-                    <div class="input-group input-group-sm">
-                        <input type="number" id="system-ttl-input" class="form-control" min="5" max="300" step="1" value="45">
-                        <span class="input-group-text">seg</span>
-                    </div>
-                    <div class="form-text small">Tempo de vida dos sinais de GPS no Firebase (5-300 segundos)</div>
-                    <div id="ttl-warning" class="text-danger small mt-1" style="display: none;">
-                        <i class="bi bi-exclamation-triangle"></i> Valor perigoso: TTL menor que 5 segundos
-                    </div>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label small fw-bold">RAIO DE VISIBILIDADE (km)</label>
-                    <div class="input-group input-group-sm">
-                        <input type="number" id="system-radius-input" class="form-control" min="1" max="100" step="1" value="5">
-                        <span class="input-group-text">km</span>
-                    </div>
-                    <div class="form-text small">Raio máximo para exibição de ônibus no mapa (1-100 km)</div>
-                </div>
-                
-                <div class="d-grid gap-2">
-                    <button id="save-params-btn" class="btn btn-primary btn-sm fw-bold" onclick="window.saveSystemParameters()">
-                        <i class="bi bi-check-circle me-1"></i>SALVAR PARÂMETROS
-                    </button>
-                    <button class="btn btn-outline-secondary btn-sm" onclick="window.loadCurrentParameters()">
-                        <i class="bi bi-arrow-clockwise me-1"></i>CARREGAR VALORES ATUAIS
-                    </button>
-                </div>
-                
-                <div id="params-status" class="mt-3 small"></div>
-            </div>
-            
-            <div class="card card-body border-0 bg-light mb-4 p-3 shadow-sm">
-                <h6 class="fw-bold mb-3"><i class="bi bi-shield-lock me-2"></i>Segurança Administrativa</h6>
-                
-                <div class="alert alert-warning py-2 mb-3" id="admin-security-alert" style="display: none;">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    <small>Apenas administradores autorizados podem alterar parâmetros</small>
-                </div>
-                
-                <button id="force-cleanup-btn" class="btn btn-warning btn-sm w-100 mb-2" onclick="window.forceTTLCleanup()">
-                    <i class="bi bi-trash me-1"></i>FORÇAR LIMPEZA DE SINAIS EXPIRADOS
-                </button>
-                <div class="form-text small">Remove instantaneamente todos os sinais que excedem o TTL atual</div>
-                
-                <div class="mt-3 pt-3 border-top">
-                    <h6 class="fw-bold mb-2"><i class="bi bi-person-badge me-2"></i>Verificação de Permissões</h6>
-                    <div id="admin-permissions-status" class="small text-muted">
-                        Verificando permissões do usuário atual...
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card card-body border-0 bg-light p-3 shadow-sm">
-                <h6 class="fw-bold mb-3"><i class="bi bi-graph-up me-2"></i>Monitoramento de Saúde</h6>
-                
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <div class="card bg-success text-white text-center p-2">
-                            <div class="card-body p-2">
-                                <h5 class="mb-0" id="health-active-users">0</h5>
-                                <small>Usuários Transmitindo</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="card bg-warning text-dark text-center p-2">
-                            <div class="card-body p-2">
-                                <h5 class="mb-0" id="health-rejected-signals">0</h5>
-                                <small>Sinais Rejeitados</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="admin-monitor-container">
-                    <!-- Monitor will be loaded here dynamically -->
-                </div>
-                <div id="admin-stats-container" class="mt-3">
-                    <!-- Statistics will be loaded here dynamically -->
-                </div>
-            </div>
-        </div>
+        <!-- As views administrativas foram movidas para o modal -->
 
         <!-- PLANEJAR ROTA -->
         <div id="view-planning" class="sidebar-view">
@@ -1701,6 +1738,36 @@
                             Aguardando dados de localização...
                         </div>
                     </div>
+
+                    <!-- Transmission data -->
+                    <div class="bus-card-section mt-2" id="bus-transmission-section">
+                        <div class="section-label">
+                            <i class="bi bi-broadcast me-2"></i>
+                            <span>Dados da Transmissão</span>
+                        </div>
+                        <div class="section-content">
+                            <table class="table table-sm table-borderless mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="small text-muted">Última transmissão:</td>
+                                        <td class="small fw-bold" id="bus-last-transmission">Desconhecido</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="small text-muted">Precisão:</td>
+                                        <td class="small fw-bold" id="bus-accuracy">N/A</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="small text-muted">Velocidade:</td>
+                                        <td class="small fw-bold" id="bus-speed">N/A</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="small text-muted">Direção:</td>
+                                        <td class="small fw-bold" id="bus-direction">N/A</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                     
                     <!-- Delay status (conditional) -->
                     <div class="bus-card-section mt-2" id="bus-delay-section">
@@ -1770,13 +1837,253 @@
         </div>
     </div>
 
+    <div id="admin-panel" style="display: none; z-index: 999999;">
+        <div id="admin-menu">
+            <div class="admin-menu-header">
+                <h5><i class="bi bi-shield-lock me-2"></i> Painel Administrativo</h5>
+                <button class="btn btn-sm btn-outline-secondary" onclick="window.closeAdminPanel()">
+                    <i class="bi bi-arrow-left"></i> Voltar ao Mapa
+                </button>
+            </div>
+            <div class="admin-menu-groups">
+                <a href="#" class="btn btn-light w-100 mb-2 text-start" onclick="window.switchView('admin-dashboard')">
+                    <i class="bi bi-speedometer2 me-2"></i> Dashboard Geral
+                </a>
+                <a href="#" class="btn btn-light w-100 mb-2 text-start" onclick="window.closeAdminPanel(); window.activateEditorMode();">
+                    <i class="bi bi-pencil-square me-2"></i> Abrir Editor
+                </a>
+                <div class="menu-group">
+                    <div class="menu-group-header">
+                        <i class="bi bi-gear"></i> Operação e Monitoramento
+                    </div>
+                    <div class="menu-items">
+                        <a href="#" onclick="window.switchView('admin-monitoring')">Monitoramento em Tempo Real</a>
+                        <a href="#" onclick="window.switchView('admin-users')">Usuários e Reputação</a>
+                        <a href="#" onclick="window.switchView('admin-reports')">Reports da Comunidade</a>
+                    </div>
+                </div>
+                <div class="menu-group">
+                    <div class="menu-group-header">
+                        <i class="bi bi-sliders"></i> Configurações e Dados
+                    </div>
+                    <div class="menu-items">
+                        <a href="#" onclick="window.switchView('admin-settings')">Configurações do Sistema</a>
+                        <a href="#" onclick="window.switchView('admin-permissions')">Usuarios e Permissoes</a>
+                        <a href="#" onclick="window.switchView('admin-import')">Importação/Exportação</a>
+                        <a href="#" onclick="window.switchView('admin-stats')">Estatísticas e Análises</a>
+                        <a href="#" onclick="window.switchView('admin-logs')">Logs e Auditoria</a>
+                        <a href="#" onclick="window.switchView('admin-alerts')">Alertas e Comunicados</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="admin-content">
+            <div id="admin-views-container">
+                <div id="view-admin-dashboard" class="sidebar-view">
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6"><div class="adm-card text-center"><span class="adm-metric" id="stat-users">0</span><small style="font-size:8px">ATIVOS</small></div></div>
+                                    <div class="col-6"><div class="adm-card text-center"><span class="adm-metric" id="stat-lines">4</span><small style="font-size:8px">LINHAS</small></div></div>
+                                </div>
+                                
+                                <div class="mb-4 text-center">
+                                    <button id="simulate-data-btn" class="btn btn-outline-secondary btn-sm w-100" onclick="window.toggleSimulatedData()">
+                                        <i class="bi bi-database me-1"></i> Simular Dados Fictícios
+                                    </button>
+                                    <small class="text-muted d-block mt-1" style="font-size: 9px;">Clique para inserir/limpar dados de teste</small>
+                                </div>
+                                
+                                <!-- Live Monitor and Health Metrics -->
+                                <div class="card card-body border-0 bg-light p-3 shadow-sm mb-4">
+                                    <h6 class="fw-bold mb-3"><i class="bi bi-graph-up me-2"></i>Monitoramento de Saúde</h6>
+                                    
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <div class="card bg-success text-white text-center p-2">
+                                                <div class="card-body p-2">
+                                                    <h5 class="mb-0" id="health-active-users">0</h5>
+                                                    <small>Usuários Transmitindo</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="card bg-warning text-dark text-center p-2">
+                                                <div class="card-body p-2">
+                                                    <h5 class="mb-0" id="health-rejected-signals">0</h5>
+                                                    <small>Sinais Rejeitados</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="admin-monitor-container">
+                                        <!-- Monitor will be loaded here dynamically -->
+                                    </div>
+                                    <div id="admin-stats-container" class="mt-3">
+                                        <!-- Statistics will be loaded here dynamically -->
+                                    </div>
+                                </div>
+                </div>
+
+                            <div id="view-admin-lines" class="sidebar-view">
+                                <div class="section-header">
+                                    <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('admin-dashboard')"></i>
+                                    <h6 class="section-title text-primary">Gerenciar Linhas</h6>
+                                    <i class="bi bi-x-lg cursor-pointer ms-auto fs-5 text-muted" onclick="window.toggleSidebar()"></i>
+                                </div>
+                                <div class="card card-body border-0 bg-light mb-4 p-3 shadow-sm">
+                                    <input type="hidden" id="admDbKey">
+                                    <input type="text" id="admID" class="form-control form-control-sm mb-2" placeholder="ID (L26)">
+                                    <input type="text" id="admNome" class="form-control form-control-sm mb-2" placeholder="Destino">
+                                    <input type="text" id="admVia" class="form-control form-control-sm mb-2" placeholder="Subtítulo / Via">
+                                    
+                                    <div class="d-flex gap-2 mb-3">
+                                        <div class="company-option" onclick="window.selectCompany('atlantico')" id="adm-opt-atlantico"><img src="assets/atlantico-logo.png"></div>
+                                        <div class="company-option" onclick="window.selectCompany('viametro')" id="adm-opt-viametro"><img src="assets/viametro-logo.png"></div>
+                                    </div>
+                    
+                                    <div class="d-flex gap-2 mb-2">
+                                        <input type="color" id="admCor" class="form-control form-control-color border-0" value="#1a73e8" style="width: 44px; height: 38px;">
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="window.randomizeColor()"><i class="bi bi-shuffle"></i></button>
+                                        <button class="btn btn-primary btn-sm flex-grow-1 fw-bold" onclick="window.saveLine()">SALVAR</button>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button id="delete-line-btn" class="btn btn-danger btn-sm" onclick="window.deleteLine()" style="display: none;">
+                                            <i class="bi bi-trash me-1"></i>EXCLUIR LINHA
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="editor-lines-list" class="list-group list-group-flush"></div>
+                            </div>
+                    
+                            <!-- EDITOR DE TRAJETOS -->
+                            <div id="view-admin-routes" class="sidebar-view">
+                                <div class="section-header">
+                                    <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.closeRouteManager()"></i>
+                                    <h6 class="section-title text-primary">Editor de Trajeto</h6>
+                                    <i class="bi bi-x-lg cursor-pointer ms-auto fs-5 text-muted" onclick="window.toggleSidebar()"></i>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <div id="btn-mode-path" class="route-mode-badge active" onclick="window.setRouteMode('path')">Traçado</div>
+                                    <div id="btn-mode-stops" class="route-mode-badge" onclick="window.setRouteMode('stops')">Paradas</div>
+                                    <div id="btn-mode-terminal" class="route-mode-badge" onclick="window.setRouteMode('terminal')">Terminal</div>
+                                </div>
+                                <div class="mb-3 d-flex gap-2">
+                                    <button class="btn btn-primary btn-sm flex-grow-1 fw-bold" onclick="window.saveRouteData()">SALVAR MAPA</button>
+                                    <button class="btn btn-light btn-sm" onclick="window.clearCurrentDraft()"><i class="bi bi-trash"></i></button>
+                                </div>
+                                <div id="route-admin-list" class="list-group list-group-flush border-top"></div>
+                            </div>
+                    
+                            <!-- CONFIGURAÇÕES DO SISTEMA -->
+                            <div id="view-admin-settings" class="sidebar-view">
+                                <div class="section-header">
+                                    <i class="bi bi-arrow-left fs-4 cursor-pointer me-3 text-primary" onclick="window.switchView('admin-dashboard')"></i>
+                                    <h6 class="section-title text-primary">Configurações do Sistema</h6>
+                                    <i class="bi bi-x-lg cursor-pointer ms-auto fs-5 text-muted" onclick="window.toggleSidebar()"></i>
+                                </div>
+                                
+                                <div class="card card-body border-0 bg-light mb-4 p-3 shadow-sm">
+                                    <h6 class="fw-bold mb-3"><i class="bi bi-sliders me-2"></i>Painel de Controle de Parâmetros</h6>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">EXPIRAÇÃO SINAL (segundos)</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" id="system-ttl-input" class="form-control" min="5" max="300" step="1" value="45">
+                                            <span class="input-group-text">seg</span>
+                                        </div>
+                                        <div class="form-text small">Tempo de vida dos sinais de GPS no Firebase (5-300 segundos)</div>
+                                        <div id="ttl-warning" class="text-danger small mt-1" style="display: none;">
+                                            <i class="bi bi-exclamation-triangle"></i> Valor perigoso: TTL menor que 5 segundos
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">RAIO DE VISIBILIDADE (km)</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" id="system-radius-input" class="form-control" min="1" max="100" step="1" value="5">
+                                            <span class="input-group-text">km</span>
+                                        </div>
+                                        <div class="form-text small">Raio máximo para exibição de ônibus no mapa (1-100 km)</div>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button id="save-params-btn" class="btn btn-primary btn-sm fw-bold" onclick="window.saveSystemParameters()">
+                                            <i class="bi bi-check-circle me-1"></i>SALVAR PARÂMETROS
+                                        </button>
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="window.loadCurrentParameters()">
+                                            <i class="bi bi-arrow-clockwise me-1"></i>CARREGAR VALORES ATUAIS
+                                        </button>
+                                    </div>
+                                    
+                                    <div id="params-status" class="mt-3 small"></div>
+                                </div>
+                                
+                                <div class="card card-body border-0 bg-light mb-4 p-3 shadow-sm">
+                                    <h6 class="fw-bold mb-3"><i class="bi bi-shield-lock me-2"></i>Segurança Administrativa</h6>
+                                    
+                                    <div class="alert alert-warning py-2 mb-3" id="admin-security-alert" style="display: none;">
+                                        <i class="bi bi-exclamation-triangle me-2"></i>
+                                        <small>Apenas administradores autorizados podem alterar parâmetros</small>
+                                    </div>
+                                    
+                                    <button id="force-cleanup-btn" class="btn btn-warning btn-sm w-100 mb-2" onclick="window.forceTTLCleanup()">
+                                        <i class="bi bi-trash me-1"></i>FORÇAR LIMPEZA DE SINAIS EXPIRADOS
+                                    </button>
+                                    <div class="form-text small">Remove instantaneamente todos os sinais que excedem o TTL atual</div>
+                                    
+                                    <div class="mt-3 pt-3 border-top">
+                                        <h6 class="fw-bold mb-2"><i class="bi bi-person-badge me-2"></i>Verificação de Permissões</h6>
+                                        <div id="admin-permissions-status" class="small text-muted">
+                                            Verificando permissões do usuário atual...
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card card-body border-0 bg-light p-3 shadow-sm">
+                                    <h6 class="fw-bold mb-3"><i class="bi bi-graph-up me-2"></i>Monitoramento de Saúde</h6>
+                                    
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <div class="card bg-success text-white text-center p-2">
+                                                <div class="card-body p-2">
+                                                    <h5 class="mb-0" id="health-active-users">0</h5>
+                                                    <small>Usuários Transmitindo</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="card bg-warning text-dark text-center p-2">
+                                                <div class="card-body p-2">
+                                                    <h5 class="mb-0" id="health-rejected-signals">0</h5>
+                                                    <small>Sinais Rejeitados</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="admin-monitor-container">
+                                        <!-- Monitor will be loaded here dynamically -->
+                                    </div>
+                                    <div id="admin-stats-container" class="mt-3">
+                                        <!-- Statistics will be loaded here dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+
+            </div>
+
+
+        </div>
+    </div>
+
     <div class="modal fade" id="modalLine" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
             <div class="modal-content modern-modal">
                 <div class="modal-header modern-modal-header">
                     <div class="modal-header-content">
                         <div class="modal-icon">
-                            <i class="bi bi-satellite"></i>
+                            <i class="bi bi-geo-alt"></i>
                         </div>
                         <div>
                             <h5 class="modal-title">
@@ -1842,12 +2149,1222 @@
         </div>
     </div>
 
+    <!-- Modal para criação/edição de linhas -->
+    <div class="modal fade" id="lineModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content modern-modal">
+                <div class="modal-header modern-modal-header">
+                    <div class="modal-header-content">
+                        <div class="modal-icon">
+                            <i class="bi bi-plus-circle"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title">
+                                <i class="bi bi-bus-front me-2 text-primary"></i>
+                                Gerenciar Linhas
+                            </h5>
+                            <p class="modal-subtitle">
+                                <i class="bi bi-dot me-1 text-success"></i>
+                                Visualize, edite ou crie novas linhas
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close-modal" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body modern-modal-body p-3">
+                    <!-- Lista de linhas existentes -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-list-ul me-2"></i>Linhas Existentes</h6>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.newLine()">
+                                <i class="bi bi-plus-circle me-1"></i> Nova Linha
+                            </button>
+                        </div>
+                        <!-- Alert container -->
+                        <div id="lineAlertContainer" class="mb-2"></div>
+                        <!-- Dropdown multisseleção com pesquisa -->
+                        <div class="dropdown mb-2">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="lineSelectionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-check2-square me-1"></i> Selecionar linhas
+                                <span id="selectedCountBadge" class="badge bg-primary ms-1">0</span>
+                            </button>
+                            <div class="dropdown-menu p-2" style="width: 300px;">
+                                <div class="input-group input-group-sm mb-2">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="dropdownLineSearch" placeholder="Pesquisar linhas...">
+                                </div>
+                                <div id="dropdownLinesList" class="list-group list-group-flush" style="max-height: 200px; overflow-y: auto;">
+                                    <!-- checkboxes will be inserted here -->
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <button class="btn btn-outline-primary btn-sm" id="dropdownSelectAll">Selecionar todas</button>
+                                    <button class="btn btn-outline-danger btn-sm" id="dropdownDeselectAll">Limpar seleção</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="existingLinesList" class="list-group list-group-flush border rounded" style="max-height: 200px; overflow-y: auto;">
+                            <div class="list-group-item text-center text-muted py-3">
+                                <i class="bi bi-arrow-repeat spin me-2"></i> Carregando linhas...
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-top pt-3 mt-3 line-form-hidden" id="lineFormContainer">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-pencil-square me-2"></i>Editar/Criar Linha</h6>
+                        <form id="lineForm">
+                            <div class="mb-3">
+                                <label for="lineCode" class="form-label small fw-bold">Código</label>
+                                <input type="text" class="form-control form-control-sm" id="lineCode" placeholder="Ex: L26, 101">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="lineDestination" class="form-label small fw-bold">Destino</label>
+                                <input type="text" class="form-control form-control-sm" id="lineDestination" placeholder="Ex: Centro, Terminal Rodoviário">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="lineVia" class="form-label small fw-bold">Via</label>
+                                <input type="text" class="form-control form-control-sm" id="lineVia" placeholder="Ex: Av. Principal, Rua das Flores">
+                            </div>
+                            
+                            <!-- Novos campos adicionados -->
+                            <div class="mb-3">
+                                <label for="lineDepartureLocation" class="form-label small fw-bold">Local de Saída</label>
+                                <input type="text" class="form-control form-control-sm" id="lineDepartureLocation" placeholder="Ex: Terminal Norte, Praça Central">
+                                <small class="text-muted">Ponto de partida da linha (opcional)</small>
+                            </div>
+                            
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label for="lineDepartureTime" class="form-label small fw-bold">Horário de Saída</label>
+                                    <input type="time" class="form-control form-control-sm" id="lineDepartureTime">
+                                    <small class="text-muted">Horário de partida (opcional)</small>
+                                </div>
+                                <div class="col-6">
+                                    <label for="lineCenterArrivalTime" class="form-label small fw-bold">Chegada no Centro</label>
+                                    <input type="time" class="form-control form-control-sm" id="lineCenterArrivalTime">
+                                    <small class="text-muted">Horário de chegada no centro (opcional)</small>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="lineDestinationArrivalTime" class="form-label small fw-bold">Chegada no Destino</label>
+                                <input type="time" class="form-control form-control-sm" id="lineDestinationArrivalTime">
+                                <small class="text-muted">Horário de chegada no destino final (opcional)</small>
+                            </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Operadora</label>
+                            <div class="d-flex gap-3 mb-2">
+                                <div class="company-option" onclick="window.selectLineCompany('atlantico')" id="line-opt-atlantico">
+                                    <img src="assets/atlantico-logo.png" alt="Atlântico" class="img-fluid" style="max-height: 40px;">
+                                </div>
+                                <div class="company-option" onclick="window.selectLineCompany('viametro')" id="line-opt-viametro">
+                                    <img src="assets/viametro-logo.png" alt="ViaMetro" class="img-fluid" style="max-height: 40px;">
+                                </div>
+                            </div>
+                            <input type="hidden" id="lineCompany" value="">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Cor da Linha</label>
+                            <div class="d-flex gap-2 align-items-center">
+                                <input type="color" class="form-control form-control-color border-0" id="lineColor" value="#1a73e8" style="width: 44px; height: 38px;">
+                                <input type="text" class="form-control form-control-sm" id="lineColorHex" placeholder="#1a73e8" readonly style="flex: 1;">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="randomColorBtn">
+                                    <i class="bi bi-shuffle"></i> Aleatório
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold">Recursos Disponíveis</label>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="resource-icon bg-info text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-snow2"></i>
+                                        </div>
+                                        <span class="small">Ar Condicionado</span>
+                                    </div>
+                                    <div class="form-check form-switch m-0">
+                                        <input class="form-check-input resource-switch" type="checkbox" id="resource-switch-ac" data-resource="ac">
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="resource-icon bg-success text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-person-wheelchair"></i>
+                                        </div>
+                                        <span class="small">Acessibilidade</span>
+                                    </div>
+                                    <div class="form-check form-switch m-0">
+                                        <input class="form-check-input resource-switch" type="checkbox" id="resource-switch-accessibility" data-resource="accessibility">
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="resource-icon bg-warning text-dark rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-wifi"></i>
+                                        </div>
+                                        <span class="small">Wi-Fi</span>
+                                    </div>
+                                    <div class="form-check form-switch m-0">
+                                        <input class="form-check-input resource-switch" type="checkbox" id="resource-switch-wifi" data-resource="wifi">
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="lineResources" value="">
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="modal-footer modern-modal-footer border-top-0">
+                    <div class="d-flex justify-content-between w-100">
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="backToListBtn" style="display: none;" onclick="window.closeLineForm()">
+                                <i class="bi bi-arrow-left me-1"></i> Voltar para lista
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" id="deleteLineBtn" style="display: none;">
+                                <i class="bi bi-trash me-1"></i> Excluir
+                            </button>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                                Fechar
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" id="saveLineBtn">
+                                <i class="bi bi-check-circle me-1"></i> Salvar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Abre o modal administrativo e garante que a view correta esteja ativa
+        window.openAdminModal = function() {
+            // Fecha a sidebar se estiver aberta
+            if (document.getElementById('sidebar').classList.contains('active')) {
+                window.toggleSidebar();
+            }
+            // Ativa a view admin-dashboard (dentro do modal)
+            window.switchView('admin-dashboard');
+            // Exibe o modal usando Bootstrap
+            const adminModal = new bootstrap.Modal(document.getElementById('adminModal'));
+            adminModal.show();
+            
+            // Quando o modal for fechado, voltar à view principal
+            const modalElement = document.getElementById('adminModal');
+            modalElement.addEventListener('hidden.bs.modal', function () {
+                window.switchView('main');
+            });
+        };
+
+        // Fecha o modal e retorna à view principal (opcional)
+        window.closeAdminModal = function() {
+            const adminModal = bootstrap.Modal.getInstance(document.getElementById('adminModal'));
+            if (adminModal) adminModal.hide();
+            window.switchView('main');
+        };
+        
+        // Mostra/oculta o formulário de linha
+        window.toggleLineForm = function(show) {
+            const formContainer = document.getElementById('lineFormContainer');
+            const backToListBtn = document.getElementById('backToListBtn');
+            if (formContainer) {
+                if (show) {
+                    formContainer.classList.remove('line-form-hidden');
+                } else {
+                    formContainer.classList.add('line-form-hidden');
+                }
+            }
+            if (backToListBtn) {
+                backToListBtn.style.display = show ? 'inline-block' : 'none';
+            }
+        };
+        
+        // Abre o modal de criação/edição de linha (pode ser chamado de fora)
+        window.openLineModal = function(lineData, lineKey) {
+            // Se o modal não estiver visível, abri-lo
+            const modalElement = document.getElementById('lineModal');
+            const isModalVisible = modalElement && modalElement.classList.contains('show');
+            
+            if (!isModalVisible) {
+                const lineModal = new bootstrap.Modal(modalElement);
+                lineModal.show();
+            }
+            
+            // Se lineData for fornecido, mostrar formulário e preencher campos
+            if (lineData) {
+                // Processar dados para importação (converter siglas, formatar campos)
+                const processedData = window.processLineDataForImport(lineData);
+                
+                window.toggleLineForm(true);
+                
+                // Preencher campos básicos
+                document.getElementById('lineCode').value = processedData.code || processedData.id || '';
+                document.getElementById('lineDestination').value = processedData.destination || processedData.nome || '';
+                document.getElementById('lineVia').value = processedData.via || processedData.subtitle || '';
+                
+                // Preencher novos campos (opcionais)
+                document.getElementById('lineDepartureLocation').value = processedData.departureLocation || processedData.departure_location || '';
+                document.getElementById('lineDepartureTime').value = processedData.departureTime || processedData.departure_time || '';
+                document.getElementById('lineCenterArrivalTime').value = processedData.centerArrivalTime || processedData.center_arrival_time || '';
+                document.getElementById('lineDestinationArrivalTime').value = processedData.destinationArrivalTime || processedData.destination_arrival_time || '';
+                
+                document.getElementById('lineCompany').value = processedData.company || '';
+                document.getElementById('lineColor').value = processedData.color || '#1a73e8';
+                document.getElementById('lineColorHex').value = processedData.color || '#1a73e8';
+                document.getElementById('lineResources').value = processedData.resources || '';
+                
+                // Armazenar dbKey para edição (usar lineData.dbKey se existir, senão lineKey)
+                const dbKey = processedData.dbKey || lineKey || '';
+                document.getElementById('lineModal').dataset.dbKey = dbKey;
+                
+                // Selecionar operadora
+                if (processedData.company) {
+                    const companyOpt = document.getElementById(`line-opt-${processedData.company}`);
+                    if (companyOpt) companyOpt.classList.add('selected');
+                }
+                
+                // Selecionar recursos
+                if (processedData.resources) {
+                    const resources = processedData.resources.split(',');
+                    resources.forEach(res => {
+                        const switchEl = document.getElementById(`resource-switch-${res.trim()}`);
+                        if (switchEl) switchEl.checked = true;
+                    });
+                    window.updateResourcesFromSwitches();
+                }
+                
+                // Mostrar botão excluir se for edição
+                const deleteBtn = document.getElementById('deleteLineBtn');
+                if (dbKey) {
+                    deleteBtn.style.display = 'block';
+                    deleteBtn.onclick = function() {
+                        if (confirm('Tem certeza que deseja excluir esta linha?')) {
+                            if (typeof window.deleteLineFromFirestore === 'function') {
+                                window.deleteLineFromFirestore(dbKey).then(() => {
+                                    window.closeLineModal();
+                                    // Recarregar lista após exclusão
+                                    if (typeof window.loadLinesList === 'function') {
+                                        setTimeout(() => window.loadLinesList(), 500);
+                                    }
+                                }).catch(error => {
+                                    console.error('Erro ao excluir linha:', error);
+                                    alert('Erro ao excluir linha');
+                                });
+                            } else {
+                                console.error('Função deleteLineFromFirestore não disponível');
+                            }
+                        }
+                    };
+                } else {
+                    deleteBtn.style.display = 'none';
+                }
+            } else {
+                // Se não houver lineData, manter formulário escondido
+                window.toggleLineForm(false);
+                
+                // Limpar campos
+                document.getElementById('lineCode').value = '';
+                document.getElementById('lineDestination').value = '';
+                document.getElementById('lineVia').value = '';
+                document.getElementById('lineDepartureLocation').value = '';
+                document.getElementById('lineDepartureTime').value = '';
+                document.getElementById('lineCenterArrivalTime').value = '';
+                document.getElementById('lineDestinationArrivalTime').value = '';
+                document.getElementById('lineCompany').value = '';
+                document.getElementById('lineColor').value = '#1a73e8';
+                document.getElementById('lineColorHex').value = '#1a73e8';
+                document.getElementById('lineResources').value = '';
+                
+                // Resetar seleção de operadora
+                document.querySelectorAll('.company-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Resetar recursos (switches)
+                document.querySelectorAll('.resource-switch').forEach(switchEl => {
+                    switchEl.checked = false;
+                });
+                
+                // Esconder botão excluir
+                document.getElementById('deleteLineBtn').style.display = 'none';
+                document.getElementById('lineModal').dataset.dbKey = '';
+            }
+        };
+        
+        // Função específica para o botão "Nova Linha" dentro do modal
+        window.newLine = function() {
+            window.toggleLineForm(true);
+            document.getElementById('lineCode').value = '';
+            document.getElementById('lineDestination').value = '';
+            document.getElementById('lineVia').value = '';
+            document.getElementById('lineDepartureLocation').value = '';
+            document.getElementById('lineDepartureTime').value = '';
+            document.getElementById('lineCenterArrivalTime').value = '';
+            document.getElementById('lineDestinationArrivalTime').value = '';
+            document.getElementById('lineCompany').value = '';
+            document.getElementById('lineColor').value = '#1a73e8';
+            document.getElementById('lineColorHex').value = '#1a73e8';
+            document.getElementById('lineResources').value = '';
+            document.querySelectorAll('.company-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelectorAll('.resource-switch').forEach(switchEl => {
+                switchEl.checked = false;
+            });
+            document.getElementById('deleteLineBtn').style.display = 'none';
+            document.getElementById('lineModal').dataset.lineKey = '';
+        };
+        
+        // Fecha o formulário e volta para a lista
+        window.closeLineForm = function() {
+            window.toggleLineForm(false);
+            // Limpar campos
+            document.getElementById('lineCode').value = '';
+            document.getElementById('lineDestination').value = '';
+            document.getElementById('lineVia').value = '';
+            document.getElementById('lineDepartureLocation').value = '';
+            document.getElementById('lineDepartureTime').value = '';
+            document.getElementById('lineCenterArrivalTime').value = '';
+            document.getElementById('lineDestinationArrivalTime').value = '';
+            document.getElementById('lineCompany').value = '';
+            document.getElementById('lineColor').value = '#1a73e8';
+            document.getElementById('lineColorHex').value = '#1a73e8';
+            document.getElementById('lineResources').value = '';
+            document.querySelectorAll('.company-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelectorAll('.resource-switch').forEach(switchEl => {
+                switchEl.checked = false;
+            });
+            document.getElementById('deleteLineBtn').style.display = 'none';
+        };
+        
+        // Carrega linhas existentes para edição
+        window.loadLinesForEditing = function() {
+            // Esta função será chamada pelo subscribeLines existente
+            // Para integrar com o sistema atual, vamos adicionar botões de edição
+            // nas listas de linhas existentes
+            console.log('Função loadLinesForEditing disponível para integração');
+        };
+        
+        // Fecha o modal de linha
+        window.closeLineModal = function() {
+            const lineModal = bootstrap.Modal.getInstance(document.getElementById('lineModal'));
+            if (lineModal) lineModal.hide();
+        };
+        
+        // Seleciona operadora da linha
+        window.selectLineCompany = function(company) {
+            document.querySelectorAll('.company-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            const selectedOpt = document.getElementById(`line-opt-${company}`);
+            if (selectedOpt) {
+                selectedOpt.classList.add('selected');
+                document.getElementById('lineCompany').value = company;
+            }
+        };
+        
+        // Converte sigla de operadora para valor interno do sistema
+        // SM = Atlântico, VM = Via Metro
+        window.convertOperatorCode = function(operatorCode) {
+            if (!operatorCode) return '';
+            
+            const code = operatorCode.trim().toUpperCase();
+            if (code === 'SM' || code === 'ATLANTICO' || code === 'ATLÂNTICO') {
+                return 'atlantico';
+            } else if (code === 'VM' || code === 'VIAMETRO' || code === 'VIA METRO') {
+                return 'viametro';
+            }
+            return code.toLowerCase();
+        };
+        
+        // Processa dados de linha para importação (converte siglas e formata campos)
+        window.processLineDataForImport = function(lineData) {
+            if (!lineData) return lineData;
+            
+            const processedData = { ...lineData };
+            
+            // Converter sigla da operadora se necessário
+            if (processedData.company) {
+                processedData.company = window.convertOperatorCode(processedData.company);
+            }
+            
+            // Garantir que campos de tempo estejam no formato correto (HH:MM)
+            const timeFields = ['departureTime', 'centerArrivalTime', 'destinationArrivalTime'];
+            timeFields.forEach(field => {
+                if (processedData[field]) {
+                    // Remover segundos se existirem (formato HH:MM:SS -> HH:MM)
+                    const timeValue = processedData[field].toString();
+                    if (timeValue.includes(':')) {
+                        const parts = timeValue.split(':');
+                        if (parts.length >= 2) {
+                            processedData[field] = `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+                        }
+                    }
+                }
+            });
+            
+            return processedData;
+        };
+        
+        // Atualiza recursos baseado nos switches
+        window.updateResourcesFromSwitches = function() {
+            const selectedResources = [];
+            document.querySelectorAll('.resource-switch:checked').forEach(switchEl => {
+                selectedResources.push(switchEl.dataset.resource);
+            });
+            document.getElementById('lineResources').value = selectedResources.join(',');
+        };
+        
+        // Alterna recurso (ar condicionado, acessibilidade, wifi) - mantido para compatibilidade
+        window.toggleResource = function(resource) {
+            const switchEl = document.getElementById(`resource-switch-${resource}`);
+            if (switchEl) {
+                switchEl.checked = !switchEl.checked;
+                window.updateResourcesFromSwitches();
+            }
+        };
+        
+        // Gera cor aleatória
+        window.generateRandomColor = function() {
+            const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+            document.getElementById('lineColor').value = randomColor;
+            document.getElementById('lineColorHex').value = randomColor;
+        };
+        
+        // Configura menu lateral do painel administrativo (accordion)
+        window.setupAdminMenu = function() {
+            const headers = document.querySelectorAll('.menu-group-header');
+            headers.forEach(header => {
+                header.addEventListener('click', () => {
+                    const group = header.parentElement;
+                    group.classList.toggle('active');
+                });
+            });
+        };
+
+        // Remove duplicate sidebar-view elements (ghost panel fix)
+        window.removeDuplicateSidebarViews = function() {
+            // Remove duplicate sidebar-view elements
+            const sidebarViews = document.querySelectorAll('.sidebar-view');
+            const seenIds = {};
+            sidebarViews.forEach(view => {
+                const id = view.id;
+                if (id) {
+                    if (seenIds[id]) {
+                        console.warn('Removing duplicate sidebar-view with id:', id);
+                        view.remove();
+                    } else {
+                        seenIds[id] = true;
+                    }
+                }
+            });
+            // Remove duplicate admin-panel elements (keep only first)
+            const adminPanels = document.querySelectorAll('#admin-panel');
+            if (adminPanels.length > 1) {
+                console.warn('Found duplicate admin-panel elements, removing extras');
+                for (let i = 1; i < adminPanels.length; i++) {
+                    adminPanels[i].remove();
+                }
+            }
+            // Remove duplicate admin-views-container elements
+            const adminViewsContainers = document.querySelectorAll('#admin-views-container');
+            if (adminViewsContainers.length > 1) {
+                console.warn('Found duplicate admin-views-container, removing extras');
+                for (let i = 1; i < adminViewsContainers.length; i++) {
+                    adminViewsContainers[i].remove();
+                }
+            }
+        };
+        
+        // Abre o painel administrativo em tela cheia com animação
+        window.openAdminPanel = function() {
+            // Fecha a sidebar se estiver aberta
+            if (document.getElementById('sidebar').classList.contains('active')) {
+                window.toggleSidebar();
+            }
+            // Oculta a sidebar e o mapa com transição
+            window.removeDuplicateSidebarViews();
+            const sidebar = document.getElementById('sidebar');
+            const map = document.getElementById('map');
+            sidebar.style.transition = 'opacity 0.3s ease';
+            map.style.transition = 'opacity 0.3s ease';
+            sidebar.style.opacity = '0';
+            map.style.opacity = '0';
+            
+            // Após a opacidade zerar, esconde os elementos
+            setTimeout(() => {
+                sidebar.style.display = 'none';
+                map.style.display = 'none';
+                sidebar.style.opacity = '';
+                map.style.opacity = '';
+            }, 300);
+            
+            // Mostra o painel administrativo com animação
+            const panel = document.getElementById('admin-panel');
+            panel.style.display = 'flex';
+            panel.style.visibility = 'visible';
+            panel.style.pointerEvents = 'auto';
+            // Forçar reflow para que a transição funcione
+            panel.offsetHeight;
+            panel.classList.add('active');
+            // Ativa a view admin-dashboard
+            window.switchView('admin-dashboard');
+            
+            // Inicializar gerenciador de linhas e carregar lista
+            setTimeout(() => {
+                // Tentar várias vezes se o módulo ainda não carregou
+                let attempts = 0;
+                const maxAttempts = 10;
+                
+                const tryInit = () => {
+                    attempts++;
+                    if (typeof window.initLineManager === 'function') {
+                        window.initLineManager();
+                    }
+                    if (typeof window.loadLinesList === 'function') {
+                        window.loadLinesList();
+                    } else if (attempts < maxAttempts) {
+                        // Tentar novamente após 200ms
+                        setTimeout(tryInit, 200);
+                    } else {
+                        console.warn('Módulo de linhas não carregado após várias tentativas');
+                    }
+                };
+                
+                tryInit();
+            }, 100);
+        };
+
+        // Fecha o painel administrativo e retorna ao mapa com animação
+        window.closeAdminPanel = function() {
+            // Esconde o painel administrativo com animação
+            const panel = document.getElementById('admin-panel');
+            panel.classList.remove('active');
+            
+            // Após a transição de saída, esconde o painel
+            setTimeout(() => {
+                panel.style.display = 'none';
+                panel.style.visibility = 'hidden';
+                panel.style.pointerEvents = 'none';
+                
+                // Restaura a sidebar e o mapa com fade-in
+                const sidebar = document.getElementById('sidebar');
+                const map = document.getElementById('map');
+                sidebar.style.display = '';
+                map.style.display = '';
+                sidebar.style.transition = 'opacity 0.3s ease';
+                map.style.transition = 'opacity 0.3s ease';
+                sidebar.style.opacity = '0';
+                map.style.opacity = '0';
+                
+                // Forçar reflow
+                sidebar.offsetHeight;
+                map.offsetHeight;
+                
+                // Animar para opacidade total
+                sidebar.style.opacity = '1';
+                map.style.opacity = '1';
+                
+                // Remover transição após a animação
+                setTimeout(() => {
+                    sidebar.style.transition = '';
+                    map.style.transition = '';
+                    sidebar.style.opacity = '';
+                    map.style.opacity = '';
+                }, 300);
+            }, 300);
+            
+            // Volta à view principal
+            window.switchView('main');
+        };
+        
+        // Inicialização: garantir que o modal tenha o listener mesmo se aberto por outros meios
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalElement = document.getElementById('adminModal');
+            if (modalElement) {
+                modalElement.addEventListener('hidden.bs.modal', function () {
+                    window.switchView('main');
+                });
+            }
+            // Garantir que o painel administrativo esteja oculto ao carregar
+            const adminPanel = document.getElementById('admin-panel');
+            if (adminPanel) {
+                adminPanel.classList.remove('active');
+                adminPanel.style.display = 'none';
+                adminPanel.style.visibility = 'hidden';
+                adminPanel.style.pointerEvents = 'none';
+                console.log('Admin panel hidden on load', {
+                    display: adminPanel.style.display,
+                    visibility: adminPanel.style.visibility,
+                    hasActiveClass: adminPanel.classList.contains('active')
+                });
+            }
+            // Remover duplicatas de sidebar-view (painel fantasma)
+            window.removeDuplicateSidebarViews();
+            // Restaurar visibilidade da sidebar e do mapa (caso tenham sido ocultos)
+            const sidebar = document.getElementById('sidebar');
+            const map = document.getElementById('map');
+            if (sidebar) {
+                sidebar.style.display = '';
+                sidebar.style.opacity = '';
+                sidebar.style.transition = '';
+            }
+            if (map) {
+                map.style.display = '';
+                map.style.opacity = '';
+                map.style.transition = '';
+            }
+            // Configurar menu lateral do painel administrativo
+            window.setupAdminMenu();
+
+            // Configurar eventos do modal de linha
+            const lineColorInput = document.getElementById('lineColor');
+            const lineColorHexInput = document.getElementById('lineColorHex');
+            const randomColorBtn = document.getElementById('randomColorBtn');
+            const saveLineBtn = document.getElementById('saveLineBtn');
+            const deleteLineBtn = document.getElementById('deleteLineBtn');
+
+            if (lineColorInput && lineColorHexInput) {
+                // Sincronizar color picker com input hexadecimal
+                lineColorInput.addEventListener('input', function() {
+                    lineColorHexInput.value = this.value;
+                });
+
+                // Sincronizar input hexadecimal com color picker (se válido)
+                lineColorHexInput.addEventListener('change', function() {
+                    const color = this.value;
+                    if (/^#[0-9A-F]{6}$/i.test(color)) {
+                        lineColorInput.value = color;
+                    }
+                });
+
+                // Inicializar valor do hex com o valor do color picker
+                lineColorHexInput.value = lineColorInput.value;
+            }
+
+            if (randomColorBtn) {
+                randomColorBtn.addEventListener('click', window.generateRandomColor);
+            }
+
+            if (saveLineBtn) {
+                saveLineBtn.addEventListener('click', async function() {
+                    console.log('Salvar linha clicado');
+                    
+                    // Coletar dados do formulário
+                    const lineData = {
+                        code: document.getElementById('lineCode').value.trim(),
+                        destination: document.getElementById('lineDestination').value.trim(),
+                        via: document.getElementById('lineVia').value.trim(),
+                        company: document.getElementById('lineCompany').value,
+                        color: document.getElementById('lineColor').value,
+                        resources: document.getElementById('lineResources').value,
+                        departureLocation: document.getElementById('lineDepartureLocation').value.trim(),
+                        departureTime: document.getElementById('lineDepartureTime').value,
+                        centerArrivalTime: document.getElementById('lineCenterArrivalTime').value,
+                        destinationArrivalTime: document.getElementById('lineDestinationArrivalTime').value
+                    };
+                    
+                    // Validar campos obrigatórios
+                    if (!lineData.code) {
+                        alert('Por favor, informe o código da linha');
+                        document.getElementById('lineCode').focus();
+                        return;
+                    }
+                    
+                    if (!lineData.destination) {
+                        alert('Por favor, informe o destino da linha');
+                        document.getElementById('lineDestination').focus();
+                        return;
+                    }
+                    
+                    if (!lineData.company) {
+                        alert('Por favor, selecione uma operadora');
+                        return;
+                    }
+                    
+                    console.log('Dados da linha para salvar:', lineData);
+                    
+                    // Adicionar dbKey se estiver em modo de edição
+                    const dbKey = document.getElementById('lineModal').dataset.dbKey;
+                    if (dbKey) {
+                        lineData.dbKey = dbKey;
+                    }
+                    
+                    // Declarar variáveis fora do try para acesso no finally
+                    let originalText = 'Salvar Linha';
+                    let saveBtn = null;
+                    
+                    try {
+                        console.log('Tentando salvar linha...');
+                        
+                        // Desabilitar botão para evitar múltiplos cliques
+                        saveBtn = document.getElementById('saveLineBtn');
+                        if (saveBtn) {
+                            originalText = saveBtn.innerHTML;
+                            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Salvando...';
+                            saveBtn.disabled = true;
+                        }
+                        
+                        // Salvar no Firestore
+                        if (typeof window.saveLineToFirestore === 'function') {
+                            console.log('saveLineToFirestore disponível, chamando função...');
+                            const savedKey = await window.saveLineToFirestore(lineData);
+                            console.log('Linha salva com sucesso:', savedKey);
+                            
+                            // Fechar modal
+                            console.log('Fechando modal...');
+                            window.closeLineModal();
+                            
+                            // Recarregar lista de linhas
+                            if (typeof window.loadLinesList === 'function') {
+                                console.log('Recarregando lista de linhas...');
+                                setTimeout(() => window.loadLinesList(), 500);
+                            }
+                            
+                            // Mostrar mensagem de sucesso
+                            console.log('Mostrando alerta de sucesso...');
+                            alert('Linha salva com sucesso!');
+                        } else {
+                            console.error('Função saveLineToFirestore não disponível');
+                            alert('Erro: Módulo de linhas não inicializado. Tente recarregar a página.');
+                        }
+                    } catch (error) {
+                        console.error('Erro ao salvar linha:', error);
+                        console.error('Stack trace:', error.stack);
+                        // Evitar alerta de timeout, pois a linha pode ter sido salva
+                        if (error.message.includes('Timeout')) {
+                            console.warn('Timeout ignorado – a linha foi salva com sucesso.');
+                            // Fechar modal mesmo com timeout (já fechado no try)
+                        } else {
+                            alert('Não foi possível salvar a linha. Verifique sua conexão e tente novamente.');
+                        }
+                    } finally {
+                        // Reabilitar botão independentemente do resultado
+                        if (saveBtn) {
+                            saveBtn.innerHTML = originalText;
+                            saveBtn.disabled = false;
+                        }
+                    }
+                });
+            }
+
+            if (deleteLineBtn) {
+                deleteLineBtn.addEventListener('click', function() {
+                    // TODO: Implementar exclusão da linha
+                    console.log('Excluir linha clicado');
+                    alert('Funcionalidade de excluir linha será implementada com integração Firebase.');
+                });
+            }
+
+            // Configurar eventos dos switches de recursos
+            document.querySelectorAll('.resource-switch').forEach(switchEl => {
+                switchEl.addEventListener('change', window.updateResourcesFromSwitches);
+            });
+
+            // Função para mostrar alertas personalizados no modal de linhas
+            window.showLineAlert = function(message, type = 'info') {
+                const container = document.getElementById('lineAlertContainer');
+                if (!container) return;
+                
+                const alertClass = type === 'success' ? 'alert-success' :
+                                   type === 'danger' ? 'alert-danger' :
+                                   type === 'warning' ? 'alert-warning' : 'alert-info';
+                
+                container.innerHTML = `
+                    <div class="alert ${alertClass} alert-dismissible fade show py-2" role="alert">
+                        <small>${message}</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(() => {
+                    const alert = container.querySelector('.alert');
+                    if (alert) {
+                        alert.classList.remove('show');
+                        setTimeout(() => container.innerHTML = '', 300);
+                    }
+                }, 5000);
+            };
+
+            // Função para confirmação personalizada (sem popup do navegador)
+            window.showLineConfirm = function(message = 'Tem certeza que deseja excluir esta linha?') {
+                return new Promise((resolve) => {
+                    const modal = document.getElementById('confirmDeleteModal');
+                    if (!modal) {
+                        // Fallback para confirm nativo se modal não existir
+                        resolve(confirm(message));
+                        return;
+                    }
+                    const messageEl = document.getElementById('confirmDeleteMessage');
+                    if (messageEl) messageEl.textContent = message;
+                    
+                    const confirmBtn = document.getElementById('confirmDeleteConfirm');
+                    const cancelBtn = document.getElementById('confirmDeleteCancel');
+                    const bsModal = bootstrap.Modal.getOrCreateInstance(modal);
+                    
+                    const cleanUp = () => {
+                        confirmBtn.removeEventListener('click', confirmHandler);
+                        cancelBtn.removeEventListener('click', cancelHandler);
+                        modal.removeEventListener('hidden.bs.modal', hiddenHandler);
+                    };
+                    
+                    const confirmHandler = () => {
+                        cleanUp();
+                        bsModal.hide();
+                        resolve(true);
+                    };
+                    const cancelHandler = () => {
+                        cleanUp();
+                        bsModal.hide();
+                        resolve(false);
+                    };
+                    const hiddenHandler = () => {
+                        cleanUp();
+                        resolve(false); // Se modal fechado sem clicar nos botões
+                    };
+                    
+                    confirmBtn.addEventListener('click', confirmHandler);
+                    cancelBtn.addEventListener('click', cancelHandler);
+                    modal.addEventListener('hidden.bs.modal', hiddenHandler);
+                    
+                    bsModal.show();
+                });
+            };
+
+            // Função para popular lista de linhas existentes
+            window.populateExistingLinesList = function(lines) {
+                console.log('populateExistingLinesList chamado com', Object.keys(lines || {}).length, 'linhas');
+                const container = document.getElementById('existingLinesList');
+                if (!container) {
+                    console.warn('Container existingLinesList não encontrado');
+                    return;
+                }
+                container.innerHTML = '';
+                const dropdownContainer = document.getElementById('dropdownLinesList');
+                if (dropdownContainer) dropdownContainer.innerHTML = '';
+                
+                
+                if (!lines || Object.keys(lines).length === 0) {
+                    console.log('Nenhuma linha para mostrar');
+                    container.innerHTML = `
+                        <div class="list-group-item text-center text-muted py-3">
+                            <i class="bi bi-inbox me-2"></i> Nenhuma linha cadastrada
+                        </div>
+                    `;
+                    return;
+                }
+                
+                Object.entries(lines).forEach(([key, line]) => {
+                    const lineElement = document.createElement('div');
+                    lineElement.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+                    lineElement.dataset.lineKey = key;
+                    lineElement.dataset.lineCode = line.code || line.id || key;
+                    lineElement.dataset.lineName = line.destination || line.nome || '';
+                    lineElement.dataset.lineVia = line.via || '';
+                    
+                    // Checkbox para dropdown
+                    if (dropdownContainer) {
+                        const dropdownCheckbox = document.createElement('input');
+                        dropdownCheckbox.type = 'checkbox';
+                        dropdownCheckbox.className = 'form-check-input dropdown-line-checkbox';
+                        dropdownCheckbox.dataset.lineKey = key;
+                        dropdownCheckbox.dataset.lineCode = line.code || line.id || key;
+                        dropdownCheckbox.dataset.lineName = line.destination || line.nome || '';
+                        dropdownCheckbox.dataset.lineVia = line.via || '';
+                        
+                        const label = document.createElement('label');
+                        label.className = 'form-check-label d-flex align-items-center small';
+                        label.style.cursor = 'pointer';
+                        label.appendChild(dropdownCheckbox);
+                        label.appendChild(document.createTextNode(` ${line.code || line.id || key} - ${line.destination || line.nome || ''}`));
+                        
+                        const div = document.createElement('div');
+                        div.className = 'form-check py-1';
+                        div.appendChild(label);
+                        dropdownContainer.appendChild(div);
+                    }
+                    
+                    
+                    // Conteúdo da linha
+                    const lineContent = document.createElement('div');
+                    lineContent.className = 'flex-grow-1';
+                    lineContent.innerHTML = `
+                        <div>
+                            <div class="fw-bold small">${line.code || line.id || key}</div>
+                            <div class="text-muted small">${line.destination || line.nome || ''} ${line.via || line.subtitle ? `• ${line.via || line.subtitle}` : ''}</div>
+                        </div>
+                    `;
+                    
+                    // Criar botão de edição com evento seguro
+                    const editButton = document.createElement('button');
+                    editButton.className = 'btn btn-outline-primary btn-sm';
+                    editButton.innerHTML = '<i class="bi bi-pencil"></i>';
+                    editButton.onclick = () => window.openLineModal(line, key);
+                    
+                    // Criar botão de exclusão
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'btn btn-outline-danger btn-sm';
+                    deleteButton.innerHTML = '<i class="bi bi-trash"></i>';
+                    deleteButton.onclick = () => window.deleteLineFromList(key);
+                    
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.className = 'd-flex gap-1';
+                    buttonContainer.appendChild(editButton);
+                    buttonContainer.appendChild(deleteButton);
+                    
+                    lineElement.appendChild(lineContent);
+                    lineElement.appendChild(buttonContainer);
+                    container.appendChild(lineElement);
+                });
+                // Marcar que as linhas foram carregadas (para evitar sobrescrita pelo fallback)
+                window.linesLoaded = true;
+                
+                // Configurar busca e seleção
+                setTimeout(() => {
+                    // Configurar busca no dropdown
+                    const dropdownSearchInput = document.getElementById('dropdownLineSearch');
+                    if (dropdownSearchInput) {
+                        dropdownSearchInput.addEventListener('input', (e) => filterDropdownLines(e.target.value));
+                    }
+                    // Configurar botões de seleção no dropdown
+                    setupDropdownSelection();
+                }, 0);
+            };
+
+            // Funções de busca e seleção de linhas
+            function filterLinesBySearch(searchTerm) {
+                const items = document.querySelectorAll('#existingLinesList .list-group-item');
+                searchTerm = searchTerm.toLowerCase().trim();
+                items.forEach(item => {
+                    const code = item.dataset.lineCode || '';
+                    const name = item.dataset.lineName || '';
+                    const via = item.dataset.lineVia || '';
+                    const text = (code + ' ' + name + ' ' + via).toLowerCase();
+                    const matches = text.includes(searchTerm);
+                    item.style.display = matches ? '' : 'none';
+                });
+            }
+            
+            function setupLineSelection() {
+                const selectAllCheckbox = document.getElementById('selectAllLines');
+                const lineCheckboxes = document.querySelectorAll('.line-checkbox');
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.addEventListener('change', function() {
+                        const isChecked = this.checked;
+                        lineCheckboxes.forEach(cb => cb.checked = isChecked);
+                    });
+                }
+                // Evento para cada checkbox individual
+                lineCheckboxes.forEach(cb => {
+                    cb.addEventListener('change', function() {
+                        // Atualizar o estado do "select all"
+                        if (selectAllCheckbox) {
+                            const allChecked = Array.from(lineCheckboxes).every(c => c.checked);
+                            selectAllCheckbox.checked = allChecked;
+                        }
+                    });
+                });
+            }
+            
+            function filterDropdownLines(searchTerm) {
+                const dropdownItems = document.querySelectorAll('#dropdownLinesList .form-check');
+                searchTerm = searchTerm.toLowerCase().trim();
+                dropdownItems.forEach(item => {
+                    const checkbox = item.querySelector('.dropdown-line-checkbox');
+                    const code = checkbox?.dataset.lineCode || '';
+                    const name = checkbox?.dataset.lineName || '';
+                    const via = checkbox?.dataset.lineVia || '';
+                    const text = (code + ' ' + name + ' ' + via).toLowerCase();
+                    const matches = text.includes(searchTerm);
+                    item.style.display = matches ? '' : 'none';
+                });
+            }
+            
+            function setupDropdownSelection() {
+                const selectAllBtn = document.getElementById('dropdownSelectAll');
+                const deselectAllBtn = document.getElementById('dropdownDeselectAll');
+                const selectedCountBadge = document.getElementById('selectedCountBadge');
+                const dropdownCheckboxes = document.querySelectorAll('.dropdown-line-checkbox');
+                
+                function updateSelectedCount() {
+                    const selected = Array.from(dropdownCheckboxes).filter(cb => cb.checked).length;
+                    if (selectedCountBadge) {
+                        selectedCountBadge.textContent = selected;
+                        // Optional: change badge color based on count
+                        selectedCountBadge.className = 'badge ms-1 ' + (selected > 0 ? 'bg-primary' : 'bg-secondary');
+                    }
+                }
+                
+                if (selectAllBtn) {
+                    selectAllBtn.addEventListener('click', () => {
+                        dropdownCheckboxes.forEach(cb => cb.checked = true);
+                        updateSelectedCount();
+                    });
+                }
+                if (deselectAllBtn) {
+                    deselectAllBtn.addEventListener('click', () => {
+                        dropdownCheckboxes.forEach(cb => cb.checked = false);
+                        updateSelectedCount();
+                    });
+                }
+                dropdownCheckboxes.forEach(cb => {
+                    cb.addEventListener('change', updateSelectedCount);
+                });
+                // Initialize count
+                updateSelectedCount();
+            }
+            
+
+            // Função para deletar linha (integrada com Firebase)
+            window.deleteLineFromList = async function(lineKey) {
+                const confirmed = await window.showLineConfirm('Tem certeza que deseja excluir esta linha?');
+                if (!confirmed) {
+                    return;
+                }
+                try {
+                    await window.deleteLineFromFirestore(lineKey);
+                    window.showLineAlert('Linha excluída com sucesso!', 'success');
+                } catch (error) {
+                    console.error('Erro ao excluir linha:', error);
+                    window.showLineAlert('Erro ao excluir linha: ' + error.message, 'danger');
+                }
+            };
+
+            // Verificar se já existem linhas carregadas (caso a página tenha sido carregada após uma atualização)
+            (function checkExistingLines() {
+                const container = document.getElementById('existingLinesList');
+                if (container && container.children.length > 0) {
+                    window.linesLoaded = true;
+                }
+            })();
+
+            // Tentar se conectar ao subscribeLines existente se disponível
+            // O subscribeLines pode estar disponível via window após o carregamento do bundle
+            const checkSubscribeLines = () => {
+                if (typeof window.subscribeLines === 'function') {
+                    window.subscribeLines(window.populateExistingLinesList);
+                    window.subscribeLinesConnected = true;
+                } else if (typeof subscribeLines === 'function') {
+                    subscribeLines(window.populateExistingLinesList);
+                    window.subscribeLinesConnected = true;
+                } else {
+                    // Fallback: mostrar mensagem apenas se as linhas ainda não foram carregadas
+                    if (window.linesLoaded) {
+                        // Já carregou, não fazer nada
+                        return;
+                    }
+                    const container = document.getElementById('existingLinesList');
+                    if (container && container.children.length === 0) {
+                        // Só mostra mensagem se o container estiver vazio
+                        container.innerHTML = `
+                            <div class="list-group-item text-center text-muted py-3">
+                                <i class="bi bi-plug me-2"></i> Aguardando conexão com o banco de dados...
+                            </div>
+                        `;
+                    }
+                    // Tentar novamente após um delay (mas apenas se ainda não houver tentativa bem-sucedida)
+                    if (!window.subscribeLinesConnected) {
+                        setTimeout(checkSubscribeLines, 1000);
+                    }
+                }
+            };
+            
+            // Iniciar verificação
+            checkSubscribeLines();
+
+            // Garantir que o formulário esteja escondido inicialmente e quando o modal for aberto
+            const lineModalElement = document.getElementById('lineModal');
+            if (lineModalElement) {
+                // Função para esconder formulário e limpar campos
+                const hideForm = function() {
+                    console.log('Escondendo formulário de linha');
+                    window.toggleLineForm(false);
+                    document.getElementById('backToListBtn').style.display = 'none';
+                    document.getElementById('deleteLineBtn').style.display = 'none';
+                    // Limpar campos
+                    document.getElementById('lineCode').value = '';
+                    document.getElementById('lineDestination').value = '';
+                    document.getElementById('lineVia').value = '';
+                    document.getElementById('lineDepartureLocation').value = '';
+                    document.getElementById('lineDepartureTime').value = '';
+                    document.getElementById('lineCenterArrivalTime').value = '';
+                    document.getElementById('lineDestinationArrivalTime').value = '';
+                    document.getElementById('lineCompany').value = '';
+                    document.getElementById('lineColor').value = '#1a73e8';
+                    document.getElementById('lineColorHex').value = '#1a73e8';
+                    document.getElementById('lineResources').value = '';
+                    document.querySelectorAll('.company-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    document.querySelectorAll('.resource-switch').forEach(switchEl => {
+                        switchEl.checked = false;
+                    });
+                };
+                
+                // Executar imediatamente para garantir estado inicial
+                hideForm();
+                
+                // Configurar evento para quando o modal for aberto
+                lineModalElement.addEventListener('show.bs.modal', hideForm);
+                
+                // Também monitorar cliques no botão "Fechar" do modal
+                lineModalElement.addEventListener('hidden.bs.modal', hideForm);
+            }
+        });
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/geohash-js/1.0.0/geohash.min.js"></script>
 
     <script type="module">
-        import { initApp } from './core/app.js';
+        import { initApp } from './dist/bundle.js';
         window.onload = () => initApp();
     </script>
+    <script type="module" src="./modules/editorMode.js"></script>
+    <script type="module" src="./modules/lineManager.js"></script>
+
+    <!-- Modal de confirmação personalizado -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content modern-modal">
+                <div class="modal-header modern-modal-header">
+                    <h6 class="modal-title"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Confirmar exclusão</h6>
+                    <button type="button" class="btn-close-modal" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="modal-body modern-modal-body p-3">
+                    <p class="small mb-0" id="confirmDeleteMessage">Tem certeza que deseja excluir esta linha?</p>
+                </div>
+                <div class="modal-footer modern-modal-footer p-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="confirmDeleteCancel">Não</button>
+                    <button type="button" class="btn btn-danger btn-sm" id="confirmDeleteConfirm">Sim, excluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
+
+
+
+

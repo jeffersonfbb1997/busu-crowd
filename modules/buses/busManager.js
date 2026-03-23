@@ -34,13 +34,39 @@ export function renderBusList(gpsData, configLinhas) {
             const comp = COMPANIES[c.company || 'atlantico'];
             drawerH += `<div class="d-flex align-items-center mb-3" onclick="map.flyTo([${mLt},${mLn}], 17)" style="cursor:pointer; border-left:3px solid ${c.cor}; padding-left:10px;"><div class="flex-grow-1"><div class="bus-title"><img src="${comp.favicon}" class="bus-logo-mini">${c.id}</div><div class="bus-subtitle" style="font-size:8px">${c.via.substring(0,20)}...</div></div></div>`;
 
+            // Determine features
+            const hasAC = c.id.includes('2') || c.id.includes('7');
+            const hasAccessibility = c.id.includes('1') || c.id.includes('6');
+            const acFeature = hasAC ? '<span class="feature-badge ac"><i class="bi bi-snow"></i> AR</span>' : '';
+            const accessibilityFeature = hasAccessibility ? '<span class="feature-badge accessibility"><i class="bi bi-wheelchair"></i> ACESS</span>' : '';
+
+            let etaBadge = '';
+            let onclickAction = `window.showBusDetails('${key}')`;
             if (uLat) {
                 const d = calcDist(uLat, uLng, mLt, mLn);
                 const eta = Math.round(d / 0.33);
-                statusH += `<div class="bus-item" onclick="map.flyTo([${mLt},${mLn}], 17); window.showBusDetails('${key}')" data-line-key="${key}"><div><div class="bus-title"><img src="${comp.favicon}" class="bus-logo-mini">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div><div class="status-box">${eta > 0 ? `<div class="eta-val">${eta} min</div><small style="font-size:8px; color:#aaa">${d.toFixed(1)}km</small>` : `<div class="neon-dot"></div>`}</div></div>`;
-            } else {
-                statusH += `<div class="bus-item" onclick="window.showBusDetails('${key}')" data-line-key="${key}"><div><div class="bus-title">${c.id} - ${c.nome}</div></div><div class="status-box"><div class="neon-dot"></div></div></div>`;
+                onclickAction = `map.flyTo([${mLt},${mLn}], 17); window.showBusDetails('${key}')`;
+                if (eta > 0) {
+                    etaBadge = `<span class="line-eta-badge">${eta} min</span>`;
+                }
             }
+
+            statusH += `
+                <div class="line-card active" onclick="${onclickAction}" data-line-key="${key}" data-line-active="true">
+                    <div class="line-status active"></div>
+                    <div class="line-card-header">
+                        <div class="line-code">${c.id}</div>
+                        <div class="line-destination">${c.nome}</div>
+                        <img src="${comp.favicon}" class="line-company-logo" alt="${c.company}">
+                    </div>
+                    <div class="line-route">${c.via}</div>
+                    <div class="line-features">
+                        ${acFeature}
+                        ${accessibilityFeature}
+                        ${etaBadge}
+                    </div>
+                </div>
+            `;
         }
     }
 

@@ -2,13 +2,17 @@ import { db, auth, ADMIN_EMAIL } from '../services/firebaseService.js';
 import { login, logout, subscribeToAuthChanges, isUserAdmin } from '../services/authService.js';
 import { initParametersListener } from '../services/parametersService.js';
 import { initTimeService } from '../services/timeService.js';
+import { subscribeLines, saveLine as saveLineToFirestore, deleteLine as deleteLineFromFirestore, subscribeParameters } from '../services/firestoreService.js';
 import { initMap } from '../modules/map/mapInit.js';
+import { initDefaultLayers, LAYER, addLayer, ensureLayerGroup } from '../modules/map/mapLayers.js';
+import { initMapControls } from '../modules/map/mapControls.js';
 import { state, updateState } from './stateManager.js';
 import { iniciarGPS, stopTrack } from '../modules/gps/gpsCollector.js';
 import { renderBusList } from '../modules/buses/busManager.js';
 import { renderBusMarkers } from '../modules/buses/busRenderer.js';
 import { toggleSidebar, switchView, toggleDrawer, toggleBottomCard } from '../ui/panels/sidebar.js';
 import { onMapClickForRoute, selectLineForRoute, saveRouteData, clearCurrentDraft } from '../admin/mapEditor/routeEditor.js';
+import { initStopEditor } from '../admin/mapEditor/stopEditor.js';
 import { COMPANIES } from '../config/systemConfig.js';
 import { calcDist } from '../utils/geoUtils.js';
 import { updateUserPointer, centerMapOnPointer, initPointerService } from '../services/pointerService.js';
@@ -16,6 +20,8 @@ import { updateUserPointer, centerMapOnPointer, initPointerService } from '../se
 import { ref, set, onValue, onDisconnect, remove, push } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
 export function initApp() {
+    console.time('initApp total');
+    console.time('initApp map');
     // Check if Leaflet is available
     if (typeof L === 'undefined') {
         console.error('Leaflet (L) is not defined. Make sure Leaflet script is loaded before this module.');
@@ -40,6 +46,36 @@ export function initApp() {
     }
     
     state.map = map;
+    console.timeEnd('initApp map');
+    
+    // Initialize map layers and controls
+    console.time('initApp layers');
+    initDefaultLayers();
+    initMapControls(map);
+    initStopEditor(map);
+    console.timeEnd('initApp layers');
+    // Hide layer switcher initially (only visible when editor is active)
+    if (window.mapControls && window.mapControls.hideLayerSwitcher) {
+        console.log('Hiding layer switcher');
+        window.mapControls.hideLayerSwitcher();
+    }
+    // Hide other map controls for common users (only visible in editor mode)
+    if (window.mapControls && window.mapControls.hideZoomControl) {
+        console.log('Hiding zoom control');
+        window.mapControls.hideZoomControl();
+    }
+    if (window.mapControls && window.mapControls.hideScaleControl) {
+        console.log('Hiding scale control');
+        window.mapControls.hideScaleControl();
+    }
+    if (window.mapControls && window.mapControls.hideFullscreenControl) {
+        console.log('Hiding fullscreen control');
+        window.mapControls.hideFullscreenControl();
+    }
+    if (window.mapControls && window.mapControls.hideLegend) {
+        console.log('Hiding legend');
+        window.mapControls.hideLegend();
+    }
     
     // Hide loading indicator
     try {
@@ -51,10 +87,32 @@ export function initApp() {
         console.log('Could not hide loading indicator:', e);
     }
     
+    // Attach layer‑switcher visibility to admin modal
+    const adminModal = document.getElementById('adminModal');
+    if (adminModal) {
+        adminModal.addEventListener('shown.bs.modal', () => {
+            if (window.mapControls && window.mapControls.showLayerSwitcher) window.mapControls.showLayerSwitcher();
+            if (window.mapControls && window.mapControls.showZoomControl) window.mapControls.showZoomControl();
+            if (window.mapControls && window.mapControls.showScaleControl) window.mapControls.showScaleControl();
+            if (window.mapControls && window.mapControls.showFullscreenControl) window.mapControls.showFullscreenControl();
+            if (window.mapControls && window.mapControls.showLegend) window.mapControls.showLegend();
+        });
+        adminModal.addEventListener('hidden.bs.modal', () => {
+            if (window.mapControls && window.mapControls.hideLayerSwitcher) window.mapControls.hideLayerSwitcher();
+            if (window.mapControls && window.mapControls.hideZoomControl) window.mapControls.hideZoomControl();
+            if (window.mapControls && window.mapControls.hideScaleControl) window.mapControls.hideScaleControl();
+            if (window.mapControls && window.mapControls.hideFullscreenControl) window.mapControls.hideFullscreenControl();
+            if (window.mapControls && window.mapControls.hideLegend) window.mapControls.hideLegend();
+        });
+    }
+    
     // Initialize state with error handling
+    ensureLayerGroup(LAYER.ROUTE_DRAFT);
     try {
-        state.draftPolyline = L.polyline([], {color: '#1a73e8', weight: 4}).addTo(map);
-        state.draftMarkers = L.layerGroup().addTo(map);
+        state.draftPolyline = L.polyline([], {color: '#1a73e8', weight: 4});
+        addLayer(LAYER.ROUTE_DRAFT, state.draftPolyline);
+        state.draftMarkers = L.layerGroup();
+        addLayer(LAYER.ROUTE_DRAFT, state.draftMarkers);
     } catch (error) {
         console.warn('Failed to initialize draft elements:', error);
         // Continue without draft elements
@@ -143,13 +201,17 @@ export function initApp() {
     }, 1000);
     
     // Data listeners
+    console.time('initApp data listeners');
     setupDataListeners();
+    console.timeEnd('initApp data listeners');
     
     // Initial geo center - reduced from 2000ms to 500ms for faster loading
     setTimeout(() => geoCenter(), 500);
+    console.timeEnd('initApp total');
 }
 
 function geoCenter() {
+    console.time('initApp geolocation');
     console.log('Starting geoCenter function...');
     
     // Check if map is available
@@ -172,6 +234,7 @@ function geoCenter() {
         centerMapOnPointer(lat, lng, 17);
         
         console.log('User pin created and map centered on user location');
+        console.timeEnd('initApp geolocation');
         
     }, (error) => {
         console.warn('Geolocation error:', error);
@@ -181,6 +244,7 @@ function geoCenter() {
         centerMapOnPointer(defaultLat, defaultLng, 15);
         
         console.log('Geolocation failed, centered on default location');
+        console.timeEnd('initApp geolocation');
         
     }, {enableHighAccuracy: true, timeout: 5000, maximumAge: 0});
 }
@@ -252,19 +316,32 @@ async function handleAuthChange(u) {
 }
 
 function setupDataListeners() {
-    // Lines config listener
-    onValue(ref(db, 'config/linhas'), snap => {
-        const data = snap.val() || {};
-        const grid = document.getElementById('line-selection-grid');
-        const admList = document.getElementById('admin-lines-list-crud');
-        const routeAdminList = document.getElementById('route-admin-list');
-        const plan = document.getElementById('planning-all-lines');
-        
-        grid.innerHTML = ''; admList.innerHTML = ''; routeAdminList.innerHTML = ''; plan.innerHTML = '';
-        let countL = 0;
+    // Lines config listener (Firestore)
+    subscribeLines((lines) => {
+        try {
+            const grid = document.getElementById('line-selection-grid');
+            const admList = document.getElementById('admin-lines-list-crud');
+            const routeAdminList = document.getElementById('route-admin-list');
+            const plan = document.getElementById('planning-all-lines');
+            
+            // Clear elements only if they exist
+            if (grid) grid.innerHTML = '';
+            if (admList) admList.innerHTML = '';
+            if (routeAdminList) routeAdminList.innerHTML = '';
+            if (plan) plan.innerHTML = '';
+            let countL = 0;
 
-        for(let key in data) {
-            const c = data[key]; state.configLinhas[key] = c; countL++;
+        for(let key in lines) {
+            const line = lines[key];
+            // Map Firestore fields to legacy format for compatibility
+            const c = {
+                id: line.lineId,
+                nome: line.name,
+                via: line.via,
+                cor: line.color,
+                company: line.company
+            };
+            state.configLinhas[key] = c; countL++;
             const comp = COMPANIES[c.company || 'atlantico'];
             
             // Modern line card for modal
@@ -277,35 +354,52 @@ function setupDataListeners() {
             const acFeature = hasAC ? '<span class="feature-badge ac"><i class="bi bi-snow"></i> AR</span>' : '';
             const accessibilityFeature = hasAccessibility ? '<span class="feature-badge accessibility"><i class="bi bi-wheelchair"></i> ACESS</span>' : '';
             
-            grid.innerHTML += `
-                <div class="line-card" onclick="window.startTrack('${key}')" data-line-id="${c.id}" data-line-name="${c.nome}" data-line-route="${c.via}" data-line-key="${key}" data-line-active="${isActive}">
-                    <div class="line-status ${isActive ? 'active' : 'inactive'}"></div>
-                    <div class="line-card-header">
-                        <div class="line-code">${c.id}</div>
-                        <div class="line-destination">${c.nome}</div>
-                        <img src="${comp.favicon}" class="line-company-logo" alt="${c.company}">
+            if (grid) {
+                grid.innerHTML += `
+                    <div class="line-card" onclick="window.startTrack('${key}')" data-line-id="${c.id}" data-line-name="${c.nome}" data-line-route="${c.via}" data-line-key="${key}" data-line-active="${isActive}">
+                        <div class="line-status ${isActive ? 'active' : 'inactive'}"></div>
+                        <div class="line-card-header">
+                            <div class="line-code">${c.id}</div>
+                            <div class="line-destination">${c.nome}</div>
+                            <img src="${comp.favicon}" class="line-company-logo" alt="${c.company}">
+                        </div>
+                        <div class="line-route">${c.via || 'Via principal'}</div>
+                        <div class="line-features">
+                            ${acFeature}
+                            ${accessibilityFeature}
+                        </div>
                     </div>
-                    <div class="line-route">${c.via || 'Via principal'}</div>
-                    <div class="line-features">
-                        ${acFeature}
-                        ${accessibilityFeature}
-                    </div>
-                </div>
-            `;
+                `;
+            }
             
-            admList.innerHTML += `
-                <div class="list-group-item bus-item border-bottom px-0" onclick="window.loadLineForEdit('${key}')">
-                    <div class="d-flex align-items-center flex-grow-1">
-                        <img src="${comp.favicon}" class="bus-logo-mini">
-                        <div><div class="bus-title">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div>
-                    </div>
-                    <i class="bi bi-trash text-danger ms-auto px-2 fs-5" onclick="event.stopPropagation(); remove(ref(db, 'config/linhas/${key}'))"></i>
-                </div>`;
+            if (admList) {
+                admList.innerHTML += `
+                    <div class="list-group-item bus-item border-bottom px-0" onclick="window.loadLineForEdit('${key}')">
+                        <div class="d-flex align-items-center flex-grow-1">
+                            <img src="${comp.favicon}" class="bus-logo-mini">
+                            <div><div class="bus-title">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div>
+                        </div>
+                        <i class="bi bi-trash text-danger ms-auto px-2 fs-5" onclick="event.stopPropagation(); deleteLineFirestore('${key}')"></i>
+                    </div>`;
+            }
 
-            routeAdminList.innerHTML += `<div class="list-group-item adm-route-item p-2 small border-bottom" onclick="window.selectLineForRoute('${key}')"><img src="${comp.favicon}" width="12" class="me-2"><b>${c.id}</b> - ${c.via}</div>`;
-            plan.innerHTML += `<button class="nav-item-custom border-bottom" onclick="if(state.markers['${key}']) state.map.flyTo(state.markers['${key}'].getLatLng(), 17); window.toggleSidebar();"><img src="${comp.favicon}" class="bus-logo-mini"><div><div class="fw-bold">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div></button>`;
+            if (routeAdminList) {
+                routeAdminList.innerHTML += `<div class="list-group-item adm-route-item p-2 small border-bottom" onclick="window.selectLineForRoute('${key}')"><img src="${comp.favicon}" width="12" class="me-2"><b>${c.id}</b> - ${c.via}</div>`;
+            }
+            
+            if (plan) {
+                plan.innerHTML += `<button class="nav-item-custom border-bottom" onclick="if(state.markers['${key}']) state.map.flyTo(state.markers['${key}'].getLatLng(), 17); window.toggleSidebar();"><img src="${comp.favicon}" class="bus-logo-mini"><div><div class="fw-bold">${c.id} - ${c.nome}</div><div class="bus-subtitle">${c.via}</div></div></button>`;
+            }
         }
-        document.getElementById('stat-lines').innerText = countL;
+        
+        const statLinesElement = document.getElementById('stat-lines');
+        if (statLinesElement) {
+            statLinesElement.innerText = countL;
+        }
+        } catch (error) {
+            console.error('Error in subscribeLines callback:', error);
+            // Don't throw the error to prevent breaking the listener
+        }
     });
 
     // GPS data listener
@@ -361,13 +455,23 @@ function saveLine() {
     // If editing an existing line, use the existing key from admDbKey
     const key = document.getElementById('admDbKey').value || id;
     if(!id) return alert("Erro");
-    set(ref(db, `config/linhas/${key}`), {
+    saveLineToFirestore(key, {
         id,
         nome: document.getElementById('admNome').value,
         via: document.getElementById('admVia').value || "Principal",
         cor: document.getElementById('admCor').value,
         company: state.adminSelectedCompany
     }).then(() => { alert("OK"); clearAdminForm(); });
+}
+
+function deleteLineFirestore(key) {
+    if (!confirm("Tem certeza que deseja excluir esta linha?")) return;
+    deleteLineFromFirestore(key).then(() => {
+        alert("Linha excluída.");
+    }).catch(err => {
+        console.error(err);
+        alert("Erro ao excluir.");
+    });
 }
 
 function openRouteManager() { 
@@ -804,22 +908,28 @@ function initModalSearch() {
     
     if (!searchInput) return;
     
-    // Clear search button
-    clearSearchBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        filterLines();
-        searchInput.focus();
-    });
-    
-    // Search input event
-    searchInput.addEventListener('input', () => {
-        filterLines();
-    });
-    
-    // Show active only checkbox
-    showActiveOnlyCheckbox.addEventListener('change', () => {
-        filterLines();
-    });
+    // Event delegation for modal search interactions (optimized)
+    const modalLine = document.getElementById('modalLine');
+    if (modalLine) {
+        modalLine.addEventListener('click', (e) => {
+            if (e.target.id === 'clear-search') {
+                searchInput.value = '';
+                filterLines();
+                searchInput.focus();
+                e.preventDefault();
+            }
+        });
+        modalLine.addEventListener('input', (e) => {
+            if (e.target.id === 'line-search-input') {
+                filterLines();
+            }
+        });
+        modalLine.addEventListener('change', (e) => {
+            if (e.target.id === 'show-active-only') {
+                filterLines();
+            }
+        });
+    }
     
     // Filter lines based on search and active filter
     function filterLines() {
@@ -883,8 +993,7 @@ function initModalSearch() {
         }
     }
     
-    // Initialize filter on modal show
-    const modalLine = document.getElementById('modalLine');
+    // Initialize filter on modal show (use existing modalLine variable)
     if (modalLine) {
         modalLine.addEventListener('shown.bs.modal', () => {
             setTimeout(filterLines, 100); // Small delay to ensure cards are rendered
@@ -905,6 +1014,7 @@ window.saveSystemParameters = saveSystemParameters;
 window.loadCurrentParameters = loadCurrentParameters;
 window.forceTTLCleanup = forceTTLCleanup;
 window.deleteLine = deleteLine;
+window.deleteLineFirestore = deleteLineFirestore;
 window.updateHealthMetricsDisplay = updateHealthMetricsDisplay;
 window.applyAdminSecurity = applyAdminSecurity;
 
